@@ -6,7 +6,7 @@ documentation set.
 ## Project guides
 
 - [Technical design](syrupy-mdast-design.md) defines the comparison contract,
-  mixed Python and Bun architecture, canonical mdast format, and verification
+  Python-only Wenmode architecture, canonical AST format, and verification
   properties.
 - [Development roadmap](roadmap.md) translates the technical design into
   dependency-aware, outcome-oriented implementation slices.
