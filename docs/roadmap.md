@@ -29,8 +29,18 @@ outcome bounds every parser, serializer, and compatibility decision. See the
   - Remove the generated `hello` API and document the compatibility policy.
   - Success: import and API-stability checks expose only the names defined in
     design §6.
-- [ ] 1.1.2. Create the canonical Markdown contract corpus.
+- [ ] 1.1.2. Record the parser-profile and snapshot-version policy in an ADR.
   - Requires 1.1.1.
+  - Fix the exact Wenmode release and its GitHub profile as v1.
+  - Version the parser profile, normalization policy, comparison contract, and
+    their normative fixtures together.
+  - Record resolved ordinary references, structural footnotes, omitted
+    nullable fields, and Wenmode's GitHub HTML policy.
+  - See design §§7, 13, and 15.
+  - Success: the explicitly versioned ADR is accepted before implementation or
+    normative fixtures encode its decisions.
+- [ ] 1.1.3. Create the canonical Markdown contract corpus.
+  - Requires 1.1.2.
   - Pair syntax-equivalent emphasis, line-ending, and direct/reference-link
     inputs.
   - Include distinct hard breaks, code whitespace, list ordering, table
@@ -39,14 +49,6 @@ outcome bounds every parser, serializer, and compatibility decision. See the
     references.
   - Success: every normalization and preservation rule in design §8 maps to a
     focused, reviewer-readable fixture.
-- [ ] 1.1.3. Record the parser-profile and snapshot-version policy in an ADR.
-  - Requires 1.1.2.
-  - Fix the exact Wenmode release and its GitHub profile as v1.
-  - Record resolved ordinary references, structural footnotes, omitted
-    nullable fields, and Wenmode's GitHub HTML policy.
-  - See design §§7, 13, and 15.
-  - Success: later parser changes have an accepted migration process rather
-    than silently changing snapshots.
 
 ### 1.2. Prove the Python-only dependency boundary
 
@@ -116,17 +118,22 @@ and 12.
   - Requires 2.1.2.
   - Re-serialize valid trees as UTF-8, two-space JSON with unescaped Unicode
     and one final newline.
-  - Reject source above the documented UTF-8 byte limit before parsing.
+  - Define the shared `MAX_INPUT_BYTES = 1_048_576` limit and reject source
+    whose UTF-8 encoding exceeds it before calling Wenmode.
   - Success: source-tree and installed-wheel calls return byte-identical
-    payloads using Python dependencies only.
+    payloads using Python dependencies only, and boundary tests accept the
+    limit and reject the next UTF-8 byte.
 - [ ] 2.2.2. Implement narrow failure translation.
   - Requires 2.2.1.
   - Preserve `TypeError` and `ValueError` for caller contract errors.
   - Translate documented Wenmode parse failures and invalid AST or JSON output
     to `MarkdownAstError` without catching unrelated programming failures.
-  - Cap diagnostics and avoid echoing complete source documents.
-  - Success: every failure in design §9 has its declared type and a bounded,
-    actionable message.
+  - Define the shared `MAX_DIAGNOSTIC_EXCERPT_CHARS = 512` limit and enforce it
+    while failure translation constructs public messages, without echoing
+    complete source documents.
+  - Success: every failure in design §9 has its declared type and an actionable
+    message; boundary tests accept 512-character excerpts and truncate longer
+    excerpts.
 
 ### 2.3. Make canonical trees a native Syrupy assertion
 
@@ -135,10 +142,12 @@ and diff lifecycle without a parallel snapshot mechanism. See design §§6 and 1
 
 - [ ] 2.3.1. Implement `MarkdownAstSnapshotExtension`.
   - Requires steps 2.1-2.2.
-  - Subclass `SingleFileSnapshotExtension`, select text mode and `.mdast.json`,
-    accept only `str`, and reject unsupported Syrupy property controls.
+  - Subclass `SingleFileSnapshotExtension`, set
+    `file_extension = "mdast.json"` and `_write_mode = WriteMode.TEXT`, accept
+    only `str`, and reject unsupported Syrupy property controls.
   - Success: create, compare, update, and delete operations use Syrupy's native
-    lifecycle and produce readable JSON diffs.
+    single-file lifecycle, producing one readable text `.mdast.json` snapshot
+    per assertion and readable JSON diffs.
 - [ ] 2.3.2. Publish the documented pytest fixture recipe.
   - Requires 2.3.1.
   - Demonstrate `snapshot.with_defaults(extension_class=...)` with a typed

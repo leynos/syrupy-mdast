@@ -150,8 +150,20 @@ from syrupy_mdast import MarkdownAstError, MarkdownAstSnapshotExtension
 ```
 
 `MarkdownAstSnapshotExtension` accepts only `str` values and subclasses
-`SingleFileSnapshotExtension`. It sets `file_extension = "mdast.json"` and uses
-Syrupy's text write mode. Non-string inputs raise `TypeError` before parsing.
+`SingleFileSnapshotExtension`. It uses Syrupy's concrete single-file hooks:
+
+```python
+from syrupy.extensions.single_file import SingleFileSnapshotExtension, WriteMode
+
+
+class MarkdownAstSnapshotExtension(SingleFileSnapshotExtension):
+    file_extension = "mdast.json"
+    _write_mode = WriteMode.TEXT
+```
+
+`file_extension` is deliberately not `_file_extension`: the supported Syrupy
+API reads the public class attribute when constructing snapshot paths.
+Non-string inputs raise `TypeError` before parsing.
 
 Callers select the extension through Syrupy's existing API:
 
@@ -310,10 +322,13 @@ flow.
 
 _Table 2: Failure categories and diagnostics._
 
-The extension rejects inputs above a documented UTF-8 byte limit before parsing
-and caps diagnostic excerpts. It does not echo the complete Markdown source.
-Because parsing is in-process, v1 does not claim a portable hard wall-clock
-timeout or crash isolation.
+The implementation defines `MAX_INPUT_BYTES = 1_048_576` and
+`MAX_DIAGNOSTIC_EXCERPT_CHARS = 512` as the shared resource limits. The parser
+boundary rejects input whose UTF-8 encoding exceeds `MAX_INPUT_BYTES` before
+calling Wenmode. Failure translation truncates any source excerpt to
+`MAX_DIAGNOSTIC_EXCERPT_CHARS` while constructing the public diagnostic, and
+never echoes the complete Markdown source. Because parsing is in-process, v1
+does not claim a portable hard wall-clock timeout or crash isolation.
 
 ## 10. Snapshot storage and concurrency
 
@@ -359,6 +374,11 @@ classified as harmless representation, intentional policy, or an
 incompatibility requiring a fixture or upstream report. The resulting v1
 fixtures, not the JavaScript tool, become the lasting oracle.
 
+The parser profile, normalization policy, comparison contract, and normative
+fixtures are versioned together. Implementing a new version or changing any of
+those elements requires an explicitly versioned, accepted ADR before its
+normative fixtures or implementation are committed.
+
 Parser conformance remains Wenmode's responsibility. This project verifies the
 selected profile, normalization policy, dependency boundary, and observable
 Syrupy behaviour.
@@ -369,11 +389,15 @@ V1 snapshots repository-controlled Markdown used by a test suite. The parser
 receives a Python string and neither this package nor Wenmode's documented
 parsing path requires file, network, shell, or dynamic package access.
 
-The extension rejects inputs above a documented UTF-8 byte limit before parse
-and relies on Wenmode's parser protections for pathological nesting. Wenmode's
-GitHub profile also applies its documented disallowed-HTML parsing policy.[^5]
-These controls limit common resource and rendering hazards but do not provide
-process isolation or a portable timeout.
+At the parser boundary, the extension measures the UTF-8 encoding and rejects
+inputs above `MAX_INPUT_BYTES` (1,048,576 bytes) before calling Wenmode. During
+failure translation, public diagnostic construction limits source excerpts to
+`MAX_DIAGNOSTIC_EXCERPT_CHARS` (512 Unicode characters). Both constants are
+shared definitions consumed by implementation and boundary tests. The
+extension relies on Wenmode's parser protections for pathological nesting.
+Wenmode's GitHub profile also applies its documented disallowed-HTML parsing
+policy.[^5] These controls limit common resource and rendering hazards but do
+not provide process isolation or a portable timeout.
 
 Projects that parse hostile input or require a hard execution deadline are
 outside v1's threat model. Adding that use case requires a design update for a
