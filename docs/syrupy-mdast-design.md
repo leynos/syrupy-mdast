@@ -325,10 +325,16 @@ _Table 2: Failure categories and diagnostics._
 The implementation defines `MAX_INPUT_BYTES = 1_048_576` and
 `MAX_DIAGNOSTIC_EXCERPT_CHARS = 512` as the shared resource limits. The parser
 boundary rejects input whose UTF-8 encoding exceeds `MAX_INPUT_BYTES` before
-calling Wenmode. Failure translation truncates any source excerpt to
-`MAX_DIAGNOSTIC_EXCERPT_CHARS` while constructing the public diagnostic, and
-never echoes the complete Markdown source. Because parsing is in-process, v1
-does not claim a portable hard wall-clock timeout or crash isolation.
+calling Wenmode. Failure translation first escapes every C0 control character
+(`U+0000`-`U+001F`), `ESC` (`U+001B`), `DEL` (`U+007F`), and C1 control
+character (`U+0080`-`U+009F`) as an uppercase, fixed-width `\uXXXX` sequence.
+It then truncates the escaped excerpt to at most
+`MAX_DIAGNOSTIC_EXCERPT_CHARS`, without splitting an escape sequence, before
+constructing the public diagnostic. Tests cover each control range, `ESC`,
+escaping expansion at the limit, and truncation immediately before and after an
+escape sequence. Diagnostics never echo the complete Markdown source. Because
+parsing is in-process, v1 does not claim a portable hard wall-clock timeout or
+crash isolation.
 
 ## 10. Snapshot storage and concurrency
 
@@ -391,13 +397,15 @@ parsing path requires file, network, shell, or dynamic package access.
 
 At the parser boundary, the extension measures the UTF-8 encoding and rejects
 inputs above `MAX_INPUT_BYTES` (1,048,576 bytes) before calling Wenmode. During
-failure translation, public diagnostic construction limits source excerpts to
-`MAX_DIAGNOSTIC_EXCERPT_CHARS` (512 Unicode characters). Both constants are
-shared definitions consumed by implementation and boundary tests. The
-extension relies on Wenmode's parser protections for pathological nesting.
-Wenmode's GitHub profile also applies its documented disallowed-HTML parsing
-policy.[^5] These controls limit common resource and rendering hazards but do
-not provide process isolation or a portable timeout.
+failure translation, public diagnostic construction escapes C0 and C1 control
+characters, including `ESC` and `DEL`, before limiting the escaped excerpt to
+`MAX_DIAGNOSTIC_EXCERPT_CHARS` (512 characters). It never splits a `\uXXXX`
+escape at the limit. Both constants and the escaping policy are shared
+definitions consumed by implementation and boundary tests. The extension relies
+on Wenmode's parser protections for pathological nesting. Wenmode's GitHub
+profile also applies its documented disallowed-HTML parsing policy.[^5] These
+controls limit common resource and rendering hazards but do not provide process
+isolation or a portable timeout.
 
 Projects that parse hostile input or require a hard execution deadline are
 outside v1's threat model. Adding that use case requires a design update for a

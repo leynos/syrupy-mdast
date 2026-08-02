@@ -91,7 +91,7 @@ produce a stable, conservative tree contract. Its result determines whether the
 Python extension is safe to expose. See design §§7-8 and §11.
 
 - [ ] 2.1.1. Implement GitHub-profile Markdown parsing.
-  - Requires 1.1.2 and 1.2.2.
+  - Requires 1.1.2, 1.2.2, and 1.2.3.
   - Parse strings through `Parser(github, positions=False)` and obtain ordinary
     Python data through `to_ast()`.
   - Validate that the result is a root mapping with a children array.
@@ -158,9 +158,10 @@ and diff lifecycle without a parallel snapshot mechanism. See design §§6 and 1
 
 ### 2.4. Demonstrate supported combinations end to end
 
-This step answers whether packaging, parser semantics, errors, and worker
-isolation work together rather than only behind mocked boundaries. See design
-§§10-11 and §16.
+This step answers whether packaging, parser semantics, errors, and independent
+pytest-xdist parser instances work together rather than only behind mocked
+boundaries. Parsing remains in-process by default; v1 provides neither a Python
+worker nor crash or process isolation. See design §§10-11 and §16.
 
 - [ ] 2.4.1. Build the installed-wheel end-to-end suite.
   - Requires 2.3.2.
