@@ -24,8 +24,8 @@ outcome bounds every parser, serializer, and compatibility decision. See the
 
 - [ ] 1.1.1. Replace the generated package stub with the v1 public contract.
   - Declare the supported Python and Syrupy ranges in `pyproject.toml`.
-  - Export the extension and base domain error without exposing parser
-    internals.
+  - Define the base domain error in a dependency-free core and export it with
+    the extension without exposing parser internals.
   - Remove the generated `hello` API and document the compatibility policy.
   - Success: import and API-stability checks expose only the names defined in
     design §6.
@@ -63,7 +63,7 @@ boundary before parsing logic depends on it.
     lockfile, or installed JavaScript package assets.
   - Success: an isolated Python installation imports the selected Wenmode
     release without a JavaScript runtime or network access at parse time.
-- [ ] 1.2.2. Define the narrow internal parser seam.
+- [ ] 1.2.2. Define the narrow internal Wenmode adapter seam.
   - Requires 1.2.1.
   - Construct `Parser(github, positions=False)` once per Python process.
   - Return Wenmode's public `to_ast()` data without a speculative pluggable
@@ -105,8 +105,12 @@ Python extension is safe to expose. See design §§7-8 and §11.
     non-empty `data`, and array order; do not synthesize omitted `null` fields.
   - Verify idempotence, position invariance, and line-ending invariance with
     property-generated JSON trees.
+  - Keep canonicalization and AST-shape validation in a dependency-free domain
+    core with no Wenmode or Syrupy imports.
   - Success: the corpus detects every named preservation change while each
-    equivalence pair produces identical normalized JSON.
+    equivalence pair produces identical normalized JSON; core tests run without
+    infrastructure dependencies, and an architecture test enforces the import
+    boundary.
 
 ### 2.2. Deliver bounded in-process parsing and serialization
 
@@ -118,6 +122,8 @@ and 12.
   - Requires 2.1.2.
   - Re-serialize valid trees as UTF-8, two-space JSON with unescaped Unicode
     and one final newline.
+  - Keep JSON serialization behind a narrow adapter that accepts only a
+    validated canonical tree.
   - Define the shared `MAX_INPUT_BYTES = 1_048_576` limit and reject source
     whose UTF-8 encoding exceeds it before calling Wenmode.
   - Success: source-tree and installed-wheel calls return byte-identical
@@ -127,7 +133,8 @@ and 12.
   - Requires 2.2.1.
   - Preserve `TypeError` and `ValueError` for caller contract errors.
   - Translate documented Wenmode parse failures and invalid AST or JSON output
-    to `MarkdownAstError` without catching unrelated programming failures.
+    to the core `MarkdownAstError` at the application pipeline boundary without
+    catching unrelated programming failures.
   - Define the shared `MAX_DIAGNOSTIC_EXCERPT_CHARS = 512` limit and enforce it
     while failure translation constructs public messages, without echoing
     complete source documents.
@@ -145,6 +152,9 @@ and diff lifecycle without a parallel snapshot mechanism. See design §§6 and 1
   - Subclass `SingleFileSnapshotExtension`, set
     `file_extension = "mdast.json"` and `_write_mode = WriteMode.TEXT`, accept
     only `str`, and reject unsupported Syrupy property controls.
+  - Keep the extension as a thin Syrupy adapter that delegates parsing,
+    canonicalization, failure translation, and serialization to the internal
+    application pipeline.
   - Success: create, compare, update, and delete operations use Syrupy's native
     single-file lifecycle, producing one readable text `.mdast.json` snapshot
     per assertion and readable JSON diffs.

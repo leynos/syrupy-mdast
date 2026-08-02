@@ -118,19 +118,36 @@ that alter existing payloads require release notes and a declared migration.
 
 ## 5. Architecture
 
-The Python extension owns the public API, input validation, Wenmode parser,
-normalization, failure translation, and final JSON serialization. There is no
-cross-runtime boundary or parser protocol.
+The package separates the comparison domain from its infrastructure adapters.
+The dependency-free domain core owns `MarkdownAstError`, AST-shape validation,
+and canonicalization over plain JSON-compatible Python values. It imports
+neither Wenmode nor Syrupy and performs no snapshot lifecycle or JSON I/O.
+
+Three narrow adapters surround that core:
+
+- the Wenmode adapter parses Markdown with the fixed GitHub profile and returns
+  plain Python data;
+- the canonical JSON adapter serializes a validated canonical tree; and
+- the Syrupy adapter implements `MarkdownAstSnapshotExtension` and delegates
+  snapshot storage, update, deletion, and diff lifecycle to Syrupy.
+
+An internal application pipeline coordinates those adapters with the domain
+core and translates documented adapter failures into domain errors. These are
+concrete function and module seams, not generic parser or serializer
+interfaces: v1 has one supported implementation of each, so abstract ports
+would add indirection without a second implementation to justify it.
 
 ```mermaid
 flowchart LR
-    Test[Pytest assertion] --> Extension[MarkdownAstSnapshotExtension]
-    Extension --> Parser[Wenmode parser with GitHub profile]
-    Parser --> Ast[mdast-compatible Python data]
-    Ast --> Canonicalizer[Python canonicalizer]
-    Canonicalizer --> Writer[Canonical JSON writer]
-    Writer --> Extension
-    Extension --> Snapshot[Single-file mdast JSON snapshot]
+    Test[Pytest assertion] --> SyrupyAdapter[Syrupy adapter]
+    SyrupyAdapter --> Pipeline[Application pipeline]
+    Pipeline --> WenmodeAdapter[Wenmode parser adapter]
+    WenmodeAdapter --> Ast[Plain mdast-compatible data]
+    Ast --> Domain[Pure domain core]
+    Domain --> JsonAdapter[Canonical JSON adapter]
+    JsonAdapter --> Pipeline
+    Pipeline --> SyrupyAdapter
+    SyrupyAdapter --> Snapshot[Single-file mdast JSON snapshot]
 ```
 
 _Figure 1: Markdown assertion data flow._
@@ -140,6 +157,13 @@ repository-controlled Markdown. It gives up the killable child process of the
 earlier Bun design. If hostile Markdown and a hard timeout later become product
 requirements, a separately designed Python worker may contain Wenmode without
 introducing a JavaScript runtime.
+
+Domain tests call validation and canonicalization directly with plain Python
+trees and import no Wenmode or Syrupy modules. Adapter tests cover Wenmode
+profile behaviour, canonical JSON bytes, and Syrupy lifecycle independently;
+end-to-end tests prove the default pipeline wiring. An architecture test
+rejects Wenmode or Syrupy imports from the domain core so infrastructure
+dependencies cannot migrate inward unnoticed.
 
 ## 6. Public Python interface
 
@@ -192,11 +216,12 @@ a Markdown source string. The extension rejects any non-`None` value with
 `ValueError`; silently ignoring them would make tests appear more selective
 than they are.
 
-`MarkdownAstError` covers parser and canonicalization failures. Messages are
-not a stable API. Wrong Python input types continue to use `TypeError` rather
-than the domain hierarchy. The initial public hierarchy has no environment,
-execution, or protocol errors because v1 has no external runtime or child
-process.
+`MarkdownAstError` is defined in the dependency-free domain core and covers
+parser, canonicalization, and serialization failures after application-level
+translation. Messages are not a stable API. Wrong Python input types continue
+to use `TypeError` rather than the domain hierarchy. The initial public
+hierarchy has no environment, execution, or protocol errors because v1 has no
+external runtime or child process.
 
 ## 7. Parser profile and dependency policy
 
@@ -223,9 +248,10 @@ def parse_markdown(source: str) -> dict[str, Any]:
     return _PARSER.parse(source).to_ast()
 ```
 
-The production implementation may narrow the return type after inspecting
-Wenmode's published annotations. It must not wrap the parser behind a generic
-backend abstraction until a second supported backend creates a real reuse case.
+This function is the Wenmode adapter seam. The production implementation may
+narrow its return type after inspecting Wenmode's published annotations. It
+must not wrap the parser behind a generic backend abstraction until a second
+supported backend creates a real reuse case.
 
 The GitHub profile extends the CommonMark preset and enables tables,
 strikethrough, task lists, extended autolinks, and footnotes.[^2] It also
@@ -307,10 +333,10 @@ preservation contract.
 
 ## 9. Failure semantics
 
-Parsing is a direct Python call. The extension catches only documented Wenmode
-parse failures and errors arising from validating or serializing the AST. It
-does not catch `BaseException`, broad programming errors, or pytest control
-flow.
+Parsing is a direct Python call. The application pipeline translates only
+documented Wenmode adapter failures and errors arising from domain validation
+or the canonical JSON adapter. The Syrupy adapter does not own that taxonomy or
+catch `BaseException`, broad programming errors, or pytest control flow.
 
 | Failure                                      | Public category    | Diagnostic content                                      |
 | -------------------------------------------- | ------------------ | ------------------------------------------------------- |
