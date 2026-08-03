@@ -132,6 +132,9 @@ and 12.
 - [ ] 2.2.2. Implement narrow failure translation.
   - Requires 2.2.1.
   - Preserve `TypeError` and `ValueError` for caller contract errors.
+  - Catch only `UnicodeEncodeError` from strict UTF-8 input encoding and
+    translate it to the core `MarkdownAstError`, with surrogate remediation,
+    before invoking Wenmode.
   - Translate documented Wenmode parse failures and invalid AST or JSON output
     to the core `MarkdownAstError` at the application pipeline boundary without
     catching unrelated programming failures.
@@ -140,7 +143,8 @@ and 12.
     complete source documents.
   - Success: every failure in design §9 has its declared type and an actionable
     message; boundary tests accept 512-character excerpts and truncate longer
-    excerpts.
+    excerpts. An unpaired-surrogate test proves the encoding failure is
+    translated and Wenmode is not invoked.
 
 ### 2.3. Make canonical trees a native Syrupy assertion
 

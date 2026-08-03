@@ -162,7 +162,7 @@ Domain tests call validation and canonicalization directly with plain Python
 trees and import no Wenmode or Syrupy modules. Adapter tests cover Wenmode
 profile behaviour, canonical JSON bytes, and Syrupy lifecycle independently;
 end-to-end tests prove the default pipeline wiring. An architecture test
-rejects Wenmode or Syrupy imports from the domain core so infrastructure
+rejects Wenmode or Syrupy imports from the domain core, so infrastructure
 dependencies cannot migrate inward unnoticed.
 
 ## 6. Public Python interface
@@ -338,10 +338,18 @@ documented Wenmode adapter failures and errors arising from domain validation
 or the canonical JSON adapter. The Syrupy adapter does not own that taxonomy or
 catch `BaseException`, broad programming errors, or pytest control flow.
 
+The input boundary encodes source with strict UTF-8 to measure
+`MAX_INPUT_BYTES`. It catches only `UnicodeEncodeError` from that operation and
+translates it to `MarkdownAstError`, the stable public failure category, before
+calling Wenmode. The diagnostic identifies source encoding as the failure and
+instructs the caller to replace or remove the unpaired surrogate; it does not
+include the invalid source.
+
 | Failure                                      | Public category    | Diagnostic content                                      |
 | -------------------------------------------- | ------------------ | ------------------------------------------------------- |
 | Caller supplies a non-string value           | `TypeError`        | Expected and actual Python type.                        |
 | Caller supplies unsupported Syrupy controls  | `ValueError`       | Unsupported option names and remediation.               |
+| Source cannot be encoded as strict UTF-8     | `MarkdownAstError` | Source-encoding category and surrogate remediation.     |
 | Wenmode cannot parse the document            | `MarkdownAstError` | Parser category and a bounded, safe message.            |
 | Wenmode returns an invalid public AST shape  | `MarkdownAstError` | Expected root shape without dumping the whole document. |
 | Canonical JSON serialization cannot complete | `MarkdownAstError` | Serialization category without unstable internals.      |
@@ -358,9 +366,11 @@ It then truncates the escaped excerpt to at most
 `MAX_DIAGNOSTIC_EXCERPT_CHARS`, without splitting an escape sequence, before
 constructing the public diagnostic. Tests cover each control range, `ESC`,
 escaping expansion at the limit, and truncation immediately before and after an
-escape sequence. Diagnostics never echo the complete Markdown source. Because
-parsing is in-process, v1 does not claim a portable hard wall-clock timeout or
-crash isolation.
+escape sequence. A boundary test passes `"\ud800"`, asserts the declared error
+and remediation, and uses a parser spy to prove that Wenmode was not invoked.
+Diagnostics never echo the complete Markdown source. Because parsing is
+in-process, v1 does not claim a portable hard wall-clock timeout or crash
+isolation.
 
 ## 10. Snapshot storage and concurrency
 
@@ -421,17 +431,20 @@ V1 snapshots repository-controlled Markdown used by a test suite. The parser
 receives a Python string and neither this package nor Wenmode's documented
 parsing path requires file, network, shell, or dynamic package access.
 
-At the parser boundary, the extension measures the UTF-8 encoding and rejects
-inputs above `MAX_INPUT_BYTES` (1,048,576 bytes) before calling Wenmode. During
-failure translation, public diagnostic construction escapes C0 and C1 control
-characters, including `ESC` and `DEL`, before limiting the escaped excerpt to
-`MAX_DIAGNOSTIC_EXCERPT_CHARS` (512 characters). It never splits a `\uXXXX`
-escape at the limit. Both constants and the escaping policy are shared
-definitions consumed by implementation and boundary tests. The extension relies
-on Wenmode's parser protections for pathological nesting. Wenmode's GitHub
-profile also applies its documented disallowed-HTML parsing policy.[^5] These
-controls limit common resource and rendering hazards but do not provide process
-isolation or a portable timeout.
+At the parser boundary, the application pipeline strictly encodes the source as
+UTF-8. It translates `UnicodeEncodeError` to the source-encoding
+`MarkdownAstError`, with surrogate remediation and without invoking Wenmode.
+For encodable source, it rejects inputs above `MAX_INPUT_BYTES` (1,048,576
+bytes) before calling Wenmode. During failure translation, public diagnostic
+construction escapes C0 and C1 control characters, including `ESC` and `DEL`,
+before limiting the escaped excerpt to `MAX_DIAGNOSTIC_EXCERPT_CHARS` (512
+characters). It never splits a `\uXXXX` escape at the limit. Both constants and
+the escaping and encoding policies are shared definitions consumed by
+implementation and boundary tests. The extension relies on Wenmode's parser
+protections for pathological nesting. Wenmode's GitHub profile also applies its
+documented disallowed-HTML parsing policy.[^5] These controls limit common
+resource and rendering hazards but do not provide process isolation or a
+portable timeout.
 
 Projects that parse hostile input or require a hard execution deadline are
 outside v1's threat model. Adding that use case requires a design update for a
