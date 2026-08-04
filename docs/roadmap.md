@@ -65,11 +65,13 @@ boundary before parsing logic depends on it.
     release without a JavaScript runtime or network access at parse time.
 - [ ] 1.2.2. Define the narrow internal Wenmode adapter seam.
   - Requires 1.2.1.
-  - Construct `Parser(github, positions=False)` once per Python process.
+  - Construct a fresh `Parser(github, positions=False)` for every adapter call.
   - Return Wenmode's public `to_ast()` data without a speculative pluggable
     backend abstraction.
   - Success: sequential documents do not leak ordinary reference or footnote
-    state, and pytest-xdist workers use independent parser instances.
+    state; barrier-controlled thread contention and interleaving plus a
+    re-entrant parser double prove that every call has independent parser
+    state; and pytest-xdist workers use independent per-call parser instances.
 - [ ] 1.2.3. Prove Wenmode's normative AST decisions.
   - Requires 1.2.2.
   - Add focused probes for resolved ordinary references, structural footnotes,
@@ -124,11 +126,13 @@ and 12.
     and one final newline.
   - Keep JSON serialization behind a narrow adapter that accepts only a
     validated canonical tree.
-  - Define the shared `MAX_INPUT_BYTES = 1_048_576` limit and reject source
-    whose UTF-8 encoding exceeds it before calling Wenmode.
+  - Define the shared `MAX_INPUT_BYTES = 1_048_576` limit, count strict UTF-8
+    bytes in fixed-size source slices, and stop before Wenmode as soon as the
+    limit is exceeded.
   - Success: source-tree and installed-wheel calls return byte-identical
     payloads using Python dependencies only, and boundary tests accept the
-    limit and reject the next UTF-8 byte.
+    limit and reject the next UTF-8 byte. An instrumented encoder proves that
+    oversized input does not produce a complete encoded copy.
 - [ ] 2.2.2. Implement narrow failure translation.
   - Requires 2.2.1.
   - Preserve `TypeError` and `ValueError` for caller contract errors.
@@ -138,13 +142,15 @@ and 12.
   - Translate documented Wenmode parse failures and invalid AST or JSON output
     to the core `MarkdownAstError` at the application pipeline boundary without
     catching unrelated programming failures.
-  - Define the shared `MAX_DIAGNOSTIC_EXCERPT_CHARS = 512` limit and enforce it
-    while failure translation constructs public messages, without echoing
-    complete source documents.
+  - Define the shared `MAX_DIAGNOSTIC_EXCERPT_CHARS = 512` limit and append
+    ordinary code points or complete `\uXXXX` control tokens to a bounded
+    builder until the next token would exceed it.
   - Success: every failure in design §9 has its declared type and an actionable
     message; boundary tests accept 512-character excerpts and truncate longer
-    excerpts. An unpaired-surrogate test proves the encoding failure is
-    translated and Wenmode is not invoked.
+    excerpts without splitting escape tokens. A counting iterator proves that
+    control-heavy input does not produce a complete escaped copy. An
+    unpaired-surrogate test proves the encoding failure is translated and
+    Wenmode is not invoked.
 
 ### 2.3. Make canonical trees a native Syrupy assertion
 
@@ -187,8 +193,9 @@ worker nor crash or process isolation. See design §§10-11 and §16.
     repository-relative or cross-runtime asset.
 - [ ] 2.4.2. Add the combinatorial compatibility suite.
   - Requires 2.4.1.
-  - Cover CommonMark and GFM, LF/CRLF/CR, documented errors, parser reuse,
-    serial pytest and pytest-xdist, and the supported Python and Syrupy matrix.
+  - Cover CommonMark and GFM, LF/CRLF/CR, documented errors, parser isolation,
+    same-process contention and re-entrancy, serial pytest and pytest-xdist, and
+    the supported Python and Syrupy matrix.
   - Exercise the pinned Wenmode release and candidate upgrades against the same
     mandatory fixtures.
   - Use pairwise reduction only after the combinations in design §11 remain

@@ -84,8 +84,9 @@ reimplementing Syrupy's snapshot lifecycle.
 Wenmode is selected because it keeps parsing, canonicalization, packaging, and
 failure handling within Python. Its `Parser` objects are reusable, while each
 parse receives fresh document state for references and footnotes.[^4] The
-package therefore creates one parser per Python process; pytest-xdist naturally
-creates one instance per worker process.
+package nevertheless creates one parser per adapter call rather than depending
+on undocumented shared-instance thread or re-entrant safety. pytest-xdist
+workers naturally follow the same per-call rule in separate processes.
 
 The GitHub profile is normative rather than a convenient preset. It provides
 the required GFM constructs and applies Wenmode's GitHub HTML policy.[^2] A
@@ -234,9 +235,6 @@ from wenmode import Parser
 from wenmode.presets import github
 
 
-_PARSER = Parser(github, positions=False)
-
-
 def parse_markdown(source: str) -> dict[str, Any]:
     """Parse Markdown into Wenmode's mdast-compatible AST.
 
@@ -245,7 +243,7 @@ def parse_markdown(source: str) -> dict[str, Any]:
     ``parse_markdown("# Title")`` returns a root containing a depth-one
     heading.
     """
-    return _PARSER.parse(source).to_ast()
+    return Parser(github, positions=False).parse(source).to_ast()
 ```
 
 This function is the Wenmode adapter seam. The production implementation may
@@ -338,12 +336,15 @@ documented Wenmode adapter failures and errors arising from domain validation
 or the canonical JSON adapter. The Syrupy adapter does not own that taxonomy or
 catch `BaseException`, broad programming errors, or pytest control flow.
 
-The input boundary encodes source with strict UTF-8 to measure
-`MAX_INPUT_BYTES`. It catches only `UnicodeEncodeError` from that operation and
-translates it to `MarkdownAstError`, the stable public failure category, before
-calling Wenmode. The diagnostic identifies source encoding as the failure and
-instructs the caller to replace or remove the unpaired surrogate; it does not
-include the invalid source.
+The input boundary feeds fixed-size character slices to a strict UTF-8
+incremental encoder and adds each encoded slice length to the byte count. It
+stops when the count exceeds `MAX_INPUT_BYTES` or the encoder reaches the end,
+without constructing a complete encoded copy. It catches only
+`UnicodeEncodeError` from that operation and translates it to
+`MarkdownAstError`, the stable public failure category, before calling Wenmode.
+The diagnostic identifies source encoding as the failure and instructs the
+caller to replace or remove the unpaired surrogate; it does not include the
+invalid source.
 
 | Failure                                      | Public category    | Diagnostic content                                      |
 | -------------------------------------------- | ------------------ | ------------------------------------------------------- |
@@ -358,16 +359,21 @@ _Table 2: Failure categories and diagnostics._
 
 The implementation defines `MAX_INPUT_BYTES = 1_048_576` and
 `MAX_DIAGNOSTIC_EXCERPT_CHARS = 512` as the shared resource limits. The parser
-boundary rejects input whose UTF-8 encoding exceeds `MAX_INPUT_BYTES` before
-calling Wenmode. Failure translation first escapes every C0 control character
-(`U+0000`-`U+001F`), `ESC` (`U+001B`), `DEL` (`U+007F`), and C1 control
-character (`U+0080`-`U+009F`) as an uppercase, fixed-width `\uXXXX` sequence.
-It then truncates the escaped excerpt to at most
-`MAX_DIAGNOSTIC_EXCERPT_CHARS`, without splitting an escape sequence, before
-constructing the public diagnostic. Tests cover each control range, `ESC`,
-escaping expansion at the limit, and truncation immediately before and after an
-escape sequence. A boundary test passes `"\ud800"`, asserts the declared error
-and remediation, and uses a parser spy to prove that Wenmode was not invoked.
+boundary rejects input whose incremental UTF-8 byte count exceeds
+`MAX_INPUT_BYTES` before calling Wenmode. Failure translation emits one atomic
+token at a time into a bounded excerpt builder: an ordinary code point, or an
+uppercase, fixed-width `\uXXXX` token for every C0 control character (`U+0000`-
+`U+001F`), `ESC` (`U+001B`), `DEL` (`U+007F`), and C1 control character
+(`U+0080`-`U+009F`). It stops at the end of the source or before the next
+complete token would exceed `MAX_DIAGNOSTIC_EXCERPT_CHARS`; it neither splits
+an escape sequence nor constructs a complete escaped copy.
+
+Boundary tests use instrumented chunk and character iterators to prove that an
+oversized input stops after the first over-limit chunk and that control-heavy
+diagnostic expansion stops before the next complete `\uXXXX` token. They also
+cover each control range, `ESC`, exact-limit input, truncation on both sides of
+an escape token, and `"\ud800"`. The surrogate case asserts the declared error
+and remediation and uses a parser spy to prove that Wenmode was not invoked.
 Diagnostics never echo the complete Markdown source. Because parsing is
 in-process, v1 does not claim a portable hard wall-clock timeout or crash
 isolation.
@@ -379,12 +385,15 @@ Each assertion uses Syrupy's single-file naming rules and the compound extension
 and textual diff reporting.[^3] The extension supplies only the serialized
 string.
 
-A module-private parser is reused within one Python process. Wenmode creates
-per-document reference and footnote state for every parse, so documents do not
-leak definitions into one another.[^4] pytest-xdist workers are separate
-processes and therefore own separate parser instances. The project does not
-claim concurrent-thread safety until Wenmode documents it or this package adds
-specific synchronization and tests.
+Each adapter call constructs its own parser and per-document reference and
+footnote state.[^4] Same-process threads therefore share no parser instance,
+and a re-entrant call receives a distinct parser rather than observing the
+outer call's mutable state. Calls may overlap; the package does not serialize
+them. Deterministic barrier-controlled contention and interleaving tests prove
+that concurrent calls use distinct instrumented parsers and cannot leak state.
+A re-entrant parser double proves that an inner call completes independently.
+pytest-xdist workers remain separate processes with independent per-call
+instances.
 
 ## 11. Correctness and verification
 
@@ -400,15 +409,18 @@ The implementation must demonstrate these properties:
 | Reference semantics    | Fixtures cover full, collapsed, shortcut, forward, unresolved, and unused ordinary references.              | Wenmode intentionally discards source notation.        |
 | Footnote structure     | Fixtures assert `footnoteReference` and `footnoteDefinition` nodes, including forward references.           | Does not compare rendered footnote backlinks.          |
 | Dependency isolation   | Installed-wheel tests parse CommonMark and GFM with Python dependencies only.                               | Does not validate an optional development oracle.      |
+| Bounded preprocessing  | Counting encoder and excerpt iterators assert early termination without complete intermediate buffers.      | The caller already owns the input Python string.       |
+| Same-process isolation | Barrier, interleaving, and re-entrant tests prove each parse uses distinct Wenmode state.                   | Does not provide parallel speed-up or crash isolation. |
 
 _Table 3: Correctness properties and verification boundaries._
 
 The end-to-end matrix covers CommonMark and GFM inputs, three line-ending
 styles, documented failures, source-tree and installed-wheel execution, parser
-reuse across sequential documents, and serial versus pytest-xdist runs.
-Pairwise selection may reduce the wider Python, Syrupy, and Wenmode matrix only
-after mandatory combinations cover installed-wheel execution, GFM tables, GFM
-footnotes, reference resolution, raw HTML, and concurrent workers.
+isolation across sequential, concurrent thread, and re-entrant calls, and
+serial versus pytest-xdist runs. Pairwise selection may reduce the wider
+Python, Syrupy, and Wenmode matrix only after mandatory combinations cover
+installed-wheel execution, GFM tables, GFM footnotes, reference resolution, raw
+HTML, concurrent threads, and workers.
 
 A temporary differential corpus may compare Wenmode with
 `mdast-util-from-markdown` during initial development. Every difference is
@@ -431,20 +443,20 @@ V1 snapshots repository-controlled Markdown used by a test suite. The parser
 receives a Python string and neither this package nor Wenmode's documented
 parsing path requires file, network, shell, or dynamic package access.
 
-At the parser boundary, the application pipeline strictly encodes the source as
-UTF-8. It translates `UnicodeEncodeError` to the source-encoding
+At the parser boundary, the application pipeline incrementally encodes
+fixed-size source slices as strict UTF-8 and stops at the first over-limit
+slice. It translates `UnicodeEncodeError` to the source-encoding
 `MarkdownAstError`, with surrogate remediation and without invoking Wenmode.
-For encodable source, it rejects inputs above `MAX_INPUT_BYTES` (1,048,576
-bytes) before calling Wenmode. During failure translation, public diagnostic
-construction escapes C0 and C1 control characters, including `ESC` and `DEL`,
-before limiting the escaped excerpt to `MAX_DIAGNOSTIC_EXCERPT_CHARS` (512
-characters). It never splits a `\uXXXX` escape at the limit. Both constants and
-the escaping and encoding policies are shared definitions consumed by
-implementation and boundary tests. The extension relies on Wenmode's parser
-protections for pathological nesting. Wenmode's GitHub profile also applies its
-documented disallowed-HTML parsing policy.[^5] These controls limit common
-resource and rendering hazards but do not provide process isolation or a
-portable timeout.
+During failure translation, a bounded builder escapes C0 and C1 control
+characters, including `ESC` and `DEL`, and stops before the next token would
+exceed `MAX_DIAGNOSTIC_EXCERPT_CHARS` (512 characters). It never builds a
+complete encoded or escaped copy and never splits a `\uXXXX` escape at the
+limit. Both constants and the incremental encoding and escaping policies are
+shared definitions consumed by implementation and boundary tests. The extension
+relies on Wenmode's parser protections for pathological nesting. Wenmode's
+GitHub profile also applies its documented disallowed-HTML parsing policy.[^5]
+These controls limit common resource and rendering hazards but do not provide
+process isolation or a portable timeout.
 
 Projects that parse hostile input or require a hard execution deadline are
 outside v1's threat model. Adding that use case requires a design update for a
@@ -523,6 +535,8 @@ The first stable implementation is acceptable when:
 - source-tree and installed-wheel tests parse with the exact Wenmode dependency
   and no Bun, Node.js, TypeScript, or JavaScript package assets;
 - canonicalization properties pass generated and fixture-based verification;
+- bounded preprocessing stops without complete encoded or escaped copies;
+- concurrent and re-entrant calls use independent parser state;
 - failures produce bounded diagnostics without shell, network, or child-process
   access;
 - mandatory combinations pass under supported Python, Syrupy, Wenmode, and
