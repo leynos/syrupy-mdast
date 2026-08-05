@@ -219,10 +219,10 @@ than they are.
 
 `MarkdownAstError` is defined in the dependency-free domain core and covers
 parser, canonicalization, and serialization failures after application-level
-translation. Messages are not a stable API. Wrong Python input types continue
-to use `TypeError` rather than the domain hierarchy. The initial public
-hierarchy has no environment, execution, or protocol errors because v1 has no
-external runtime or child process.
+translation. Its `category` values in Table 2 are stable; message wording is
+not. Wrong Python input types continue to use `TypeError` rather than the
+domain hierarchy. The initial public hierarchy has no environment, execution,
+or protocol errors because v1 has no external runtime or child process.
 
 ## 7. Parser profile and dependency policy
 
@@ -346,14 +346,15 @@ The diagnostic identifies source encoding as the failure and instructs the
 caller to replace or remove the unpaired surrogate; it does not include the
 invalid source.
 
-| Failure                                      | Public category    | Diagnostic content                                      |
-| -------------------------------------------- | ------------------ | ------------------------------------------------------- |
-| Caller supplies a non-string value           | `TypeError`        | Expected and actual Python type.                        |
-| Caller supplies unsupported Syrupy controls  | `ValueError`       | Unsupported option names and remediation.               |
-| Source cannot be encoded as strict UTF-8     | `MarkdownAstError` | Source-encoding category and surrogate remediation.     |
-| Wenmode cannot parse the document            | `MarkdownAstError` | Parser category and a bounded, safe message.            |
-| Wenmode returns an invalid public AST shape  | `MarkdownAstError` | Expected root shape without dumping the whole document. |
-| Canonical JSON serialization cannot complete | `MarkdownAstError` | Serialization category without unstable internals.      |
+| Failure                                      | Public exception and category         | Diagnostic content                                      |
+| -------------------------------------------- | ------------------------------------- | ------------------------------------------------------- |
+| Caller supplies a non-string value           | `TypeError`                           | Expected and actual Python type.                        |
+| Caller supplies unsupported Syrupy controls  | `ValueError`                          | Unsupported option names and remediation.               |
+| Source cannot be encoded as strict UTF-8     | `MarkdownAstError`: `source-encoding` | Surrogate remediation without invalid source.           |
+| Source exceeds `MAX_INPUT_BYTES`             | `MarkdownAstError`: `input-too-large` | Byte limit and guidance to reduce the source.           |
+| Wenmode cannot parse the document            | `MarkdownAstError`: `parse`           | Parser category and a bounded, safe message.            |
+| Wenmode returns an invalid public AST shape  | `MarkdownAstError`: `ast-shape`       | Expected root shape without dumping the whole document. |
+| Canonical JSON serialization cannot complete | `MarkdownAstError`: `serialization`   | Serialization category without unstable internals.      |
 
 _Table 2: Failure categories and diagnostics._
 
@@ -371,9 +372,12 @@ an escape sequence nor constructs a complete escaped copy.
 Boundary tests use instrumented chunk and character iterators to prove that an
 oversized input stops after the first over-limit chunk and that control-heavy
 diagnostic expansion stops before the next complete `\uXXXX` token. They also
-cover each control range, `ESC`, exact-limit input, truncation on both sides of
-an escape token, and `"\ud800"`. The surrogate case asserts the declared error
-and remediation and uses a parser spy to prove that Wenmode was not invoked.
+cover each control range, `ESC`, truncation on both sides of an escape token,
+and `"\ud800"`. A Wenmode parser spy receives an ASCII input of exactly
+`MAX_INPUT_BYTES`; the first byte over the limit is rejected without invoking
+the spy and reports the stable `input-too-large` category, the byte limit, and
+guidance to reduce the source. The surrogate case asserts the declared error
+and remediation and uses the spy to prove that Wenmode was not invoked.
 Diagnostics never echo the complete Markdown source. Because parsing is
 in-process, v1 does not claim a portable hard wall-clock timeout or crash
 isolation.
@@ -428,10 +432,10 @@ classified as harmless representation, intentional policy, or an
 incompatibility requiring a fixture or upstream report. The resulting v1
 fixtures, not the JavaScript tool, become the lasting oracle.
 
-The parser profile, normalization policy, comparison contract, and normative
-fixtures are versioned together. Implementing a new version or changing any of
-those elements requires an explicitly versioned, accepted ADR before its
-normative fixtures or implementation are committed.
+An explicitly versioned ADR records the complete snapshot contract: parser
+profile, normalization policy, comparison contract, snapshot-version policy,
+pinned Wenmode release, and normative fixture decisions. The ADR must be
+accepted before committing any related implementation or fixture change.
 
 Parser conformance remains Wenmode's responsibility. This project verifies the
 selected profile, normalization policy, dependency boundary, and observable

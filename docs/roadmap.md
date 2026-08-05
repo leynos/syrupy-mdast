@@ -31,14 +31,14 @@ outcome bounds every parser, serializer, and compatibility decision. See the
     design §6.
 - [ ] 1.1.2. Record the parser-profile and snapshot-version policy in an ADR.
   - Requires 1.1.1.
-  - Fix the exact Wenmode release and its GitHub profile as v1.
-  - Version the parser profile, normalization policy, comparison contract, and
-    their normative fixtures together.
+  - Record the parser profile, normalization policy, comparison contract,
+    snapshot-version policy, exact Wenmode release, and normative fixture
+    decisions as one versioned contract.
   - Record resolved ordinary references, structural footnotes, omitted
     nullable fields, and Wenmode's GitHub HTML policy.
   - See design §§7, 13, and 15.
-  - Success: the explicitly versioned ADR is accepted before implementation or
-    normative fixtures encode its decisions.
+  - Success: the explicitly versioned ADR is accepted before any related
+    implementation or fixture change is committed.
 - [ ] 1.1.3. Create the canonical Markdown contract corpus.
   - Requires 1.1.2.
   - Pair syntax-equivalent emphasis, line-ending, and direct/reference-link
@@ -132,7 +132,9 @@ and 12.
   - Success: source-tree and installed-wheel calls return byte-identical
     payloads using Python dependencies only, and boundary tests accept the
     limit and reject the next UTF-8 byte. An instrumented encoder proves that
-    oversized input does not produce a complete encoded copy.
+    oversized input does not produce a complete encoded copy. The over-limit
+    case reports the stable `input-too-large` category, the byte limit, and
+    guidance to reduce the source.
 - [ ] 2.2.2. Implement narrow failure translation.
   - Requires 2.2.1.
   - Preserve `TypeError` and `ValueError` for caller contract errors.
