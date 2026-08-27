@@ -1,6 +1,6 @@
-# Advanced Typing and Language Features (Python 3.13)
+# Advanced Typing and Language Features (Python 3.12)
 
-> This section documents forward-looking Python 3.13 typing features and best
+> This section documents forward-looking Python 3.12 typing features and best
 > practices to improve clarity, correctness, and tooling support. Use these
 > features to write expressive, modern Python.
 
@@ -8,18 +8,21 @@
 
 Use `Enum` for fixed sets of related constants. Use `enum.auto()` to avoid
 repeating values manually. Use `IntEnum` or `StrEnum` when interoperability
-with integers or strings is required (e.g. for database or JSON serialisation).
+with integers or strings is required (e.g. for database or JSON serialization).
 
 ```python
 import enum
+
 
 class Status(enum.Enum):
     PENDING = enum.auto()
     COMPLETE = enum.auto()
 
+
 class ErrorCode(enum.IntEnum):
     OK = 0
     NOT_FOUND = 404
+
 
 class Role(enum.StrEnum):
     ADMIN = enum.auto()
@@ -65,6 +68,7 @@ returns the same instance.
 ```python
 import typing
 
+
 class Builder:
     def add(self, value: int) -> typing.Self:
         self.values.append(value)
@@ -81,9 +85,10 @@ enables static analysis tools to detect typos and signature mismatches.
 ```python
 import typing
 
+
 class Base:
-    def run(self) -> None:
-        ...
+    def run(self) -> None: ...
+
 
 class Child(Base):
     @typing.override
@@ -101,6 +106,7 @@ checkers.
 ```python
 import typing
 
+
 def is_str_list(val: list[object]) -> typing.TypeIs[list[str]]:
     return all(isinstance(x, str) for x in val)
 ```
@@ -115,6 +121,7 @@ type is provided.
 
 ```python
 T = typing.TypeVar("T", default=int)
+
 
 class Box[T]:
     def __init__(self, value: T | None = None):
@@ -159,7 +166,7 @@ This replaces `StrDict = TypeAlias = ...` and is preferred in modern Python.
 When compatibility with Python < 3.12 is required, keep the older
 `typing.TypeAlias` syntax and add `# noqa: UP040` so `ruff` does not flag it.
 Place alias definitions after the import block and group shared aliases in
-`bournemouth.types` to avoid duplication.
+a shared types module (e.g. `syrupy_mdast.types`) to avoid duplication.
 
 ## `from __future__ import annotations`
 
