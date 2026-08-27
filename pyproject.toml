@@ -27,6 +27,11 @@ dev = [
     "df12-python-lints @ git+https://github.com/leynos/df12-python-lints.git@v0.3.0",
     "pytest-timeout",
     "pytest-xdist",
+    # Bounded so a Hypothesis major release cannot silently change the
+    # generated whitelist-boundary coverage.
+    "hypothesis>=6,<7",
+    # Workflow contract tests parse .github/workflows/*.yml.
+    "pyyaml>=6,<7",
 ]
 
 [tool.ruff]
@@ -99,6 +104,8 @@ extend-ignore = [
 "**/__init__.py" = ["RUF067"]
 "**/test_*.py" = ["S101", "PLR0913", "PLR0917", "PLR2004", "PLR6301"]
 "tests/steps/*.py" = ["S101", "PLR0913", "PLR0917", "PLR2004", "PLR6301"]
+# Shared contract-test helpers fail with assertion messages by design.
+"tests/support/*.py" = ["S101"]
 
 [tool.ruff.lint.flake8-import-conventions]
 # Declare the banned `from` imports.
@@ -409,6 +416,12 @@ enable = [
     "too-many-positional-arguments",
 ]
 
+
+[tool.skylos]
+
+[tool.skylos.gate]
+# Fail the lint gate on any unreviewed production dead-code finding.
+strict = true
 
 [tool.pytest.ini_options]
 # Tests automatically killed after seconds elapsed

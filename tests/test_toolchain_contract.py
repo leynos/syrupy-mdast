@@ -11,62 +11,37 @@ without asserting any specific version.
 
 from __future__ import annotations
 
-import re
 import tomllib
-from pathlib import Path
 
 import pytest
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-
-
-def _extract_version(pattern: str, text: str, description: str) -> str:
-    """Return the single regex capture for ``pattern``, failing helpfully.
-
-    Parameters
-    ----------
-    pattern : str
-        Multiline regex with one capture group holding the version.
-    text : str
-        File contents to search.
-    description : str
-        Human-readable name of the pin site, used in the failure message.
-
-    Returns
-    -------
-    str
-        The captured version string.
-
-    Examples
-    --------
-    >>> _extract_version("^V=(.+)$", "V=1.2.3", "example pin")
-    '1.2.3'
-    """
-    match = re.search(pattern, text, re.MULTILINE)
-    assert match is not None, f"could not locate the {description}"
-    return match.group(1)
+from tests.support.make_contract import (
+    REPO_ROOT,
+    mapping,
+    variable_tokens,
+    workflow_job,
+)
 
 
 def _makefile_version(tool_env_name: str) -> str:
-    """Read a tool's default version pin from the Makefile."""
-    makefile_text = (REPO_ROOT / "Makefile").read_text(encoding="utf-8")
-    return _extract_version(
-        rf"^{tool_env_name} \?= (\S+)$",
-        makefile_text,
-        f"{tool_env_name} default in the Makefile",
+    """Read a tool's default version pin from the parsed Makefile."""
+    tokens = variable_tokens(tool_env_name)
+    assert len(tokens) == 1, (
+        f"expected {tool_env_name} to hold a single version token, got {tokens!r}"
     )
+    return tokens[0]
 
 
 def _ci_version(tool_env_name: str) -> str:
-    """Read a tool's version pin from the CI workflow environment block."""
-    ci_text = (REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(
-        encoding="utf-8"
+    """Read a tool's version pin from the CI lint job environment."""
+    job = workflow_job(".github/workflows/ci.yml", "lint-test")
+    environment = mapping(job.get("env"), subject="ci.yml lint-test environment")
+    version = environment.get(tool_env_name)
+    assert isinstance(version, str), (
+        f"expected the {tool_env_name} environment variable in ci.yml to be a "
+        "version string"
     )
-    return _extract_version(
-        rf"^\s+{tool_env_name}: ['\"]?([0-9][^'\"\s]*)['\"]?$",
-        ci_text,
-        f"{tool_env_name} environment variable in ci.yml",
-    )
+    return version
 
 
 def _pyproject_version(tool_name: str) -> str:

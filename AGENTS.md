@@ -88,7 +88,20 @@
       `interrogate --fail-under 100 $(PYTHON_TARGETS)`, runs the PyPy-backed
       Pylint runner against `$(PYLINT_TARGETS)`, runs the df12-python-lints
       Pylint pass under CPython `$(DF12_PYTHON)` against `$(PYLINT_TARGETS)`,
-      and sweeps syrupy snapshots with `ambrleaks tests`.
+      sweeps syrupy snapshots with `ambrleaks tests`, and runs the strict
+      Skylos dead-code gate (pinned to `$(SKYLOS_VERSION)`, under
+      Python 3.14) against `$(SKYLOS_PRODUCTION_TARGETS)` only, excluding
+      `$(SKYLOS_EXCLUDE_FOLDERS)`.
+    - Skylos false positives are recorded only after verification. Prefer a
+      typed `[[tool.skylos.dead_code.entrypoints]]` rule in `pyproject.toml`
+      for implicit runtime callers; use
+      `make skylos-allow SYMBOL=<symbol> REASON="<evidence>"` only when an
+      entry-point rule cannot model the boundary. `SYMBOL` and `REASON` must
+      contain non-whitespace text. Never silence a finding without recording
+      the reason.
+    - `make test` requires the pinned `makeutil` Makefile parser on `PATH`
+      for the contract tests (see the developers' guide for the bootstrap
+      command).
     - `make typecheck` runs `ty check $(PYTHON_TARGETS)` using the pinned
       `$(TY_VERSION)` release.
     - Ruff and ty version pins are declared in the Makefile

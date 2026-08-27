@@ -18,6 +18,13 @@ documentation set.
   spelling, structure, Markdown, Architecture Decision Record (ADR), Request
   for Comments (RFC), and roadmap conventions used by this documentation set.
 
+## Decision records
+
+- [ADR-001: Four-tier Python lint architecture](adr-001-python-lint-architecture.md)
+  records the blocking lint tiers (Ruff, Interrogate, Pylint, and Skylos
+  dead-code detection), their version pins, and the verified false-positive
+  policy.
+
 ## Engineering practice
 
 - [Complexity antipatterns and refactoring strategies](complexity-antipatterns-and-refactoring-strategies.md)
