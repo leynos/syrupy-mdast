@@ -9,8 +9,17 @@ The public entrypoint for formatting, linting, typechecking, and tests is
 failure, and changes should be reconciled with the aggregate gate before being
 considered complete.
 
-`make lint` runs Ruff, `interrogate --fail-under 100 $(PYTHON_TARGETS)` for
-100% docstring coverage across `$(PYTHON_TARGETS)`, and Pylint.
+`make lint` runs Ruff (pinned to `$(RUFF_VERSION)`),
+`interrogate --fail-under 100 $(PYTHON_TARGETS)` for 100% docstring coverage
+across `$(PYTHON_TARGETS)`, the PyPy-backed Pylint runner, the
+`df12-python-lints` Pylint pass under CPython `$(DF12_PYTHON)`, and
+`ambrleaks` over `tests/`.
+
+Ruff and ty versions are pinned in three places: `RUFF_VERSION` and
+`TY_VERSION` in the `Makefile`, the matching environment variables in
+`.github/workflows/ci.yml`, and the `==`-pinned entries in the `dev`
+dependency group of `pyproject.toml`. `tests/test_toolchain_contract.py`
+asserts the three sites agree; bump them together.
 
 Run `make audit` as the dependency vulnerability gate. It runs `pip-audit` for
 Python dependencies, and Rust-enabled projects also run `cargo audit` from the
@@ -71,7 +80,8 @@ under `.github/`.
 - `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. It
   sets up Python 3.13, installs `uv`, validates the `Makefile` with
   `mbake`, runs `make build`, `make check-fmt`, `make lint` (Ruff +
-  `interrogate --fail-under 100 $(PYTHON_TARGETS)` + Pylint), `make typecheck`,
+  `interrogate --fail-under 100 $(PYTHON_TARGETS)` + the PyPy-backed Pylint
+  runner + the `df12-python-lints` pass + `ambrleaks`), `make typecheck`,
   and `make audit`, then delegates coverage generation to the shared coverage
   action. When the Rust extension is enabled, it also sets up Rust, installs
   Rust lint and test tools, and passes `rust_extension/Cargo.toml` to coverage.

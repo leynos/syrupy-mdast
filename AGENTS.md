@@ -80,12 +80,21 @@
   - **Auditing:** Passes dependency vulnerability checks (`make audit`).
   - The generated Makefile wiring for these targets is:
     - `make check-fmt` runs Ruff formatting checks with
-      `ruff format --check $(PYTHON_TARGETS)`.
+      `ruff format --check $(PYTHON_TARGETS)` using the pinned
+      `$(RUFF_VERSION)` release.
     - `make lint` runs `make lint-python`; `make lint-python` runs
-      `ruff check $(PYTHON_TARGETS)`, enforces 100% docstring coverage with
-      `interrogate --fail-under 100 $(PYTHON_TARGETS)`, and runs the
-      PyPy-backed Pylint runner against `$(PYLINT_TARGETS)`.
-    - `make typecheck` runs `ty check $(PYTHON_TARGETS)`.
+      `ruff check $(PYTHON_TARGETS)` (pinned to `$(RUFF_VERSION)`), enforces
+      100% docstring coverage with
+      `interrogate --fail-under 100 $(PYTHON_TARGETS)`, runs the PyPy-backed
+      Pylint runner against `$(PYLINT_TARGETS)`, runs the df12-python-lints
+      Pylint pass under CPython `$(DF12_PYTHON)` against `$(PYLINT_TARGETS)`,
+      and sweeps syrupy snapshots with `ambrleaks tests`.
+    - `make typecheck` runs `ty check $(PYTHON_TARGETS)` using the pinned
+      `$(TY_VERSION)` release.
+    - Ruff and ty version pins are declared in the Makefile
+      (`RUFF_VERSION`/`TY_VERSION`), mirrored by the CI workflow environment
+      and the `dev` dependency group in `pyproject.toml`;
+      `tests/test_toolchain_contract.py` keeps the three sites in sync.
     - `make test` runs `pytest -v -n $(PYTEST_XDIST_WORKERS)` and honours
       `WITH_ACT=1` through `RUN_ACT_VALIDATION=1`.
     - `make audit` runs `pip-audit`.

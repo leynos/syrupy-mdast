@@ -11,6 +11,13 @@ jobs:
     env:
       CS_ACCESS_TOKEN: ${{ secrets.CS_ACCESS_TOKEN }}
       CODESCENE_CLI_SHA256: ${{ vars.CODESCENE_CLI_SHA256 }}
+      # Pin ruff and ty to the versions declared in the Makefile
+      # (RUFF_VERSION/TY_VERSION) and pyproject.toml. Make reads these
+      # environment variables, so CI and local runs invoke identical tool
+      # releases. tests/test_toolchain_contract.py keeps the sites in sync;
+      # bump them together.
+      RUFF_VERSION: 0.16.4
+      TY_VERSION: 0.0.74
       
     steps:
       - name: Check out repository
@@ -41,7 +48,7 @@ jobs:
       - name: Check formatting
         run: make check-fmt
 
-      - name: Run ruff
+      - name: Run linters
         run: make lint
 
       - name: Run typechecker

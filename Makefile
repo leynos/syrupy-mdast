@@ -9,6 +9,20 @@ USER_BIN_PATH := $(HOME)/.cargo/bin:$(HOME)/.local/bin:$(HOME)/.bun/bin
 TOOLS = $(MDFORMAT_ALL) $(MDLINT)
 VENV_TOOLS = pytest
 UV_ENV = PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 UV_CACHE_DIR=.uv-cache UV_TOOL_DIR=.uv-tools
+# Pin Ruff so `make` invokes the same version as the `ruff==` dev dependency
+# in pyproject.toml and the RUFF_VERSION environment variable in
+# .github/workflows/ci.yml. Bump all three sites together: a version mismatch
+# causes version-skew lint failures because rule sets differ between Ruff
+# releases. tests/test_toolchain_contract.py enforces the agreement.
+RUFF_VERSION ?= 0.16.4
+RUFF = $(UV_ENV) $(UV) tool run --from ruff==$(RUFF_VERSION) ruff
+# Pin ty so `make` and CI invoke the same typechecker release. ty is pre-1.0
+# and diagnostics shift between releases, so an unpinned install breaks the
+# typecheck gate without any code change. Bump deliberately, alongside the
+# `ty==` dev dependency in pyproject.toml and TY_VERSION in
+# .github/workflows/ci.yml, and fix new diagnostics in the same commit.
+TY_VERSION ?= 0.0.74
+TY = $(UV_ENV) $(UV) tool run --from ty==$(TY_VERSION) ty
 WITH_ACT ?= 0
 ACT_TEST_ENV = $(if $(filter 1 true yes on,$(WITH_ACT)),RUN_ACT_VALIDATION=1,)
 PYTEST_XDIST_WORKERS ?= auto
@@ -17,7 +31,22 @@ PYLINT_PYTHON ?= pypy
 PYLINT_TARGETS ?= $(PYTHON_TARGETS)
 PYLINT_PYPY_SHIM_REF ?= 726d09f968b4d729ee4b29c71fc732e744854f3b
 PYLINT_PYPY_SHIM = git+https://github.com/leynos/pylint-pypy-shim.git@$(PYLINT_PYPY_SHIM_REF)
-PYLINT = $(UV_ENV) $(UV) tool run --python $(PYLINT_PYTHON) --from '$(PYLINT_PYPY_SHIM)' pylint-pypy
+# The PyPy-backed pass runs the classic Pylint messages only; plugins are
+# disabled because df12-python-lints requires CPython semantics.
+PYLINT = $(UV_ENV) $(UV) tool run --python $(PYLINT_PYTHON) --from '$(PYLINT_PYPY_SHIM)' pylint-pypy --load-plugins=
+DF12_PYTHON_LINTS_REF ?= v0.3.0
+DF12_PYTHON_LINTS = git+https://github.com/leynos/df12-python-lints.git@$(DF12_PYTHON_LINTS_REF)
+# df12-python-lints runs under CPython so the plugin sees full CPython AST
+# semantics; the PyPy shim above covers only the classic messages.
+DF12_PYTHON ?= 3.14
+# C9112 (redundant-future-annotations) is omitted deliberately: it targets a
+# 3.14+ baseline, while this project keeps `from __future__ import
+# annotations` on its 3.12 baseline (Ruff's FA family enforces the import).
+DF12_PYLINT_MESSAGES = R9101,C9102,R9103,R9104,C9105,C9106,C9107,R9108,R9109,R9110,R9111,R9112
+DF12_PYLINT = $(UV_ENV) $(UV) run --python $(DF12_PYTHON) pylint \
+	--disable=all --load-plugins=df12_python_lints --enable=$(DF12_PYLINT_MESSAGES)
+AMBRLEAKS = $(UV_ENV) $(UV) tool run --python $(DF12_PYTHON) \
+	--from '$(DF12_PYTHON_LINTS)' ambrleaks
 
 
 .PHONY: help all audit clean build build-release lint lint-python fmt check-fmt \
@@ -79,27 +108,29 @@ endif
 
 
 fmt: build $(MDFORMAT_ALL) ## Format sources
-	$(UV_ENV) $(UV) run ruff format $(PYTHON_TARGETS)
-	$(UV_ENV) $(UV) run ruff check --select I --fix $(PYTHON_TARGETS)
+	$(RUFF) format $(PYTHON_TARGETS)
+	$(RUFF) check --select I --fix $(PYTHON_TARGETS)
 
 	$(MDFORMAT_ALL)
 
 check-fmt: build ## Verify formatting
-	$(UV_ENV) $(UV) run ruff format --check $(PYTHON_TARGETS)
+	$(RUFF) format --check $(PYTHON_TARGETS)
 
 	# mdformat-all doesn't currently do checking
 
 lint: lint-python ## Run linters
 
 lint-python: build ## Run Python linters
-	$(UV_ENV) $(UV) run ruff check $(PYTHON_TARGETS)
+	$(RUFF) check $(PYTHON_TARGETS)
 	$(UV_ENV) $(UV) run interrogate --fail-under 100 $(PYTHON_TARGETS)
 	$(PYLINT) $(PYLINT_TARGETS)
+	$(DF12_PYLINT) $(PYLINT_TARGETS)
+	$(AMBRLEAKS) tests
 
 
 typecheck: build ## Run typechecking
-	$(UV_ENV) $(UV) run ty --version
-	$(UV_ENV) $(UV) run ty check $(PYTHON_TARGETS)
+	$(TY) --version
+	$(TY) check $(PYTHON_TARGETS)
 
 audit: build ## Audit dependencies for known vulnerabilities
 	$(UV_ENV) $(UV) run pip-audit
