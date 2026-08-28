@@ -11,6 +11,18 @@ jobs:
     env:
       CS_ACCESS_TOKEN: ${{ secrets.CS_ACCESS_TOKEN }}
       CODESCENE_CLI_SHA256: ${{ vars.CODESCENE_CLI_SHA256 }}
+      # Pin ruff and ty to the versions declared in the Makefile
+      # (RUFF_VERSION/TY_VERSION) and pyproject.toml. Make reads these
+      # environment variables, so CI and local runs invoke identical tool
+      # releases. tests/test_toolchain_contract.py keeps the sites in sync;
+      # bump them together.
+      RUFF_VERSION: 0.16.4
+      TY_VERSION: 0.0.74
+      # Pin the Makefile parser used by the contract tests. Bump the
+      # revision and its nightly toolchain together; the contract tests
+      # assert both pins and the installation command.
+      MAKEUTIL_REVISION: '29fc5a1634ffbaa18a773eed9dff1b2838a45d9c'
+      MAKEUTIL_TOOLCHAIN: 'nightly-2026-05-28'
       
     steps:
       - name: Check out repository
@@ -35,13 +47,23 @@ jobs:
       - name: Validate Makefile
         run: mbake validate Makefile
 
+      - name: Install Makefile parser
+        run: |
+          rustup toolchain install "${MAKEUTIL_TOOLCHAIN}" --profile minimal
+          RUSTFLAGS="-Zpolonius=next" cargo +"${MAKEUTIL_TOOLCHAIN}" install \
+            --git https://github.com/leynos/makeutil \
+            --rev "${MAKEUTIL_REVISION}" \
+            --locked \
+            --force \
+            makeutil
+
       - name: Install code
         run: make build
 
       - name: Check formatting
         run: make check-fmt
 
-      - name: Run ruff
+      - name: Run lint, including Skylos dead-code detection
         run: make lint
 
       - name: Run typechecker

@@ -9,8 +9,83 @@ The public entrypoint for formatting, linting, typechecking, and tests is
 failure, and changes should be reconciled with the aggregate gate before being
 considered complete.
 
-`make lint` runs Ruff, `interrogate --fail-under 100 $(PYTHON_TARGETS)` for
-100% docstring coverage across `$(PYTHON_TARGETS)`, and Pylint.
+`make lint` runs Ruff (pinned to `$(RUFF_VERSION)`),
+`interrogate --fail-under 100 $(PYTHON_TARGETS)` for 100% docstring coverage
+across `$(PYTHON_TARGETS)`, the PyPy-backed Pylint runner, the
+`df12-python-lints` Pylint pass under CPython `$(DF12_PYTHON)`, `ambrleaks`
+over `tests/`, and the strict Skylos dead-code gate. See
+[ADR-001](adr-001-python-lint-architecture.md) for the four-tier lint
+architecture.
+
+Ruff and ty versions are pinned in three places: `RUFF_VERSION` and
+`TY_VERSION` in the `Makefile`, the matching environment variables in
+`.github/workflows/ci.yml`, and the `==`-pinned entries in the `dev`
+dependency group of `pyproject.toml`. `tests/test_toolchain_contract.py`
+asserts the three sites agree; bump them together.
+
+### Skylos dead-code gate
+
+Skylos (pinned to `$(SKYLOS_VERSION)`) scans production modules only —
+`$(SKYLOS_PRODUCTION_TARGETS)`, excluding `$(SKYLOS_EXCLUDE_FOLDERS)` — with
+the strict gate configuration in `pyproject.toml`, so any unreviewed
+production dead-code finding fails `make lint`. The tool runs under
+Python 3.14 because Skylos parses source with its own runtime AST; pinning
+the interpreter prevents phantom findings on newer syntax.
+
+Investigate every finding before responding to it. Remove genuine dead code.
+For verified false positives, prefer a typed
+`[[tool.skylos.dead_code.entrypoints]]` rule in `pyproject.toml` when an
+implicit runtime caller can be modelled; otherwise record a documented
+allow-list entry with:
+
+```bash
+make skylos-allow SYMBOL=<qualified.symbol> REASON="<evidence for the caller>"
+```
+
+`SYMBOL` and `REASON` are both required and must contain non-whitespace text;
+the target exits with status 2 otherwise. The variable is named `SYMBOL`
+(not `NAME`) because WSL injects `NAME` with the hostname. The write is
+serialized with `flock` on the ignored `.skylos-whitelist.lock` file, so
+concurrent recordings cannot lose entries.
+
+### How the Makefile workflows are covered
+
+Two complementary layers protect the `lint` and `typecheck` workflows:
+
+- **Structural contracts** (`tests/test_lint_pipeline_contract.py`,
+  `tests/test_skylos_lint_contract.py`) parse the Makefile with `makeutil`
+  and assert what it *declares*: the tier order, each invocation's shape,
+  and agreement between the sites that pin a tool.
+- **Execution-boundary tests** (`tests/test_make_execution_boundary.py`)
+  assert what Make actually *does*. They run `make -f <repository Makefile>`
+  from a temporary directory with `UV` overridden to a recorder script, so
+  every tier is dispatched and its expanded arguments captured without any
+  real linter, type checker, or `uv` download running. They cover the
+  dispatch order, the arguments each tier receives, and failure propagation
+  — that a failing tier fails the target and that no later tier runs.
+
+Add to both layers when changing a workflow: the structural contract guards
+the recipe, and the execution test guards the behaviour.
+
+### Makefile parser for contract tests
+
+`make test` requires the `makeutil` Makefile parser on `PATH`; the contract
+tests use it to assert Make interfaces structurally instead of matching
+source text. Bootstrap it locally with the same pins CI uses:
+
+```bash
+rustup toolchain install nightly-2026-05-28 --profile minimal
+RUSTFLAGS="-Zpolonius=next" cargo +nightly-2026-05-28 install \
+  --git https://github.com/leynos/makeutil \
+  --rev 29fc5a1634ffbaa18a773eed9dff1b2838a45d9c \
+  --locked \
+  --force \
+  makeutil
+```
+
+Every CI job that runs the full pytest suite provisions Makeutil
+independently with these pins; `tests/test_skylos_lint_contract.py` asserts
+the environment pins and installation command in each applicable workflow.
 
 Run `make audit` as the dependency vulnerability gate. It runs `pip-audit` for
 Python dependencies, and Rust-enabled projects also run `cargo audit` from the
@@ -70,14 +145,18 @@ under `.github/`.
 
 - `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. It
   sets up Python 3.13, installs `uv`, validates the `Makefile` with
-  `mbake`, runs `make build`, `make check-fmt`, `make lint` (Ruff +
-  `interrogate --fail-under 100 $(PYTHON_TARGETS)` + Pylint), `make typecheck`,
-  and `make audit`, then delegates coverage generation to the shared coverage
-  action. When the Rust extension is enabled, it also sets up Rust, installs
-  Rust lint and test tools, and passes `rust_extension/Cargo.toml` to coverage.
+  `mbake`, installs the pinned Makeutil parser, runs `make build`,
+  `make check-fmt`, `make lint` (Ruff +
+  `interrogate --fail-under 100 $(PYTHON_TARGETS)` + the PyPy-backed Pylint
+  runner + the `df12-python-lints` pass + `ambrleaks` + the strict Skylos
+  dead-code gate), `make typecheck`, and `make audit`, then delegates
+  coverage generation to the shared coverage action. When the Rust extension
+  is enabled, it also sets up Rust, installs Rust lint and test tools, and
+  passes `rust_extension/Cargo.toml` to coverage.
 - `.github/workflows/act-validation.yml` runs rendered workflow validation in a
-  separate workflow. It installs `act`, checks Docker availability, and runs
-  `make test WITH_ACT=1` outside the coverage path.
+  separate workflow. It installs `act`, checks Docker availability, installs
+  the pinned Makeutil parser, and runs `make test WITH_ACT=1` outside the
+  coverage path.
 - `.github/workflows/release.yml` publishes wheels when a `v*.*.*` tag is
   pushed. It builds a pure Python wheel, creates a GitHub release with
   generated release notes, downloads wheel artifacts, and uploads them to the

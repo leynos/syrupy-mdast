@@ -15,6 +15,10 @@ jobs:
       ACT_VERSION: v0.2.84
       MARKDOWNLINT_CLI2_VERSION: 0.22.1
       MBAKE_VERSION: 1.4.6
+      # Pin the Makefile parser used by the contract tests; this job runs
+      # the full pytest suite, so it provisions Makeutil independently.
+      MAKEUTIL_REVISION: '29fc5a1634ffbaa18a773eed9dff1b2838a45d9c'
+      MAKEUTIL_TOOLCHAIN: 'nightly-2026-05-28'
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
@@ -46,6 +50,16 @@ jobs:
 
       - name: Check Docker runtime
         run: docker info
+
+      - name: Install Makefile parser
+        run: |
+          rustup toolchain install "${MAKEUTIL_TOOLCHAIN}" --profile minimal
+          RUSTFLAGS="-Zpolonius=next" cargo +"${MAKEUTIL_TOOLCHAIN}" install \
+            --git https://github.com/leynos/makeutil \
+            --rev "${MAKEUTIL_REVISION}" \
+            --locked \
+            --force \
+            makeutil
 
       - name: Run tests with act validation
         run: make test WITH_ACT=1

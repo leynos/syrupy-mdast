@@ -14,11 +14,17 @@ these targets in order:
 - `test`: run pytest and, when Rust is enabled, Rust tests.
 - `audit`: run `pip-audit` and, when Rust is enabled, `cargo audit`.
 
-The `lint-python` target runs Ruff, then Interrogate with
-`interrogate --fail-under 100 $(PYTHON_TARGETS)` to enforce 100% docstring
-coverage for the Python targets, then Pylint via a PyPy-backed runner. The
-Pylint runner is installed through `uv tool run` from the pinned
-`pylint-pypy-shim` repository.
+The `lint-python` target runs Ruff (pinned to `$(RUFF_VERSION)`), then
+Interrogate with `interrogate --fail-under 100 $(PYTHON_TARGETS)` to enforce
+100% docstring coverage for the Python targets, then Pylint via a PyPy-backed
+runner, then the `df12-python-lints` Pylint pass under CPython
+`$(DF12_PYTHON)`, and finally `ambrleaks` to sweep syrupy snapshots under
+`tests/` for unredacted values, and finally the strict Skylos dead-code gate
+over the production package. The Pylint runner is installed through
+`uv tool run` from the pinned `pylint-pypy-shim` repository; the
+`df12-python-lints` plugin is installed from the pinned
+`$(DF12_PYTHON_LINTS_REF)` tag; Skylos is installed through `uv tool run`
+pinned to `$(SKYLOS_VERSION)` under Python 3.14.
 
 Pytest discovery is limited to the top-level `tests/` tree. Keep generated
 project unit tests there rather than in package module directories or

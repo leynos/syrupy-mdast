@@ -80,12 +80,40 @@
   - **Auditing:** Passes dependency vulnerability checks (`make audit`).
   - The generated Makefile wiring for these targets is:
     - `make check-fmt` runs Ruff formatting checks with
-      `ruff format --check $(PYTHON_TARGETS)`.
+      `ruff format --check $(PYTHON_TARGETS)` using the pinned
+      `$(RUFF_VERSION)` release.
     - `make lint` runs `make lint-python`; `make lint-python` runs
-      `ruff check $(PYTHON_TARGETS)`, enforces 100% docstring coverage with
-      `interrogate --fail-under 100 $(PYTHON_TARGETS)`, and runs the
-      PyPy-backed Pylint runner against `$(PYLINT_TARGETS)`.
-    - `make typecheck` runs `ty check $(PYTHON_TARGETS)`.
+      `ruff check $(PYTHON_TARGETS)` (pinned to `$(RUFF_VERSION)`), enforces
+      100% docstring coverage with
+      `interrogate --fail-under 100 $(PYTHON_TARGETS)`, runs the PyPy-backed
+      Pylint runner against `$(PYLINT_TARGETS)`, runs the df12-python-lints
+      Pylint pass under CPython `$(DF12_PYTHON)` against `$(PYLINT_TARGETS)`,
+      sweeps syrupy snapshots with `ambrleaks tests`, and runs the strict
+      Skylos dead-code gate (pinned to `$(SKYLOS_VERSION)`, under
+      Python 3.14) against `$(SKYLOS_PRODUCTION_TARGETS)` only, excluding
+      `$(SKYLOS_EXCLUDE_FOLDERS)`.
+    - Skylos false positives are recorded only after verification. Prefer a
+      typed `[[tool.skylos.dead_code.entrypoints]]` rule in `pyproject.toml`
+      for implicit runtime callers; use
+      `make skylos-allow SYMBOL=<symbol> REASON="<evidence>"` only when an
+      entry-point rule cannot model the boundary. `SYMBOL` and `REASON` must
+      contain non-whitespace text. Never silence a finding without recording
+      the reason.
+    - `make test` requires the pinned `makeutil` Makefile parser on `PATH`
+      for the contract tests (see the developers' guide for the bootstrap
+      command).
+    - Makefile workflow changes need cover in both layers: the structural
+      contracts (`tests/test_lint_pipeline_contract.py`,
+      `tests/test_skylos_lint_contract.py`) assert the declared recipe, and
+      `tests/test_make_execution_boundary.py` runs the target against
+      recorder scripts to assert dispatch order, expanded arguments, and
+      failure propagation.
+    - `make typecheck` runs `ty check $(PYTHON_TARGETS)` using the pinned
+      `$(TY_VERSION)` release.
+    - Ruff and ty version pins are declared in the Makefile
+      (`RUFF_VERSION`/`TY_VERSION`), mirrored by the CI workflow environment
+      and the `dev` dependency group in `pyproject.toml`;
+      `tests/test_toolchain_contract.py` keeps the three sites in sync.
     - `make test` runs `pytest -v -n $(PYTEST_XDIST_WORKERS)` and honours
       `WITH_ACT=1` through `RUN_ACT_VALIDATION=1`.
     - `make audit` runs `pip-audit`.
@@ -194,7 +222,7 @@ internally facing conventions or practices in `docs/developers-guide.md`.
 For Python development, refer to the detailed guidelines in the `.rules/`
 directory:
 
-- [Python code style guidelines](.rules/python-00.md) - Core Python 3.13 style
+- [Python code style guidelines](.rules/python-00.md) - Core Python 3.12 style
   conventions.
 - [Python context managers](.rules/python-context-managers.md) - Best practices
   for context managers.

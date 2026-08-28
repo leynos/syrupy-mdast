@@ -204,3 +204,6 @@ target/
 **/mutants.out*/
 
 .crush/
+
+# Skylos documented-whitelist lock (see the skylos-allow Make target)
+.skylos-whitelist.lock
