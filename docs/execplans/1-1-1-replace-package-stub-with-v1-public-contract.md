@@ -168,7 +168,11 @@ Stop and escalate rather than improvising when any of these is reached.
   `tests/test_stub.py`, `syrupy_mdast/pure.py`, and the generated import
   fallback. The expected `AttributeError` was observed for `hello()`; all
   deterministic gates passed (32 tests).
-- [ ] EP-M2 Declare package metadata and the Syrupy runtime dependency.
+- [x] EP-M2 Declare package metadata and the Syrupy runtime dependency —
+  2026-08-28T23:50:00Z: the manifest now declares the approved Syrupy range,
+  Pre-Alpha status, and typed-package marker; `uv.lock` resolved Syrupy 6.0.0.
+  The manifest contract failed first on the missing declaration and marker,
+  then passed; `make build` and `make audit` passed.
 - [ ] EP-M3 Establish the dependency-free domain core and its import guard.
 - [ ] EP-M4 Deliver the Syrupy adapter and the public API contract test.
 - [ ] EP-M5 Add the Python and Syrupy compatibility matrix to CI.
