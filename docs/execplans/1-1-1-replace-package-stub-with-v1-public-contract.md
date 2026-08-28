@@ -219,14 +219,6 @@ implementer would otherwise make.
    Impact: design §2.1's goal of a "narrow and fully typed" public API is
    currently unobservable downstream. EP-M2 adds the marker.
 
-8. Observation: `docs/python-native-command-mocking-design.md`, cited in the
-   task brief, does not exist in this repository.
-   Evidence: repository-wide glob returns no match.
-   Impact: none for this task, which invokes no external commands. The nearest
-   relevant guidance is the `cmd-mox` section of `docs/scripting-standards.md`,
-   which governs helper scripts rather than library code and is out of scope
-   here. Recorded so the omission is not mistaken for an oversight.
-
 ## Decision log
 
 - DEC-1: Lay out the package as `syrupy_mdast/_core/` (a package containing
@@ -1013,3 +1005,21 @@ __all__ = ["MarkdownAstError", "MarkdownAstSnapshotExtension"]
 Dependencies. Runtime: `syrupy>=5.0.0,<7.0.0`, and nothing else. Development:
 no additions — `pytest` and `hypothesis` are already in the `dev` group, and
 `pytest-bdd` is deferred to roadmap 2.3.1 per DEC-9.
+
+## Revision notes
+
+### 2026-08-29 — correct a misread source reference
+
+What changed: removed the eighth entry from `Surprises & discoveries`, which
+recorded `docs/python-native-command-mocking-design.md` as a missing document
+cited by the task brief.
+
+Why: that citation was a slip for `docs/syrupy-mdast-design.md`, which does
+exist and is this plan's primary upstream source. There is no missing document
+and therefore no discovery to record.
+
+Effect on remaining work: none. The technical design was already the plan's
+governing artefact throughout — it heads the signposted reading, anchors the
+`Conformance basis`, and supplies every `TDD-§` trace link. No milestone,
+obligation, decision, or acceptance criterion changes. `Surprises &
+discoveries` now holds seven entries.
