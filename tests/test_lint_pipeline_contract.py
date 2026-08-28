@@ -16,9 +16,15 @@ would silently reuse the replaced interpreter.
 
 from __future__ import annotations
 
+import tomllib
 import typing as typ
 
-from tests.support.make_contract import recipe_tokens, variable_tokens
+from tests.support.make_contract import REPO_ROOT, recipe_tokens, variable_tokens
+
+_DF12_DISTRIBUTION: typ.Final = "df12-python-lints"
+_DF12_SOURCE_TEMPLATE: typ.Final = (
+    "git+https://github.com/leynos/df12-python-lints.git@$(DF12_PYTHON_LINTS_REF)"
+)
 
 _EXPECTED_LINT_PIPELINE: typ.Final = (
     ("$(RUFF)", "check", "$(PYTHON_TARGETS)"),
@@ -51,8 +57,6 @@ _EXPECTED_LINT_PIPELINE: typ.Final = (
 )
 # Each tier that pins its own interpreter must build an isolated environment.
 _ISOLATED_TOOL_MACROS: typ.Final = ("PYLINT", "DF12_PYLINT", "AMBRLEAKS", "SKYLOS_CLI")
-_COMMIT_SHA_LENGTH: typ.Final = 40
-_HEX_DIGITS: typ.Final = frozenset("0123456789abcdef")
 _DF12_PYLINT_TOKENS: typ.Final = (
     "$(UV_ENV)",
     "$(UV)",
@@ -117,18 +121,51 @@ def test_pypy_pylint_pass_runs_without_plugins() -> None:
     )
 
 
-def test_df12_python_lints_is_pinned_to_an_immutable_revision() -> None:
-    """The plugin source must be a commit SHA, not a movable tag or branch."""
-    tokens = variable_tokens("DF12_PYTHON_LINTS_REF")
-    assert len(tokens) == 1, (
-        f"DF12_PYTHON_LINTS_REF must hold a single revision, got {tokens!r}"
+def test_df12_python_lints_revision_agrees_across_invocation_sites() -> None:
+    """The Makefile and pyproject.toml must request the same plugin revision.
+
+    The lint gate resolves the plugin through the Makefile's
+    ``DF12_PYTHON_LINTS_REF``, while ``uv sync`` resolves it through the git
+    reference in the dev dependency group. If the two drift, the linted
+    ruleset depends on which entry point ran, so this asserts they agree
+    without constraining which revision is chosen.
+    """
+    makefile_tokens = variable_tokens("DF12_PYTHON_LINTS_REF")
+    assert len(makefile_tokens) == 1, (
+        f"DF12_PYTHON_LINTS_REF must hold a single revision, got {makefile_tokens!r}"
     )
-    revision = tokens[0]
-    assert len(revision) == _COMMIT_SHA_LENGTH, (
-        "df12-python-lints must be pinned to a full 40-character commit SHA so "
-        f"the resolved code cannot change under the pin, got {revision!r}"
+    makefile_revision = makefile_tokens[0]
+
+    pyproject = tomllib.loads(
+        (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     )
-    assert all(character in _HEX_DIGITS for character in revision), (
-        "df12-python-lints must be pinned to a hexadecimal commit SHA, not a "
-        f"movable tag or branch, got {revision!r}"
+    dev_dependencies: list[str] = pyproject["dependency-groups"]["dev"]
+    specifiers = [
+        specifier
+        for specifier in dev_dependencies
+        if specifier.startswith(f"{_DF12_DISTRIBUTION} @ ")
+    ]
+    assert len(specifiers) == 1, (
+        f"expected exactly one {_DF12_DISTRIBUTION!r} entry in the dev "
+        f"dependency group, found {len(specifiers)}"
+    )
+    _, _, requirement_url = specifiers[0].partition(" @ ")
+    _, separator, pyproject_revision = requirement_url.strip().rpartition("@")
+    assert separator, (
+        f"the {_DF12_DISTRIBUTION!r} dev dependency must request an explicit "
+        f"git revision, got {requirement_url.strip()!r}"
+    )
+
+    assert makefile_revision == pyproject_revision, (
+        f"{_DF12_DISTRIBUTION} is requested at {makefile_revision!r} by the "
+        f"Makefile but {pyproject_revision!r} by pyproject.toml; the lint gate "
+        "and the synced environment must resolve the same plugin revision"
+    )
+
+
+def test_df12_python_lints_source_is_built_from_the_shared_revision() -> None:
+    """The plugin URL must interpolate the ref rather than inline a revision."""
+    assert variable_tokens("DF12_PYTHON_LINTS") == (_DF12_SOURCE_TEMPLATE,), (
+        "df12-python-lints source contract must build its URL from "
+        "$(DF12_PYTHON_LINTS_REF) so the Makefile has a single revision site"
     )

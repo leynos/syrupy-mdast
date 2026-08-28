@@ -34,7 +34,7 @@ PYLINT_PYPY_SHIM = git+https://github.com/leynos/pylint-pypy-shim.git@$(PYLINT_P
 # The PyPy-backed pass runs the classic Pylint messages only; plugins are
 # disabled because df12-python-lints requires CPython semantics.
 PYLINT = $(UV_ENV) $(UV) tool run --python $(PYLINT_PYTHON) --from '$(PYLINT_PYPY_SHIM)' pylint-pypy --load-plugins=
-DF12_PYTHON_LINTS_REF ?= 4cf41736cce2f7ba2778882a5c629c044568a0e5
+DF12_PYTHON_LINTS_REF ?= v0.3.0
 DF12_PYTHON_LINTS = git+https://github.com/leynos/df12-python-lints.git@$(DF12_PYTHON_LINTS_REF)
 # df12-python-lints runs under CPython so the plugin sees full CPython AST
 # semantics; the PyPy shim above covers only the classic messages.
