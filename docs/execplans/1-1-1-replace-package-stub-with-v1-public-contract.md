@@ -77,7 +77,7 @@ These are hard invariants. Violating one requires escalation, not a workaround.
 
 Stop and escalate rather than improvising when any of these is reached.
 
-1. Scope: if delivery requires touching more than 16 files, stop and escalate.
+1. Scope: if delivery requires touching more than 20 files, stop and escalate.
 2. Interface: if design §6's two-name surface cannot be delivered as written,
    stop and escalate. Do not add or rename a public name unilaterally.
 3. Dependencies: `syrupy` is the only new runtime dependency authorised by this
@@ -112,20 +112,25 @@ Stop and escalate rather than improvising when any of these is reached.
    `# noqa: PLR6301` carrying a link to roadmap 2.3.1, per `AGENTS.md`'s
    temporary-suppression rule. Verify before choosing; do not pre-suppress.
 
-3. Risk: the declared `syrupy>=5.0.0,<7.0.0` floor is never resolved against.
-   `uv` resolves highest-compatible, so CI exercises 6.x only.
+3. Risk: a declared bound is never resolved against. `uv` resolves
+   highest-compatible, so without intervention CI exercises Syrupy 6.x on
+   Python 3.13 only, while the package declares `syrupy>=5.0.0,<7.0.0` and
+   `requires-python = ">=3.12"`.
    Severity: medium. Likelihood: medium.
-   Mitigation: the API-shape contract test (`INV-4`) fails loudly if the
-   installed Syrupy stops exposing the required names. The floor was manually
-   confirmed to expose them. Full matrix coverage is roadmap 2.4.2's debt and
-   is recorded as an accepted residual gap.
+   Mitigation: EP-M5 adds a `compatibility-matrix` job to
+   `.github/workflows/ci.yml` covering Python 3.12, 3.13, and 3.14 against both
+   the declared Syrupy floor and the latest resolvable release. `INV-6` asserts
+   that the floor exercised by the matrix equals the floor declared in
+   `pyproject.toml`, so the declaration and the evidence cannot drift apart.
 
 4. Risk: `_write_mode` is a private Syrupy attribute carrying no compatibility
    promise, yet is depended upon across two major versions.
    Severity: medium. Likelihood: low.
    Mitigation: `INV-4` asserts its continued existence, converting a silent
    behaviour change into a failing test in the pull request that bumps Syrupy.
-   Recorded in design §13 as the stated reason for the upper bound.
+   The EP-M5 matrix now exercises that assertion at both ends of the declared
+   range rather than at one resolved point. Recorded in design §13 as the
+   stated reason for the upper bound.
 
 5. Risk: deleting `hello()` before deleting `tests/test_stub.py` breaks pytest
    at collection time, which under `-n auto` surfaces as xdist worker-crash
@@ -142,7 +147,16 @@ Stop and escalate rather than improvising when any of these is reached.
 7. Risk: the wheel omits `syrupy_mdast/_core/` or `py.typed`.
    Severity: medium. Likelihood: low.
    Mitigation: `_core/__init__.py` exists so hatchling treats it as a
-   subpackage; EP-M6 inspects the built wheel.
+   subpackage; EP-M7 inspects the built wheel.
+
+8. Risk: a matrix combination fails for a reason unrelated to this package —
+   for example an old Syrupy release lacking Python 3.14 support.
+   Severity: low. Likelihood: medium.
+   Mitigation: `fail-fast: false` so every leg reports independently. A
+   genuinely unsupportable combination is recorded with a `matrix.exclude`
+   entry carrying a comment naming the incompatibility. Do not narrow the
+   declared range to make a leg pass without first deciding, deliberately, that
+   the range was wrong.
 
 ## Progress
 
@@ -150,8 +164,9 @@ Stop and escalate rather than improvising when any of these is reached.
 - [ ] EP-M2 Declare package metadata and the Syrupy runtime dependency.
 - [ ] EP-M3 Establish the dependency-free domain core and its import guard.
 - [ ] EP-M4 Deliver the Syrupy adapter and the public API contract test.
-- [ ] EP-M5 Update documentation and correct the Skylos guidance.
-- [ ] EP-M6 Full gate sweep, wheel inspection, and roadmap tick.
+- [ ] EP-M5 Add the Python and Syrupy compatibility matrix to CI.
+- [ ] EP-M6 Update documentation and correct the Skylos guidance.
+- [ ] EP-M7 Full gate sweep, wheel inspection, and roadmap tick.
 
 Update this section at every stopping point, with a UTC timestamp, splitting a
 partially completed milestone into "done" and "remaining" rather than leaving
@@ -189,7 +204,7 @@ implementer would otherwise make.
    Evidence: five spellings tested against one finding; only `file_extension`
    and `*file_extension` suppressed it.
    Impact: both remedies documented in `AGENTS.md` and
-   `docs/developers-guide.md` are wrong for this construct. EP-M5 corrects
+   `docs/developers-guide.md` are wrong for this construct. EP-M6 corrects
    them. Note the blast radius: a bare-name entry is repository-global.
 
 4. Observation: `ambrleaks` scans only `.ambr` files, so it is structurally
@@ -198,7 +213,7 @@ implementer would otherwise make.
    finding and exit 1; in `__snapshots__/t.mdast.json` it produced none and
    exit 0.
    Impact: not a blocker for this task, which writes no snapshots, but this is
-   the task that fixes `file_extension = "mdast.json"`. EP-M5 records the gap
+   the task that fixes `file_extension = "mdast.json"`. EP-M6 records the gap
    in the developers' guide and adds a roadmap item so it is closed before
    roadmap 2.3.1 begins writing snapshots.
 
@@ -346,7 +361,7 @@ implementer would otherwise make.
   installed-wheel suite. The interesting assertion — that no JavaScript asset
   is present — is untestable until Wenmode is a dependency, since today no
   plausible source of one exists. What remains would test hatchling, not this
-  change. A one-off wheel inspection is retained in EP-M6 as a manual
+  change. A one-off wheel inspection is retained in EP-M7 as a manual
   acceptance step rather than a suite test, keeping it out of the 30-second
   pytest timeout and off the `-n auto` critical path.
   Date/Author: 2026-08-28, on Dinolump's recommendation.
@@ -373,9 +388,34 @@ implementer would otherwise make.
   template so the deviation stops spreading.
   Date/Author: 2026-08-28, on Dinolump's recommendation.
 
+- DEC-14: Add the Python and Syrupy compatibility matrix in this task rather
+  than deferring it to roadmap 2.4.2.
+  Rationale: the plan originally recorded the untested `>=5.0.0` floor as an
+  accepted residual gap. That was the wrong call. The declared bounds are
+  ratified *here*, and a bound nobody resolves against is a claim rather than a
+  contract — the same objection Telefono and Pandalump raised independently
+  against the floor and the Python range. The cost is one additive CI job and
+  one contract test; the cost of discovering the floor was wrong is a published
+  package whose metadata lies to a resolver. Roadmap 2.4.2 retains the wider
+  combinatorial matrix over Wenmode releases and pytest-xdist, which this does
+  not attempt. Requested by the user on 2026-08-29.
+  Date/Author: 2026-08-29, user-requested.
+
+- DEC-15: Pin the Syrupy floor by explicit install plus `uv run --no-sync`,
+  not by `uv sync --resolution lowest-direct`.
+  Rationale: `lowest-direct` floors every direct dependency including the `dev`
+  group, where `pytest` is declared with no lower bound and `hypothesis` only as
+  `>=6,<7`. It would resolve absurd tooling versions and produce failures that
+  say nothing about the Syrupy bound under test. Installing the exact floor
+  release keeps the experiment aimed at the one variable this matrix exists to
+  vary. `--no-sync` is required because `uv run` otherwise re-syncs and
+  silently restores the resolved version, which would make every floor leg a
+  duplicate of the latest leg — a vacuous pass.
+  Date/Author: 2026-08-29, planning agent.
+
 ## Outcomes & retrospective
 
-To be completed at EP-M6. Before setting this plan to `COMPLETE`, reconcile
+To be completed at EP-M7. Before setting this plan to `COMPLETE`, reconcile
 every implementation discovery against `Conformance basis`: update design §13
 if the Syrupy range changes, record any purely mechanical difference here, and
 confirm no upstream deviation remains unaccepted.
@@ -492,7 +532,8 @@ TDD-§6      -> RM-1.1.1 -> EP-M4 -> tests/test_public_api_contract.py::test_pub
 TDD-§5      -> RM-1.1.1 -> EP-M3 -> tests/test_core_import_boundary.py::test_core_imports_only_allowlisted_modules
 TDD-§9      -> RM-1.1.1 -> EP-M3 -> tests/test_public_api_contract.py::test_category_set_matches_design_table_two
 TDD-§2.3    -> RM-1.1.1 -> EP-M2 -> tests/test_package_manifest_contract.py::test_declared_ranges_match_installed_metadata
-TDD-§13     -> RM-1.1.1 -> EP-M5 -> docs/syrupy-mdast-design.md §13 compatibility paragraph
+TDD-§13     -> RM-1.1.1 -> EP-M6 -> docs/syrupy-mdast-design.md §13 compatibility paragraph
+DEC-14      -> RM-1.1.1 -> EP-M5 -> tests/test_compatibility_matrix_contract.py::test_matrix_floor_matches_declared_specifier
 TDD-§2.1    -> RM-1.1.1 -> EP-M2 -> tests/test_package_manifest_contract.py::test_package_ships_py_typed_marker
 DEC-3       -> RM-2.3.1 -> EP-M4 -> tests/test_public_api_contract.py::test_serialize_rejects_unsupported_inputs
 ```
@@ -513,7 +554,7 @@ internals.
    promise. This is a known, accepted exposure; see Risk 4.
 3. Hatchling includes non-Python files inside a package directory named in
    `[tool.hatch.build.targets.wheel] packages`. Checked once by manual wheel
-   inspection at EP-M6 rather than by a suite test.
+   inspection at EP-M7 rather than by a suite test.
 4. Skylos 4.33.2 matches whitelist entries on bare symbol names only. This is a
    tool behaviour established empirically during planning (Surprise 3), not an
    assumption; it is recorded here because DEC-7 depends on it.
@@ -629,15 +670,38 @@ was supplied. The `NotImplementedError` assertion must match the roadmap
 reference in the message — otherwise it is tautological, asserting only that an
 unimplemented method is unimplemented.
 
+**INV-6 — Declared range and tested range agree.**
+Statement: the Syrupy floor pinned by the `compatibility-matrix` job equals the
+lower bound of the Syrupy specifier in `pyproject.toml`, and every Python
+version admitted by `requires-python` and available to the runner appears in
+the matrix.
+Method: contract test parsing `pyproject.toml` and
+`.github/workflows/ci.yml`, in the established style of
+`tests/test_toolchain_contract.py`.
+Rationale: a matrix is only worth having if it cannot silently stop testing
+what the package claims. Without this, someone widens the declared range to
+`>=4.0.0` and CI keeps testing 5.0.0 while the metadata promises more. This is
+the same failure the repository already guards against for the Ruff and `ty`
+pins, and it is the mechanism that turns Risk 3 from accepted into defended.
+Domain: the declared specifier and the workflow matrix definition.
+Artefact: `tests/test_compatibility_matrix_contract.py`.
+Evidence: fails before EP-M5 because no matrix job exists; passes after.
+Non-vacuity: assert the parsed matrix version list is non-empty and that the
+job exists by name, so a renamed or deleted job fails loudly rather than
+vacuously passing on an empty scan. Negative control: temporarily change the
+`pyproject.toml` floor to `>=5.1.0` and confirm the test fails on the
+disagreement.
+
 ### Residual gaps, stated explicitly
 
-1. The `>=5.0.0` floor is never resolved against in CI, which pins one Python
-   version and resolves Syrupy highest-compatible. `INV-4` guards the resolved
-   release only. Owned by roadmap 2.4.2.
-2. No test proves the wheel's contents. EP-M6 inspects it manually once.
+1. Largely retired by EP-M5. What remains: the matrix covers the Syrupy floor
+   and the latest resolvable release, not every release between them, and it
+   covers neither Wenmode releases nor pytest-xdist. Those stay with roadmap
+   2.4.2, which this reduces rather than replaces.
+2. No test proves the wheel's contents. EP-M7 inspects it manually once.
    Owned by roadmap 1.2.1 and 2.4.1.
 3. `ambrleaks` will not scan this project's future `.mdast.json` snapshots.
-   Recorded, with a roadmap item added at EP-M5; not closed here.
+   Recorded, with a roadmap item added at EP-M6; not closed here.
 
 ## Plan of work
 
@@ -759,7 +823,50 @@ deleted then.
 Compatibility decision: none. Pre-1.0, unreleased, no external consumer.
 Constraint 5 forbids cutting a release before 2.3.1.
 
-### EP-M5 — Documentation and Skylos guidance correction
+### EP-M5 — Python and Syrupy compatibility matrix
+
+Outcome: `.github/workflows/ci.yml` gains a `compatibility-matrix` job that
+exercises the package's public contract across the declared Python range and at
+both ends of the declared Syrupy range, and a contract test binds that matrix
+to the declarations in `pyproject.toml`.
+
+This milestone must follow EP-M4, because the matrix runs the package contract
+tests that EP-M4 creates.
+
+Add a **new job**. Do not modify the existing `lint-test` job. Every existing
+workflow contract test resolves its target job by name via
+`tests/support/make_contract.py::workflow_job`, so an additional job is
+invisible to them; editing `lint-test` risks breaking `sole_workflow_step`
+assertions in `tests/test_skylos_lint_contract.py`.
+
+The matrix runs **only** the package contract tests
+(`tests/test_public_api_contract.py`, `tests/test_error_contract.py`,
+`tests/test_package_manifest_contract.py`, `tests/test_core_import_boundary.py`).
+It must not run the full suite: the infrastructure contract tests require the
+Rust-built `makeutil` binary, which would add a nightly toolchain build to every
+leg, and they assert Makefile and workflow structure that is invariant across
+interpreter and Syrupy version. Keeping the matrix cheap is what makes it worth
+having.
+
+Pin the Syrupy floor by installing it explicitly after the sync, then run pytest
+with `--no-sync` so `uv` does not silently restore the resolved version. Do not
+use `uv sync --resolution lowest-direct`: it would also floor the dev group,
+where `pytest` is declared without a lower bound, and resolve absurd tooling
+versions.
+
+Requirements: TDD-§2.3; DEC-8; DEC-14; retires most of residual gap 1.
+Acceptance evidence: all matrix legs green on the pull request;
+`tests/test_compatibility_matrix_contract.py` passes.
+Conformance check: no change to the declared ranges, only to the evidence for
+them; no public interface change; `lint-test` untouched.
+Recovery: the job is additive and independent; revert the workflow hunk and the
+contract test together.
+Remaining gaps: Wenmode releases, pytest-xdist, and the wider combinatorial
+coverage of design §11 remain roadmap 2.4.2's, which this milestone reduces
+rather than replaces.
+Compatibility decision: none.
+
+### EP-M6 — Documentation and Skylos guidance correction
 
 Outcome: `README.md` describes the real package and its compatibility policy;
 design §13 carries the concrete Syrupy range and its rationale; `AGENTS.md` and
@@ -779,11 +886,12 @@ Recovery: documentation-only; revert freely.
 Remaining gaps: full user-guide replacement (roadmap 3.1.1); ADR-001 template
 conformance (roadmap 3.1.2).
 
-### EP-M6 — Full sweep and roadmap tick
+### EP-M7 — Full sweep and roadmap tick
 
-Outcome: every gate green from a clean tree, the wheel inspected once by hand,
-`docs/roadmap.md` task 1.1.1 marked `[x]`, and this plan set to `COMPLETE`
-after reconciling discoveries against `Conformance basis`.
+Outcome: every gate green from a clean tree, all `compatibility-matrix` legs
+green, the wheel inspected once by hand, `docs/roadmap.md` task 1.1.1 marked
+`[x]`, and this plan set to `COMPLETE` after reconciling discoveries against
+`Conformance basis`.
 
 Acceptance evidence: `make clean && make all` green; `uv build --wheel` produces
 a wheel containing `syrupy_mdast/_core/` and `syrupy_mdast/py.typed` and no
@@ -842,7 +950,59 @@ test first:
 uv run pytest tests/test_error_contract.py -v
 ```
 
-EP-M6:
+EP-M5 adds this job to `.github/workflows/ci.yml`. Reuse the action SHA pins
+already used by `lint-test` rather than introducing new ones:
+
+```yaml
+  compatibility-matrix:
+    name: py${{ matrix.python-version }} / syrupy ${{ matrix.syrupy-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.12', '3.13', '3.14']
+        syrupy-version: ['5.0.0', 'latest']
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+
+      - name: Sync dependencies
+        run: uv sync --group dev
+
+      - name: Pin the declared Syrupy floor
+        if: matrix.syrupy-version != 'latest'
+        run: uv pip install "syrupy==${{ matrix.syrupy-version }}"
+
+      - name: Run package contract tests
+        run: |
+          uv run --no-sync pytest -v \
+            tests/test_public_api_contract.py \
+            tests/test_error_contract.py \
+            tests/test_package_manifest_contract.py \
+            tests/test_core_import_boundary.py
+```
+
+Verify locally before pushing, in a throwaway environment so the working
+`.venv` is not left holding a downgraded Syrupy:
+
+```bash
+uv run --isolated --with 'syrupy==5.0.0' --python 3.12 \
+  pytest tests/test_public_api_contract.py -v
+```
+
+If that leaves `.venv` in an odd state, `make build` restores it.
+
+EP-M7:
 
 ```bash
 make clean && make all 2>&1 | tee /tmp/m6-all.out
@@ -1006,6 +1166,12 @@ Dependencies. Runtime: `syrupy>=5.0.0,<7.0.0`, and nothing else. Development:
 no additions — `pytest` and `hypothesis` are already in the `dev` group, and
 `pytest-bdd` is deferred to roadmap 2.3.1 per DEC-9.
 
+In `.github/workflows/ci.yml`, a new job `compatibility-matrix`, additive and
+independent of `lint-test`. In
+`tests/test_compatibility_matrix_contract.py`, a test binding the matrix's
+pinned Syrupy floor to the lower bound of the `pyproject.toml` specifier, and
+the matrix's Python versions to `requires-python`.
+
 ## Revision notes
 
 ### 2026-08-29 — correct a misread source reference
@@ -1023,3 +1189,27 @@ governing artefact throughout — it heads the signposted reading, anchors the
 `Conformance basis`, and supplies every `TDD-§` trace link. No milestone,
 obligation, decision, or acceptance criterion changes. `Surprises &
 discoveries` now holds seven entries.
+
+### 2026-08-29 — add the compatibility matrix instead of deferring it
+
+What changed: the untested-bound risk is no longer an accepted residual gap.
+A new milestone `EP-M5` adds a `compatibility-matrix` job to
+`.github/workflows/ci.yml` covering Python 3.12, 3.13, and 3.14 against the
+declared Syrupy floor and the latest resolvable release, plus a new obligation
+`INV-6` and a contract test binding the matrix to the declarations in
+`pyproject.toml`. The documentation milestone became `EP-M6` and the final
+sweep `EP-M7`; every cross-reference, trace link, and residual-gap entry was
+updated. `Tolerances` scope rose from 16 to 20 files. Two decisions were added
+(DEC-14, DEC-15) and one risk (Risk 8, unrelated matrix-leg failures).
+
+Why: the plan had recorded the untested `>=5.0.0` floor as accepted debt owed
+to roadmap 2.4.2. That was the wrong call — this is the task that ratifies the
+bounds, and a bound nobody resolves against is a claim rather than a contract.
+The user directed that the matrix be added now.
+
+Effect on remaining work: one additional milestone between the adapter and the
+documentation work, and one additional contract test. No change to the public
+surface, the declared ranges, or any acceptance criterion for EP-M1 to EP-M4.
+Residual gap 1 narrows from "the floor is never tested" to "releases between
+the floor and latest, Wenmode, and pytest-xdist are not covered", which remains
+roadmap 2.4.2's.
