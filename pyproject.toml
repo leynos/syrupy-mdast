@@ -1,11 +1,18 @@
 [project]
 name = "syrupy-mdast"
 version = "0.1.0"
-description = "syrupy-mdast package"
+description = "AST-aware Markdown snapshots for Syrupy"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "ISC" }
-dependencies = []
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = ["syrupy>=5.0.0,<7.0.0"]
 
 [dependency-groups]
 dev = [
@@ -438,4 +445,3 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["syrupy_mdast"]
-
