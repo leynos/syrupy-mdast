@@ -48,6 +48,25 @@ the target exits with status 2 otherwise. The variable is named `SYMBOL`
 serialized with `flock` on the ignored `.skylos-whitelist.lock` file, so
 concurrent recordings cannot lose entries.
 
+### How the Makefile workflows are covered
+
+Two complementary layers protect the `lint` and `typecheck` workflows:
+
+- **Structural contracts** (`tests/test_lint_pipeline_contract.py`,
+  `tests/test_skylos_lint_contract.py`) parse the Makefile with `makeutil`
+  and assert what it *declares*: the tier order, each invocation's shape,
+  and agreement between the sites that pin a tool.
+- **Execution-boundary tests** (`tests/test_make_execution_boundary.py`)
+  assert what Make actually *does*. They run `make -f <repository Makefile>`
+  from a temporary directory with `UV` overridden to a recorder script, so
+  every tier is dispatched and its expanded arguments captured without any
+  real linter, type checker, or `uv` download running. They cover the
+  dispatch order, the arguments each tier receives, and failure propagation
+  — that a failing tier fails the target and that no later tier runs.
+
+Add to both layers when changing a workflow: the structural contract guards
+the recipe, and the execution test guards the behaviour.
+
 ### Makefile parser for contract tests
 
 `make test` requires the `makeutil` Makefile parser on `PATH`; the contract

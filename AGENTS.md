@@ -102,6 +102,12 @@
     - `make test` requires the pinned `makeutil` Makefile parser on `PATH`
       for the contract tests (see the developers' guide for the bootstrap
       command).
+    - Makefile workflow changes need cover in both layers: the structural
+      contracts (`tests/test_lint_pipeline_contract.py`,
+      `tests/test_skylos_lint_contract.py`) assert the declared recipe, and
+      `tests/test_make_execution_boundary.py` runs the target against
+      recorder scripts to assert dispatch order, expanded arguments, and
+      failure propagation.
     - `make typecheck` runs `ty check $(PYTHON_TARGETS)` using the pinned
       `$(TY_VERSION)` release.
     - Ruff and ty version pins are declared in the Makefile
