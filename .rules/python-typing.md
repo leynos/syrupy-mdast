@@ -29,8 +29,8 @@ class Role(enum.StrEnum):
     GUEST = enum.auto()
 ```
 
-Use `auto()` when exact values are unimportant and you want to avoid
-duplication. Avoid `auto()` in `IntEnum` where numeric meaning matters.
+Use `auto()` when exact values are unimportant and duplication should be
+avoided. Avoid `auto()` in `IntEnum` where numeric meaning matters.
 
 ## `match` / `case` (Structural Pattern Matching)
 
@@ -103,11 +103,14 @@ This decorator is a no-op at runtime but improves tooling correctness.
 Use `TypeIs[T]` to define custom runtime type guards that narrow types in type
 checkers.
 
+`TypeIs` requires Python 3.13 or later. On the 3.12 baseline, import the
+backport from `typing_extensions` instead.
+
 ```python
-import typing
+import typing_extensions
 
 
-def is_str_list(val: list[object]) -> typing.TypeIs[list[str]]:
+def is_str_list(val: list[object]) -> typing_extensions.TypeIs[list[str]]:
     return all(isinstance(x, str) for x in val)
 ```
 
@@ -119,8 +122,13 @@ Unlike `isinstance`, this informs the type checker that `val` is now
 Allow generic classes/functions to fall back to default types when no specific
 type is provided.
 
+The `default` keyword argument to `TypeVar` requires Python 3.13 or later. On
+the 3.12 baseline, import `TypeVar` from `typing_extensions` instead.
+
 ```python
-T = typing.TypeVar("T", default=int)
+import typing_extensions
+
+T = typing_extensions.TypeVar("T", default=int)
 
 
 class Box[T]:

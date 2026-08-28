@@ -34,7 +34,7 @@ PYLINT_PYPY_SHIM = git+https://github.com/leynos/pylint-pypy-shim.git@$(PYLINT_P
 # The PyPy-backed pass runs the classic Pylint messages only; plugins are
 # disabled because df12-python-lints requires CPython semantics.
 PYLINT = $(UV_ENV) $(UV) tool run --python $(PYLINT_PYTHON) --from '$(PYLINT_PYPY_SHIM)' pylint-pypy --load-plugins=
-DF12_PYTHON_LINTS_REF ?= v0.3.0
+DF12_PYTHON_LINTS_REF ?= 4cf41736cce2f7ba2778882a5c629c044568a0e5
 DF12_PYTHON_LINTS = git+https://github.com/leynos/df12-python-lints.git@$(DF12_PYTHON_LINTS_REF)
 # df12-python-lints runs under CPython so the plugin sees full CPython AST
 # semantics; the PyPy shim above covers only the classic messages.
@@ -43,7 +43,12 @@ DF12_PYTHON ?= 3.14
 # 3.14+ baseline, while this project keeps `from __future__ import
 # annotations` on its 3.12 baseline (Ruff's FA family enforces the import).
 DF12_PYLINT_MESSAGES = R9101,C9102,R9103,R9104,C9105,C9106,C9107,R9108,R9109,R9110,R9111,R9112
-DF12_PYLINT = $(UV_ENV) $(UV) run --python $(DF12_PYTHON) pylint \
+# Run this pass in an isolated tool environment, never `uv run`: a
+# project-aware `uv run --python $(DF12_PYTHON)` replaces the project `.venv`
+# with a 3.14 one, so the later `typecheck`, `audit`, and coverage steps would
+# silently reuse 3.14 instead of the interpreter CI provisioned.
+DF12_PYLINT = $(UV_ENV) $(UV) tool run --python $(DF12_PYTHON) \
+	--from '$(DF12_PYTHON_LINTS)' pylint \
 	--disable=all --load-plugins=df12_python_lints --enable=$(DF12_PYLINT_MESSAGES)
 AMBRLEAKS = $(UV_ENV) $(UV) tool run --python $(DF12_PYTHON) \
 	--from '$(DF12_PYTHON_LINTS)' ambrleaks

@@ -91,11 +91,27 @@ def sole_recipe_rule(target: str) -> dict[str, object]:
     return matches[0]
 
 
+def _split_command(text: str) -> tuple[str, ...]:
+    r"""Split ``text`` into shell-like tokens, dropping continuation newlines.
+
+    ``shlex.split`` emits a bare ``"\n"`` token for each escaped line
+    continuation in a Make variable or recipe. Those tokens carry no meaning
+    for a command contract, so they are discarded to keep expectations
+    independent of how a definition happens to be wrapped.
+
+    Returns
+    -------
+    tuple of str
+        The command's tokens, with continuation whitespace removed.
+    """
+    return tuple(token for token in shlex.split(text) if token.strip())
+
+
 def variable_tokens(name: str) -> tuple[str, ...]:
     """Return shell-like tokens from Makeutil's raw variable value."""
     value = sole_variable(name).get("raw_value")
     assert isinstance(value, str), f"expected {name!r} to have a string value"
-    return tuple(shlex.split(value))
+    return _split_command(value)
 
 
 def recipe_tokens(target: str) -> tuple[tuple[str, ...], ...]:
@@ -104,7 +120,7 @@ def recipe_tokens(target: str) -> tuple[tuple[str, ...], ...]:
         sole_recipe_rule(target).get("recipes"), subject=f"{target} recipes"
     )
     return tuple(
-        tuple(shlex.split(recipe_text))
+        _split_command(recipe_text)
         for recipe in recipes
         if isinstance(recipe_text := recipe.get("text"), str)
     )
