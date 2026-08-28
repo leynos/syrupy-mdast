@@ -5,7 +5,7 @@ This ExecPlan (execution plan) is a living document. The sections
 `Decision log`, `Outcomes & retrospective`, `Conformance basis`, and
 `Verification plan` must be kept up to date as work proceeds.
 
-Status: DRAFT
+Status: IN PROGRESS
 
 ## Purpose / big picture
 
@@ -160,7 +160,14 @@ Stop and escalate rather than improvising when any of these is reached.
 
 ## Progress
 
-- [ ] EP-M1 Remove the generated stub.
+- [x] Stage A orientation and baseline verification — 2026-08-28T23:41:02Z:
+  read every signposted source and governing skill; the untouched tree passed
+  `make all`, `make markdownlint`, and `make nixie`. Evidence is retained in
+  `/tmp/*-568f6f36-f483-45a3-ae5d-acddaed687a9-1-1-1-replace-package-stub-with-v1-public-contract.out`.
+- [x] EP-M1 Remove the generated stub — 2026-08-28T23:45:00Z: removed
+  `tests/test_stub.py`, `syrupy_mdast/pure.py`, and the generated import
+  fallback. The expected `AttributeError` was observed for `hello()`; all
+  deterministic gates passed (32 tests).
 - [ ] EP-M2 Declare package metadata and the Syrupy runtime dependency.
 - [ ] EP-M3 Establish the dependency-free domain core and its import guard.
 - [ ] EP-M4 Deliver the Syrupy adapter and the public API contract test.
@@ -1213,3 +1220,16 @@ surface, the declared ranges, or any acceptance criterion for EP-M1 to EP-M4.
 Residual gap 1 narrows from "the floor is never tested" to "releases between
 the floor and latest, Wenmode, and pytest-xdist are not covered", which remains
 roadmap 2.4.2's.
+
+### 2026-08-28 — complete EP-M1 generated-stub removal
+
+What changed: removed the generated `hello()` API, its Python fallback module,
+and its only test.
+
+Why: roadmap task 1.1.1 requires replacing, not retaining, the unreleased
+Copier-template public surface. Keeping an alias would be compatibility
+theatre for a pre-1.0 scaffold with no external consumer.
+
+Effect on remaining work: the package intentionally has no public API until
+EP-M4. The baseline and EP-M1 full gates passed; the next milestone declares
+the package metadata and its sole authorised runtime dependency.
