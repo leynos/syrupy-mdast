@@ -430,6 +430,10 @@ enable = [
 # Fail the lint gate on any unreviewed production dead-code finding.
 strict = true
 
+[tool.skylos.whitelist.documented]
+file_extension = "Syrupy reads this required subclass attribute at runtime."
+_write_mode = "Syrupy reads this required subclass attribute at runtime."
+
 [tool.pytest.ini_options]
 # Tests automatically killed after seconds elapsed
 timeout = 30
