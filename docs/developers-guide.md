@@ -35,11 +35,12 @@ the interpreter prevents phantom findings on newer syntax.
 Investigate every finding before responding to it. Remove genuine dead code.
 For verified false positives, prefer a typed
 `[[tool.skylos.dead_code.entrypoints]]` rule in `pyproject.toml` when an
-implicit runtime caller can be modelled; otherwise record a documented
-allow-list entry with:
+implicit runtime caller can be modelled. Class attributes are not modelled by
+entry-point rules: record those as documented allow-list entries using the bare
+symbol name, because qualified names silently do not suppress the finding:
 
 ```bash
-make skylos-allow SYMBOL=<qualified.symbol> REASON="<evidence for the caller>"
+make skylos-allow SYMBOL=<symbol> REASON="<evidence for the runtime caller>"
 ```
 
 `SYMBOL` and `REASON` are both required and must contain non-whitespace text;
@@ -47,6 +48,11 @@ the target exits with status 2 otherwise. The variable is named `SYMBOL`
 (not `NAME`) because WSL injects `NAME` with the hostname. The write is
 serialized with `flock` on the ignored `.skylos-whitelist.lock` file, so
 concurrent recordings cannot lose entries.
+
+Bare-name allow-list entries apply repository-wide. Record a concrete runtime
+reader in the reason and update `tests/test_skylos_lint_contract.py` in the same
+change, so a later symbol with the same name cannot inherit an exception
+silently.
 
 ### How the Makefile workflows are covered
 

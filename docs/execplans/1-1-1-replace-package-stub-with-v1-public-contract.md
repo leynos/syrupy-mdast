@@ -186,7 +186,10 @@ Stop and escalate rather than improvising when any of these is reached.
   2026-08-29T01:20:00Z: the additive job tests Python 3.12–3.14 against
   Syrupy 5.0.0 and latest. Its metadata-binding contract is green; all
   deterministic gates passed (46 tests).
-- [ ] EP-M6 Update documentation and correct the Skylos guidance.
+- [x] EP-M6 Update documentation and correct the Skylos guidance —
+  2026-08-29T01:45:00Z: updated the README, compatibility policy, and bare-name
+  exception guidance; roadmap task 1.1.1 is checked. All deterministic gates
+  passed (46 tests); CodeRabbit review remains next.
 - [ ] EP-M7 Full gate sweep, wheel inspection, and roadmap tick.
 
 Update this section at every stopping point, with a UTC timestamp, splitting a
@@ -198,6 +201,8 @@ it ambiguous.
 These were established during planning, before implementation began. They are
 recorded here because each one overturned an assumption that a reasonable
 implementer would otherwise make.
+
+Implementation observations are appended after the planning discoveries.
 
 1. Observation: Skylos does **not** flag a class re-exported through `__all__`
    with no in-package caller.
@@ -1247,3 +1252,18 @@ theatre for a pre-1.0 scaffold with no external consumer.
 Effect on remaining work: the package intentionally has no public API until
 EP-M4. The baseline and EP-M1 full gates passed; the next milestone declares
 the package metadata and its sole authorised runtime dependency.
+
+### 2026-08-29 — record implementation progress through EP-M6 documentation
+
+What changed: recorded completed EP-M1 through EP-M5 evidence, the real
+Syrupy 6.0.0 resolution, the two bare-name Skylos exceptions, and the
+compatibility-matrix contract. Updated the README, technical design, and
+maintainer guidance, and marked roadmap task 1.1.1 complete.
+
+Why: the plan's documented contract now exists in the implementation. The
+exception guidance needed correction because class attributes are read by
+Syrupy at runtime but cannot be represented as Skylos entry points.
+
+Effect on remaining work: EP-M6 validation and CodeRabbit review, followed by
+EP-M7's clean-tree sweep and wheel inspection, remain before the ExecPlan can
+be marked complete.

@@ -94,11 +94,11 @@
       `$(SKYLOS_EXCLUDE_FOLDERS)`.
     - Skylos false positives are recorded only after verification. Prefer a
       typed `[[tool.skylos.dead_code.entrypoints]]` rule in `pyproject.toml`
-      for implicit runtime callers; use
-      `make skylos-allow SYMBOL=<symbol> REASON="<evidence>"` only when an
-      entry-point rule cannot model the boundary. `SYMBOL` and `REASON` must
-      contain non-whitespace text. Never silence a finding without recording
-      the reason.
+      for implicit runtime callers. Class attributes need a documented bare
+      symbol-name allow-list entry because entry-point rules and qualified
+      names do not model them. Use `make skylos-allow SYMBOL=<symbol>
+      REASON="<evidence>"`; `SYMBOL` and `REASON` must contain non-whitespace
+      text. Never silence a finding without recording the reason.
     - `make test` requires the pinned `makeutil` Makefile parser on `PATH`
       for the contract tests (see the developers' guide for the bootstrap
       command).
