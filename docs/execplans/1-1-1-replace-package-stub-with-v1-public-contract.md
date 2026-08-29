@@ -182,7 +182,10 @@ Stop and escalate rather than improvising when any of these is reached.
   are green. The two required Syrupy class attributes have the approved,
   evidence-bearing Skylos exceptions; all deterministic gates passed (45
   tests).
-- [ ] EP-M5 Add the Python and Syrupy compatibility matrix to CI.
+- [x] EP-M5 Add the Python and Syrupy compatibility matrix to CI —
+  2026-08-29T01:20:00Z: the additive job tests Python 3.12–3.14 against
+  Syrupy 5.0.0 and latest. Its metadata-binding contract is green; all
+  deterministic gates passed (46 tests).
 - [ ] EP-M6 Update documentation and correct the Skylos guidance.
 - [ ] EP-M7 Full gate sweep, wheel inspection, and roadmap tick.
 
