@@ -22,7 +22,7 @@ This step answers which differences v1 removes, preserves, and defers. Its
 outcome bounds every parser, serializer, and compatibility decision. See the
 [technical design](syrupy-mdast-design.md) §§2-4, §8, and §13.
 
-- [ ] 1.1.1. Replace the generated package stub with the v1 public contract.
+- [x] 1.1.1. Replace the generated package stub with the v1 public contract.
   - Declare the supported Python and Syrupy ranges in `pyproject.toml`.
   - Define the base domain error in a dependency-free core and export it with
     the extension without exposing parser internals.
