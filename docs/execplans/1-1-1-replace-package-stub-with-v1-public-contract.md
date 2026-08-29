@@ -190,7 +190,11 @@ Stop and escalate rather than improvising when any of these is reached.
   2026-08-29T01:45:00Z: updated the README, compatibility policy, and bare-name
   exception guidance; roadmap task 1.1.1 is checked. All deterministic gates
   passed (46 tests); CodeRabbit review remains next.
-- [ ] EP-M7 Full gate sweep, wheel inspection, and roadmap tick.
+- [ ] EP-M7 Full gate sweep, wheel inspection, and roadmap tick (in progress).
+  The current full sweep passed with 55 tests; the wheel contains `_core` and
+  `py.typed` and contains no JavaScript asset. All six compatibility legs,
+  `lint-test`, and `act-validation` passed; CodeScene coverage remains failed
+  and must be resolved or explicitly classified before completion.
 
 Update this section at every stopping point, with a UTC timestamp, splitting a
 partially completed milestone into "done" and "remaining" rather than leaving
@@ -438,6 +442,14 @@ Implementation observations are appended after the planning discoveries.
   silently restores the resolved version, which would make every floor leg a
   duplicate of the latest leg — a vacuous pass.
   Date/Author: 2026-08-29, planning agent.
+
+- DEC-16: **User-directed scope exception.** Retain the 22-file implementation
+  rather than removing required tests, CI evidence, documentation, or the
+  existing generated files' deletions merely to meet the 20-file tolerance.
+  Rationale: the two-file excess is required by the later user-requested
+  compatibility matrix and the plan-conformance guards. The user explicitly
+  requested that this tolerance breach be recorded and resolved on 2026-08-29.
+  Date/Author: 2026-08-29, user-directed.
 
 ## Outcomes & retrospective
 

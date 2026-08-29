@@ -6,6 +6,8 @@ import tomllib
 from importlib import metadata
 from pathlib import Path
 
+from syrupy.extensions.single_file import SingleFileSnapshotExtension, WriteMode
+
 
 def test_declared_ranges_match_installed_metadata() -> None:
     """Package metadata declares the ratified Python and Syrupy ranges."""
@@ -21,6 +23,13 @@ def test_declared_ranges_match_installed_metadata() -> None:
     )
     assert distribution.get_all("Requires-Dist") == ["syrupy<7.0.0,>=5.0.0"], (
         "installed metadata must contain only the canonical Syrupy requirement"
+    )
+    assert SingleFileSnapshotExtension.file_extension, (
+        "installed Syrupy must expose SingleFileSnapshotExtension"
+    )
+    assert WriteMode.TEXT.value, "installed Syrupy must expose WriteMode.TEXT"
+    assert hasattr(SingleFileSnapshotExtension, "_write_mode"), (
+        "installed Syrupy must retain the private text-mode hook"
     )
 
 

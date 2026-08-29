@@ -39,7 +39,7 @@ def _disallowed_imports(source: str) -> list[str]:
 def test_core_imports_only_allowlisted_modules() -> None:
     """Core modules remain independent of Syrupy, Wenmode, and I/O adapters."""
     core_directory = REPO_ROOT / "syrupy_mdast" / "_core"
-    core_modules = sorted(core_directory.glob("*.py"))
+    core_modules = sorted(core_directory.rglob("*.py"))
     assert core_modules, "the import guard must scan at least one core module"
     violations = {
         module.relative_to(REPO_ROOT): _disallowed_imports(

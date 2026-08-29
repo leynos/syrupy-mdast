@@ -20,12 +20,20 @@ def test_error_preserves_category_and_pickle_round_trip(category: str) -> None:
     assert str(restored) == "cannot parse source", "pickling must preserve the message"
 
 
-@given(st.text())
-def test_error_renders_arbitrary_messages(message: str) -> None:
-    """The error renders every caller-provided message unchanged."""
-    assert str(MarkdownAstError(message, category=CATEGORIES[0])) == message, (
+def test_category_taxonomy_has_five_values() -> None:
+    """The design's closed error taxonomy retains all five categories."""
+    assert len(CATEGORIES) == 5, "the public category taxonomy must contain five values"
+
+
+@given(st.text(), st.sampled_from(CATEGORIES))
+def test_error_pickles_arbitrary_messages(message: str, category: str) -> None:
+    """Pickling preserves every generated message and each valid category."""
+    error = MarkdownAstError(message, category=category)
+    restored = pickle.loads(pickle.dumps(error))  # ruff: ignore[suspicious-pickle-usage] -- local bytes
+    assert str(restored) == message, (
         "MarkdownAstError must preserve every caller-provided message"
     )
+    assert restored.category == category, "pickling must preserve every valid category"
 
 
 def test_error_rejects_unknown_category() -> None:
