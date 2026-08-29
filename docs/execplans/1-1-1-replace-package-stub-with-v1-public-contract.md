@@ -177,7 +177,11 @@ Stop and escalate rather than improvising when any of these is reached.
   2026-08-29T00:35:00Z: the static AST guard scans every core module and its
   negative control rejects `import syrupy`. All deterministic gates passed
   with 43 tests.
-- [ ] EP-M4 Deliver the Syrupy adapter and the public API contract test.
+- [x] EP-M4 Deliver the Syrupy adapter and the public API contract test —
+  2026-08-29T01:00:00Z: the exact two-name public surface and validation seam
+  are green. The two required Syrupy class attributes have the approved,
+  evidence-bearing Skylos exceptions; all deterministic gates passed (45
+  tests).
 - [ ] EP-M5 Add the Python and Syrupy compatibility matrix to CI.
 - [ ] EP-M6 Update documentation and correct the Skylos guidance.
 - [ ] EP-M7 Full gate sweep, wheel inspection, and roadmap tick.
