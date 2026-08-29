@@ -173,10 +173,10 @@ Stop and escalate rather than improvising when any of these is reached.
   Pre-Alpha status, and typed-package marker; `uv.lock` resolved Syrupy 6.0.0.
   The manifest contract failed first on the missing declaration and marker,
   then passed; `make build` and `make audit` passed.
-- [ ] EP-M3 Establish the dependency-free domain core and its import guard
-  (in progress). The closed error taxonomy and seven-case error contract are
-  green; the static import-boundary guard remains before this milestone can be
-  completed.
+- [x] EP-M3 Establish the dependency-free domain core and its import guard —
+  2026-08-29T00:35:00Z: the static AST guard scans every core module and its
+  negative control rejects `import syrupy`. All deterministic gates passed
+  with 43 tests.
 - [ ] EP-M4 Deliver the Syrupy adapter and the public API contract test.
 - [ ] EP-M5 Add the Python and Syrupy compatibility matrix to CI.
 - [ ] EP-M6 Update documentation and correct the Skylos guidance.
