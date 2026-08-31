@@ -18,7 +18,7 @@ dev = [
     # lint failures such as preview-only rules firing in one environment but
     # not another. Bump all three sites together; a contract test enforces
     # the agreement.
-    "ruff==0.16.4",
+    "ruff==0.16.5",
     "pyright",
     # Pin ty for the same reason: ty is pre-1.0 and diagnostics shift between
     # releases, so an unpinned install breaks the typecheck gate without any
