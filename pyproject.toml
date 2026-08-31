@@ -23,7 +23,7 @@ dev = [
     # Pin ty for the same reason: ty is pre-1.0 and diagnostics shift between
     # releases, so an unpinned install breaks the typecheck gate without any
     # code change. Bump alongside TY_VERSION in the Makefile and CI.
-    "ty==0.0.74",
+    "ty==0.0.75",
     "df12-python-lints @ git+https://github.com/leynos/df12-python-lints.git@v0.3.0",
     "pytest-timeout",
     "pytest-xdist",
