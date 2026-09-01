@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import typing as typ
+from pathlib import Path
 
 import pytest
 import yaml
@@ -24,7 +24,9 @@ def test_act_validation_retains_github_hosted_docker() -> None:
     assert isinstance(jobs, dict), "act-validation.yml must declare jobs"
     act_validation = jobs["act-validation"]
     assert isinstance(act_validation, dict), "act-validation job must be a mapping"
-    assert act_validation["runs-on"] == "ubuntu-latest"
+    assert (
+        act_validation["runs-on"] == "ubuntu-latest"
+    ), "act-validation requires GitHub-hosted Docker"
 
 
 def _workflow(name: str) -> dict[str, object]:
@@ -44,7 +46,9 @@ def test_direct_linux_job_uses_shared_namespace_profile(
     assert isinstance(jobs, dict), f"{workflow_name} must declare jobs"
     job = jobs[job_name]
     assert isinstance(job, dict), f"{workflow_name} {job_name} must be a mapping"
-    assert job["runs-on"] == _NAMESPACE_RUNNER
+    assert job["runs-on"] == _NAMESPACE_RUNNER, (
+        f"{workflow_name} {job_name} must use {_NAMESPACE_RUNNER}"
+    )
 
 
 def test_reusable_wheel_matrix_retains_its_cross_platform_boundary() -> None:
@@ -53,4 +57,6 @@ def test_reusable_wheel_matrix_retains_its_cross_platform_boundary() -> None:
     assert isinstance(jobs, dict), "build-wheels.yml must declare jobs"
     build = jobs["build"]
     assert isinstance(build, dict), "build-wheels.yml build must be a mapping"
-    assert build["runs-on"] == "${{ matrix.os }}"
+    assert build["runs-on"] == "${{ matrix.os }}", (
+        "the reusable wheel build must keep its caller-selected matrix runner"
+    )
