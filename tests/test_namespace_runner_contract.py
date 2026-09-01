@@ -24,9 +24,9 @@ def test_act_validation_retains_github_hosted_docker() -> None:
     assert isinstance(jobs, dict), "act-validation.yml must declare jobs"
     act_validation = jobs["act-validation"]
     assert isinstance(act_validation, dict), "act-validation job must be a mapping"
-    assert (
-        act_validation["runs-on"] == "ubuntu-latest"
-    ), "act-validation requires GitHub-hosted Docker"
+    assert act_validation["runs-on"] == "ubuntu-latest", (
+        "act-validation requires GitHub-hosted Docker"
+    )
 
 
 def _workflow(name: str) -> dict[str, object]:
