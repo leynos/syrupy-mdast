@@ -140,6 +140,17 @@ future contributors need to follow.
 
 ## GitHub Actions
 
+Repository-owned Linux CI, release, and maintenance jobs run on
+`namespace-profile-default`: the shared Ubuntu 22.04 Linux/amd64 profile with
+4 vCPU and 16 GB memory. Its Namespace cache volume is disabled for this
+baseline rollout. Existing workflow cache actions remain unchanged; they are
+not backed by a Namespace cache volume. `act-validation.yml` remains on
+GitHub-hosted Linux because it requires a local Docker daemon; migrate it only
+after a Namespace preflight proves that requirement. The reusable
+`build-wheels.yml` matrix retains caller-selected GitHub-hosted Linux, Windows,
+and macOS runners because the shared estate does not yet provide equivalent
+profiles for every target.
+
 This repository includes GitHub Actions workflows and local composite actions
 under `.github/`.
 
