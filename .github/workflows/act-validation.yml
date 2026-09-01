@@ -10,6 +10,8 @@ permissions:
 
 jobs:
   act-validation:
+    # `act` invokes a local Docker daemon; keep this on GitHub-hosted Linux
+    # until a Namespace Docker preflight proves the shared profile supports it.
     runs-on: ubuntu-latest
     env:
       ACT_VERSION: v0.2.84
