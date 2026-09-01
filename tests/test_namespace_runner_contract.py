@@ -20,11 +20,13 @@ _DIRECT_JOBS: typ.Final = (
 
 def test_act_validation_retains_github_hosted_docker() -> None:
     """Keep the Docker-backed workflow on its proven GitHub-hosted runner."""
-    jobs = _workflow("act-validation.yml")["jobs"]
+    workflow = _workflow("act-validation.yml")
+    jobs = workflow.get("jobs")
     assert isinstance(jobs, dict), "act-validation.yml must declare jobs"
-    act_validation = jobs["act-validation"]
+    act_validation = jobs.get("act-validation")
     assert isinstance(act_validation, dict), "act-validation job must be a mapping"
-    assert act_validation["runs-on"] == "ubuntu-latest", (
+    runs_on = act_validation.get("runs-on")
+    assert runs_on == "ubuntu-latest", (
         "act-validation requires GitHub-hosted Docker"
     )
 
@@ -42,21 +44,25 @@ def test_direct_linux_job_uses_shared_namespace_profile(
     workflow_name: str, job_name: str
 ) -> None:
     """Require each repository-owned Linux job to retain the shared profile."""
-    jobs = _workflow(workflow_name)["jobs"]
+    workflow = _workflow(workflow_name)
+    jobs = workflow.get("jobs")
     assert isinstance(jobs, dict), f"{workflow_name} must declare jobs"
-    job = jobs[job_name]
+    job = jobs.get(job_name)
     assert isinstance(job, dict), f"{workflow_name} {job_name} must be a mapping"
-    assert job["runs-on"] == _NAMESPACE_RUNNER, (
+    runs_on = job.get("runs-on")
+    assert runs_on == _NAMESPACE_RUNNER, (
         f"{workflow_name} {job_name} must use {_NAMESPACE_RUNNER}"
     )
 
 
 def test_reusable_wheel_matrix_retains_its_cross_platform_boundary() -> None:
     """Keep wheel-build runner selection in the reusable matrix."""
-    jobs = _workflow("build-wheels.yml")["jobs"]
+    workflow = _workflow("build-wheels.yml")
+    jobs = workflow.get("jobs")
     assert isinstance(jobs, dict), "build-wheels.yml must declare jobs"
-    build = jobs["build"]
+    build = jobs.get("build")
     assert isinstance(build, dict), "build-wheels.yml build must be a mapping"
-    assert build["runs-on"] == "${{ matrix.os }}", (
+    runs_on = build.get("runs-on")
+    assert runs_on == "${{ matrix.os }}", (
         "the reusable wheel build must keep its caller-selected matrix runner"
     )
