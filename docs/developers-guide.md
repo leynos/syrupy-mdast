@@ -107,6 +107,20 @@ V1 uses Python dependencies only. Bun, Node.js, TypeScript, JavaScript
 manifests, lockfiles, and installed JavaScript package assets are not runtime,
 build, test, or wheel dependencies.
 
+### V1 public contract
+
+The package-level public surface is deliberately limited to
+`MarkdownAstError` and `MarkdownAstSnapshotExtension`. The dependency-free
+`syrupy_mdast._core` package owns the error taxonomy and must not import Syrupy
+or Wenmode. `_extension.py` is the thin Syrupy adapter: it uses the
+`mdast.json` filename suffix and text write mode, accepts only `str` input, and
+rejects unsupported Syrupy property controls before the unimplemented
+serialization seam.
+
+The package targets Python 3.12 or later and declares Syrupy
+`>=5.0.0,<7.0.0`. `syrupy_mdast/py.typed` is part of the wheel so type checkers
+can use the package's annotations from installed distributions.
+
 ### Upgrade Wenmode
 
 1. Keep Wenmode exactly pinned.

@@ -80,11 +80,11 @@ Stop and escalate rather than improvising when any of these is reached.
 1. Scope: if delivery requires touching more than 20 files, stop and escalate.
 2. Interface: if design §6's two-name surface cannot be delivered as written,
    stop and escalate. Do not add or rename a public name unilaterally.
-3. Dependencies: `syrupy` is the only new runtime dependency authorised by this
+3. Dependencies: `syrupy` is the only new runtime dependency authorized by this
    plan. Any further runtime dependency, or any new dev dependency beyond those
    named in `Interfaces and dependencies`, triggers escalation.
 4. Lint suppression: at most two `[tool.skylos.whitelist.documented]` entries
-   are authorised (`file_extension` and `_write_mode`). A third finding that
+   are authorized (`file_extension` and `_write_mode`). A third finding that
    cannot be resolved by making the symbol genuinely live triggers escalation.
 5. Iterations: if a single gate still fails after four remediation attempts,
    stop and escalate with the captured log path.
@@ -188,8 +188,8 @@ Stop and escalate rather than improvising when any of these is reached.
   deterministic gates passed (46 tests).
 - [x] EP-M6 Update documentation and correct the Skylos guidance —
   2026-08-29T01:45:00Z: updated the README, compatibility policy, and bare-name
-  exception guidance; roadmap task 1.1.1 is checked. All deterministic gates
-  passed (46 tests); CodeRabbit review remains next.
+  exception guidance; roadmap task 1.1.1 remains open pending EP-M7. All
+  deterministic gates passed (46 tests); CodeRabbit review remains next.
 - [ ] EP-M7 Full gate sweep, wheel inspection, and roadmap tick (in progress).
   The current full sweep passed with 55 tests; the wheel contains `_core` and
   `py.typed` and contains no JavaScript asset. All six compatibility legs,
@@ -330,7 +330,7 @@ Implementation observations are appended after the planning discoveries.
   `MarkdownAstError` defines an explicit `__reduce__`.
   Rationale: an error documented as always carrying a stable category must not
   be constructible without one, or a raiser could silently emit an
-  uncategorised error and break Table 2. Keyword-only because positional
+  uncategorized error and break Table 2. Keyword-only because positional
   `MarkdownAstError("...", "parse")` invites argument transposition. The
   explicit `__reduce__` is required because `BaseException.__reduce__`
   reconstructs via `type(exc)(*exc.args)`, which raises `TypeError` for a
@@ -460,13 +460,13 @@ confirm no upstream deviation remains unaccepted.
 
 ## Context and orientation
 
-You are working in a Python library repository. It builds with `hatchling`,
-is managed with `uv`, and targets Python 3.12 and later.
+This repository is a Python library. It builds with `hatchling`, is managed with
+`uv`, and targets Python 3.12 and later.
 
 The product this repository is building is a Syrupy extension. **Syrupy** is a
 snapshot-testing plugin for pytest: a test asserts a value against a stored
 file, and Syrupy handles creating, comparing, updating, and deleting those
-files. A **snapshot extension** customises how a value is serialized and what
+files. A **snapshot extension** customizes how a value is serialized and what
 file extension it is stored under. **mdast** is a Markdown Abstract Syntax Tree
 format. The product's purpose is to compare Markdown by its parsed structure
 rather than by its raw source text, so that reformatting Markdown does not
@@ -767,7 +767,7 @@ mean facing six findings across two new modules with no way to attribute them.
 ### EP-M1 — Remove the generated stub
 
 Outcome: the package is empty of generated scaffolding and every gate is green.
-This is your known-good baseline and the reference point for every subsequent
+This commit is the known-good baseline and the reference point for every subsequent
 failure.
 
 Order within the milestone is mandatory: delete `tests/test_stub.py` **first**,
@@ -837,7 +837,7 @@ and tested, and the Skylos findings are resolved.
 This is the milestone that will fight you. Expect `SKY-U003` on
 `file_extension` and `_write_mode`. Expect **no** `SKY-U006`, because DEC-3's
 input validation reads all four `serialize` parameters — if you see `SKY-U006`,
-your validation is incomplete. Follow this order:
+if validation is incomplete. Follow this order:
 
 1. Write `_extension.py` with the full §6 input contract.
 2. Write the public API contract test.
@@ -1263,7 +1263,7 @@ theatre for a pre-1.0 scaffold with no external consumer.
 
 Effect on remaining work: the package intentionally has no public API until
 EP-M4. The baseline and EP-M1 full gates passed; the next milestone declares
-the package metadata and its sole authorised runtime dependency.
+the package metadata and its sole authorized runtime dependency.
 
 ### 2026-08-29 — record implementation progress through EP-M6 documentation
 
