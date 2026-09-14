@@ -1324,13 +1324,13 @@ their combination. The core import guard walks nested modules, the latest
 Syrupy matrix lane explicitly installs the newest release below 7.0.0, and
 the package manifest test builds a temporary wheel to inspect its contents.
 
-The CI workflow now separates CodeScene's main-branch baseline upload from its
-trusted internal pull-request changed-line check. It uses a full-history
-checkout, generates Cobertura coverage before either action invocation, fails
-early when the trusted check lacks `CS_ACCESS_TOKEN`, and visibly skips fork
-pull requests that cannot receive secrets. The shared-actions implementation
-is consumed through the immutable dependency from PR #478, while the SHA
-refresh workflow remains in place.
+The separate syrupy-mdast consumer workflow change separates CodeScene's
+main-branch baseline upload from its trusted internal pull-request changed-line
+check. It uses a full-history checkout, generates Cobertura coverage before
+either action invocation, fails early when the trusted check lacks
+`CS_ACCESS_TOKEN`, and visibly skips fork pull requests that cannot receive
+secrets. The shared-actions implementation is consumed through the immutable
+dependency from PR #478, while the SHA refresh workflow remains in place.
 
 Why: the review identified evidence gaps rather than a change to the v1
 plateau. The additional contracts make the published API and wheel contents
