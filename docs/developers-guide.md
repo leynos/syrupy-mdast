@@ -174,7 +174,18 @@ under `.github/`.
 - `.github/dependabot.yml` enables dependency update pull requests for GitHub
   Actions and Python packages. Rust-enabled projects also receive Cargo updates.
 
-The `CS_ACCESS_TOKEN` secret must be configured when CodeScene coverage upload
-is required. The `CODESCENE_CLI_SHA256` variable should be populated using the
+The CodeScene workflow generates `coverage.xml` in Cobertura format before
+using the shared `upload-codescene-coverage` action. A push to `main` uses the
+action's `upload` mode to establish the analysed default-branch baseline. A
+trusted internal pull request targeting the default branch uses `check` mode
+to evaluate changed-line coverage; that path requires a full-history checkout
+and fails during preflight when `CS_ACCESS_TOKEN` is empty. The action is
+consumed at an immutable revision supplied by shared-actions PR #478, which
+keeps the upload and check modes distinct and preserves CLI diagnostics.
+
+Fork pull requests do not receive `CS_ACCESS_TOKEN`. The workflow therefore
+emits a visible skip notice and does not invoke the external CodeScene check,
+so a check that cannot be produced does not leave the pull request waiting for
+a timeout. The `CODESCENE_CLI_SHA256` variable should be populated using the
 refresh workflow, so CI can verify the downloaded CodeScene installer before
-upload.
+either mode runs.
