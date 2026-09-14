@@ -18,8 +18,23 @@ if typ.TYPE_CHECKING:
 class MarkdownAstSnapshotExtension(SingleFileSnapshotExtension):
     """Compare Markdown sources as canonical mdast-compatible JSON.
 
-    Parsing and serialisation arrive in roadmap task 2.3.1; this adapter
-    already rejects inputs whose future implementation cannot support.
+    Args
+    ----
+        data: Markdown source as ``str``.
+        exclude: Unsupported Syrupy property filter.
+        include: Unsupported Syrupy property filter.
+        matcher: Unsupported Syrupy property matcher.
+
+    Returns
+    -------
+        SerializedData: Canonical mdast-compatible JSON when roadmap task 2.3.1
+            provides serialization.
+
+    Raises
+    ------
+        TypeError: If ``data`` is not ``str``.
+        ValueError: If any Syrupy property control is supplied.
+        NotImplementedError: Until roadmap task 2.3.1 implements serialization.
     """
 
     file_extension = "mdast.json"

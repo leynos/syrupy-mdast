@@ -50,4 +50,46 @@ class MarkdownAstError(Exception):
 
     def __reduce__(self) -> tuple[object, ...]:
         """Preserve the keyword-only category during pickling."""
+        if type(self) is not MarkdownAstError:
+            return (type(self), (str(self),))
         return (_restore_markdown_ast_error, (str(self), self.category))
+
+
+class SourceEncodingError(MarkdownAstError):
+    """Raised when Markdown source cannot be decoded as text."""
+
+    def __init__(self, message: str) -> None:
+        """Initialize an error in the source-encoding category."""
+        super().__init__(message, category=CATEGORY_SOURCE_ENCODING)
+
+
+class InputTooLargeError(MarkdownAstError):
+    """Raised when Markdown input exceeds the supported size."""
+
+    def __init__(self, message: str) -> None:
+        """Initialize an error in the input-too-large category."""
+        super().__init__(message, category=CATEGORY_INPUT_TOO_LARGE)
+
+
+class ParseError(MarkdownAstError):
+    """Raised when Markdown source cannot be parsed."""
+
+    def __init__(self, message: str) -> None:
+        """Initialize an error in the parse category."""
+        super().__init__(message, category=CATEGORY_PARSE)
+
+
+class AstShapeError(MarkdownAstError):
+    """Raised when parsed Markdown has an unsupported AST shape."""
+
+    def __init__(self, message: str) -> None:
+        """Initialize an error in the ast-shape category."""
+        super().__init__(message, category=CATEGORY_AST_SHAPE)
+
+
+class SerializationError(MarkdownAstError):
+    """Raised when canonical Markdown AST serialization fails."""
+
+    def __init__(self, message: str) -> None:
+        """Initialize an error in the serialization category."""
+        super().__init__(message, category=CATEGORY_SERIALIZATION)

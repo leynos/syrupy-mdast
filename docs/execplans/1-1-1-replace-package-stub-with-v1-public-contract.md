@@ -191,10 +191,14 @@ Stop and escalate rather than improvising when any of these is reached.
   exception guidance; roadmap task 1.1.1 remains open pending EP-M7. All
   deterministic gates passed (46 tests); CodeRabbit review remains next.
 - [ ] EP-M7 Full gate sweep, wheel inspection, and roadmap tick (in progress).
-  The current full sweep passed with 55 tests; the wheel contains `_core` and
-  `py.typed` and contains no JavaScript asset. All six compatibility legs,
-  `lint-test`, and `act-validation` passed; CodeScene coverage remains failed
-  and must be resolved or explicitly classified before completion.
+  Review remediation now covers the concrete five-category error hierarchy,
+  extension inheritance and mode attributes, all invalid-input/control
+  partitions, the recursive core-import guard, the latest-supported-Syrupy
+  lane, and a built-wheel content contract. The current implementation still
+  requires the clean-tree deterministic sweep, all six compatibility legs,
+  hosted validation, and CodeScene coverage timeout resolution or explicit
+  classification before completion. The roadmap item remains open until that
+  evidence is recorded.
 
 Update this section at every stopping point, with a UTC timestamp, splitting a
 partially completed milestone into "done" and "remaining" rather than leaving
@@ -450,6 +454,31 @@ Implementation observations are appended after the planning discoveries.
   compatibility matrix and the plan-conformance guards. The user explicitly
   requested that this tolerance breach be recorded and resolved on 2026-08-29.
   Date/Author: 2026-08-29, user-directed.
+
+- DEC-17: Route CodeScene coverage through the shared action's distinct
+  `upload` and `check` modes, with the default branch establishing the
+  baseline and trusted internal pull requests evaluating changed-line
+  coverage.
+  Rationale: an upload publishes a branch baseline but does not evaluate a
+  pull request. The consumer workflow therefore generates a Cobertura report,
+  uses a full-history checkout for the trusted pull-request path, fails early
+  when `CS_ACCESS_TOKEN` is absent, and emits a visible skip notice for fork
+  pull requests that cannot receive secrets. The shared-actions change is
+  consumed at an immutable SHA from dependency PR #478; the action's checksum
+  refresh workflow remains the source of `CODESCENE_CLI_SHA256`. The
+  corresponding shared-actions and git-donkey changes are separate reviewable
+  changes, not commits to this pull request.
+  Date/Author: 2026-09-14, user-directed migration decision.
+
+- DEC-18: Make wheel contents an executable contract in the package manifest
+  tests while retaining the broader installed-wheel suite for roadmap 2.4.1.
+  Rationale: the review identified that a source-tree `py.typed` assertion did
+  not prove what this package publishes. The contract now builds a temporary
+  wheel and asserts that `syrupy_mdast/py.typed` and the Python core are
+  present while JavaScript sources, manifests, lockfiles, and package
+  directories are absent. This closes the v1 packaging evidence gap without
+  pulling the full end-to-end wheel suite into this milestone.
+  Date/Author: 2026-09-14, review remediation.
 
 ## Outcomes & retrospective
 
@@ -736,8 +765,9 @@ disagreement.
    and the latest resolvable release, not every release between them, and it
    covers neither Wenmode releases nor pytest-xdist. Those stay with roadmap
    2.4.2, which this reduces rather than replaces.
-2. No test proves the wheel's contents. EP-M7 inspects it manually once.
-   Owned by roadmap 1.2.1 and 2.4.1.
+2. The package manifest contract now proves the essential wheel contents and
+   excludes JavaScript assets. The broader installed-wheel end-to-end suite is
+   still owned by roadmap 1.2.1 and 2.4.1.
 3. `ambrleaks` will not scan this project's future `.mdast.json` snapshots.
    Recorded, with a roadmap item added at EP-M6; not closed here.
 
@@ -927,13 +957,16 @@ conformance (roadmap 3.1.2).
 ### EP-M7 — Full sweep and roadmap tick
 
 Outcome: every gate green from a clean tree, all `compatibility-matrix` legs
-green, the wheel inspected once by hand, `docs/roadmap.md` task 1.1.1 marked
-`[x]`, and this plan set to `COMPLETE` after reconciling discoveries against
-`Conformance basis`.
+green, the built-wheel contract and manual inspection recorded,
+`docs/roadmap.md` task 1.1.1 marked `[x]`, CodeScene coverage either passing or
+explicitly classified with its timeout cause and remediation, and this plan
+set to `COMPLETE` after reconciling discoveries against `Conformance basis`.
 
 Acceptance evidence: `make clean && make all` green; `uv build --wheel` produces
 a wheel containing `syrupy_mdast/_core/` and `syrupy_mdast/py.typed` and no
-JavaScript asset.
+JavaScript asset; the six matrix legs and hosted workflow validation are green;
+the CodeScene main-branch upload and trusted pull-request check are observed,
+or the remaining external failure is explicitly classified with a follow-up.
 Recovery: not applicable; this milestone only verifies.
 
 ## Concrete steps
@@ -1279,3 +1312,36 @@ Syrupy at runtime but cannot be represented as Skylos entry points.
 Effect on remaining work: EP-M6 validation and CodeRabbit review, followed by
 EP-M7's clean-tree sweep and wheel inspection, remain before the ExecPlan can
 be marked complete.
+
+### 2026-09-14 — incorporate review remediation and CodeScene gate migration
+
+What changed: the review follow-up extends the dependency-free error core with
+one `Error`-suffixed class for each ratified category, adds tests for the
+concrete hierarchy and its pickle contract, and pins the exact public
+extension inheritance, suffix, and text-mode attributes. The input-contract
+tests now cover every invalid data partition, each unsupported control, and
+their combination. The core import guard walks nested modules, the latest
+Syrupy matrix lane explicitly installs the newest release below 7.0.0, and
+the package manifest test builds a temporary wheel to inspect its contents.
+
+The CI workflow now separates CodeScene's main-branch baseline upload from its
+trusted internal pull-request changed-line check. It uses a full-history
+checkout, generates Cobertura coverage before either action invocation, fails
+early when the trusted check lacks `CS_ACCESS_TOKEN`, and visibly skips fork
+pull requests that cannot receive secrets. The shared-actions implementation
+is consumed through the immutable dependency from PR #478, while the SHA
+refresh workflow remains in place.
+
+Why: the review identified evidence gaps rather than a change to the v1
+plateau. The additional contracts make the published API and wheel contents
+observable, while the CodeScene split prevents a generated-but-unuploaded
+report from leaving a pull request waiting for an external check.
+
+Effect on remaining work: EP-M7 remains in progress. The roadmap item stays
+open until the clean-tree gates, all six compatibility legs, wheel inspection,
+hosted validation, and CodeScene timeout resolution or explicit
+classification are recorded. Shared-actions and git-donkey migration work
+continues in separate reviewable changes; it is not folded into this pull
+request. Git-donkey's CodeScene project API URL is not discoverable from its
+repository metadata or accessible without authentication, so its consumer
+check cannot be configured safely without an authoritative URL.

@@ -5,6 +5,7 @@ from __future__ import annotations
 import typing as typ
 
 import pytest
+from syrupy.extensions.single_file import SingleFileSnapshotExtension, WriteMode
 
 import syrupy_mdast
 
@@ -22,6 +23,20 @@ def test_public_surface_matches_design_section_six() -> None:
     )
 
 
+def test_extension_preserves_the_ratified_syrupy_contract() -> None:
+    """The adapter retains Syrupy's single-file text snapshot conventions."""
+    extension_type = syrupy_mdast.MarkdownAstSnapshotExtension
+    assert issubclass(extension_type, SingleFileSnapshotExtension), (
+        "the adapter must extend Syrupy's single-file extension contract"
+    )
+    assert extension_type.file_extension == "mdast.json", (
+        "Markdown snapshots must use the mdast.json suffix"
+    )
+    assert extension_type._write_mode is WriteMode.TEXT, (
+        "Markdown snapshots must use Syrupy's text write mode"
+    )
+
+
 @pytest.mark.parametrize("data", [1, b"# Title", None, []])
 def test_extension_rejects_non_string_data(data: object) -> None:
     """The adapter rejects every non-string partition named by the contract."""
@@ -33,7 +48,6 @@ def test_extension_rejects_non_string_data(data: object) -> None:
 @pytest.mark.parametrize("control_name", ["exclude", "include", "matcher"])
 def test_extension_rejects_each_property_control(control_name: str) -> None:
     """Each unsupported Syrupy property control names itself in the failure."""
-    """The adapter reports unsupported caller inputs before serialisation exists."""
     extension = syrupy_mdast.MarkdownAstSnapshotExtension()
     controls = {control_name: lambda _path, _name: True}
     with pytest.raises(ValueError, match=control_name):
