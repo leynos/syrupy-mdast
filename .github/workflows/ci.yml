@@ -28,8 +28,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
         with:
-          # The trusted pull-request CodeScene gate needs the merge base.
-          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Python
@@ -82,50 +80,29 @@ jobs:
           artefact-name-suffix: syrupy-mdast
           
 
-      - name: Preflight CodeScene token for trusted pull requests
-        if: >-
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.base.ref == github.event.repository.default_branch &&
-          github.event.pull_request.head.repo.full_name == github.repository
-        env:
-          CS_ACCESS_TOKEN: ${{ secrets.CS_ACCESS_TOKEN }}
+      - name: Install CodeScene Coverage CLI
+        if: env.CS_ACCESS_TOKEN != ''
         run: |
-          if [ -z "$CS_ACCESS_TOKEN" ]; then
-            echo "::error title=CodeScene token required::CS_ACCESS_TOKEN is empty for a trusted pull request. Configure the repository secret before requesting the CodeScene changed-line coverage gate."
+          curl -fsSL --output install-cs-coverage-tool.sh \
+            https://downloads.codescene.io/enterprise/cli/install-cs-coverage-tool.sh
+          if [ -n "${CODESCENE_CLI_SHA256:-}" ]; then
+            echo "${CODESCENE_CLI_SHA256}  install-cs-coverage-tool.sh" | sha256sum -c -
+          else
+            echo "::notice::CODESCENE_CLI_SHA256 is not set; skipping installer checksum verification"
+          fi
+          bash install-cs-coverage-tool.sh -y
+
+      - name: Upload coverage to CodeScene
+        if: env.CS_ACCESS_TOKEN != ''
+        run: |
+          if [ ! -f coverage.xml ]; then
+            echo "coverage.xml not found!"
             exit 1
           fi
-
-      - name: Upload main coverage to CodeScene
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: leynos/shared-actions/.github/actions/upload-codescene-coverage@395f8e8630d431abb4a136847f1c14c4ad5a0ccc
-        with:
-          mode: upload
-          path: coverage.xml
-          format: cobertura
-          access-token: ${{ secrets.CS_ACCESS_TOKEN }}
-          installer-checksum: ${{ vars.CODESCENE_CLI_SHA256 }}
-
-      - name: Check trusted pull request coverage with CodeScene
-        if: >-
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.base.ref == github.event.repository.default_branch &&
-          github.event.pull_request.head.repo.full_name == github.repository
-        uses: leynos/shared-actions/.github/actions/upload-codescene-coverage@395f8e8630d431abb4a136847f1c14c4ad5a0ccc
-        with:
-          mode: check
-          path: coverage.xml
-          format: cobertura
-          project-url: https://api.codescene.io/v2/projects/82582
-          access-token: ${{ secrets.CS_ACCESS_TOKEN }}
-          installer-checksum: ${{ vars.CODESCENE_CLI_SHA256 }}
-
-      - name: Skip CodeScene coverage gate for fork pull requests
-        if: >-
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.base.ref == github.event.repository.default_branch &&
-          github.event.pull_request.head.repo.full_name != github.repository
-        run: |
-          echo "::notice title=CodeScene coverage gate skipped::Fork pull requests do not receive CS_ACCESS_TOKEN, so the external CodeScene gate is intentionally not invoked."
+          cs-coverage upload \
+            --format "cobertura" \
+            --metric "line-coverage" \
+            coverage.xml
 
   compatibility-matrix:
     name: py${{ matrix.python-version }} / syrupy ${{ matrix.syrupy-version }}
