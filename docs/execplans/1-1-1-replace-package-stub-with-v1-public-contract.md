@@ -191,14 +191,18 @@ Stop and escalate rather than improvising when any of these is reached.
   exception guidance; roadmap task 1.1.1 remains open pending EP-M7. All
   deterministic gates passed (46 tests); CodeRabbit review remains next.
 - [ ] EP-M7 Full gate sweep, wheel inspection, and roadmap tick (in progress).
-  Review remediation now covers the concrete five-category error hierarchy,
-  extension inheritance and mode attributes, all invalid-input/control
-  partitions, the recursive core-import guard, the latest-supported-Syrupy
-  lane, and a built-wheel content contract. The current implementation still
-  requires the clean-tree deterministic sweep, all six compatibility legs,
-  hosted validation, and CodeScene coverage timeout resolution or explicit
-  classification before completion. The roadmap item remains open until that
-  evidence is recorded.
+  2026-09-14T20:07:53Z: the clean-tree deterministic sweep passed
+  (`make clean && make all`, 61 tests), and the wheel inspection found
+  `syrupy_mdast/_core/__init__.py`, `syrupy_mdast/_core/errors.py`, and
+  `syrupy_mdast/py.typed`, with no JavaScript assets. The hosted
+  `lint-test`, `act-validation`, and all six compatibility-matrix legs are
+  green for PR #18. CodeScene is explicitly classified as an external
+  configuration and migration-dependency block: issue #23 remains open,
+  Actions secret and variable administration is unavailable to the current
+  credential, and the separate migration PR #32 cannot reach its check until
+  its shared coverage-action dependency is refreshed. The roadmap item and
+  this milestone remain open pending an observed CodeScene upload and trusted
+  pull-request check, or an accepted follow-up classification.
 
 Update this section at every stopping point, with a UTC timestamp, splitting a
 partially completed milestone into "done" and "remaining" rather than leaving
@@ -267,6 +271,16 @@ Implementation observations are appended after the planning discoveries.
    Evidence: `find . -name py.typed` returns nothing.
    Impact: design §2.1's goal of a "narrow and fully typed" public API is
    currently unobservable downstream. EP-M2 adds the marker.
+
+8. Observation: local possession of `CS_ACCESS_TOKEN` is insufficient to
+   establish the hosted CodeScene path when the GitHub credential lacks
+   Actions secret and variable administration.
+   Evidence: on 2026-09-14, GitHub denied both the repository-secret public-key
+   read and the `CODESCENE_CLI_SHA256` variable update. The checksum refresh run
+   computed the CLI hash but failed with `actions_variables=write` unavailable.
+   Impact: issue #23 remains the authentication follow-up. EP-M7 must stay open
+   until an authorized maintainer provisions the secret and checksum variable,
+   and a trusted CodeScene check is observed.
 
 ## Decision log
 
@@ -480,12 +494,30 @@ Implementation observations are appended after the planning discoveries.
   pulling the full end-to-end wheel suite into this milestone.
   Date/Author: 2026-09-14, review remediation.
 
+- DEC-19: Classify the outstanding CodeScene result as external configuration
+  and migration-dependency work, without changing the v1 public contract.
+  Rationale: PR #18 does not contain the new shared-action workflow; it was
+  deliberately separated into PR #32. The local clean-tree sweep, wheel
+  inspection, hosted validation, and compatibility matrix are green, but the
+  current GitHub credential cannot provision `CS_ACCESS_TOKEN` or update
+  `CODESCENE_CLI_SHA256`. In addition, PR #32's lint job stops at the
+  deprecated `actions/cache` reference in its shared coverage-action
+  dependency before the trusted CodeScene preflight can run. Altering
+  `MarkdownAstError.__reduce__()` would violate DEC-6 and INV-3 and is outside
+  this operational follow-up. Issue #23 remains the authentication authority
+  and no issue is closed without an observed successful coverage check.
+  Date/Author: 2026-09-14, evidence-based classification.
+
 ## Outcomes & retrospective
 
-To be completed at EP-M7. Before setting this plan to `COMPLETE`, reconcile
-every implementation discovery against `Conformance basis`: update design §13
-if the Syrupy range changes, record any purely mechanical difference here, and
-confirm no upstream deviation remains unaccepted.
+EP-M7 is partially complete as of 2026-09-14T20:07:53Z. The clean-tree sweep
+passed with 61 tests, and the manually listed wheel contains the complete core
+subpackage and `py.typed` marker with no JavaScript assets. PR #18 also has
+green hosted lint, Act, and six compatibility-matrix legs. The remaining
+external evidence is a successful CodeScene main-branch upload and trusted
+pull-request check. Issue #23 tracks the unavailable authentication
+configuration; its resolution must be observed before this plan can be set to
+`COMPLETE`.
 
 ## Context and orientation
 
@@ -1345,3 +1377,45 @@ continues in separate reviewable changes; it is not folded into this pull
 request. Git-donkey's CodeScene project API URL is not discoverable from its
 repository metadata or accessible without authentication, so its consumer
 check cannot be configured safely without an authoritative URL.
+
+### 2026-09-14 — classify the remaining EP-M7 CodeScene evidence
+
+What changed: recorded the successful clean-tree `make clean && make all`
+sweep (61 tests), the wheel listing, and the green hosted validation for PR
+18: `lint-test`, `act-validation`, and every Python 3.12–3.14 by Syrupy
+5.0.0/latest compatibility leg. The wheel evidence is retained in
+`/tmp/m7-wheel-build-syrupy-mdast-1-1-1-replace-package-stub-with-v1-public-contract.out`
+and
+`/tmp/m7-wheel-list-syrupy-mdast-1-1-1-replace-package-stub-with-v1-public-contract.out`.
+
+The remaining CodeScene state is explicitly classified. At 2026-09-14T20:04Z,
+checksum refresh run
+[`34890567720`](https://github.com/leynos/syrupy-mdast/actions/runs/34890567720)
+computed the CLI checksum but GitHub rejected its repository-variable update
+with `actions_variables=write` unavailable. The current credential also cannot
+read the repository secret public key or list the repository's Actions secrets
+and variables, so it cannot confirm or provision the trusted `CS_ACCESS_TOKEN`
+path. PR #18's CodeScene coverage check remains queued; its details are at
+[CodeScene coverage for commit `03f6c31`](https://codescene.io/projects/82582/code-coverage-check?repo-id=github.com%2Fleynos%2Fsyrupy-mdast&commit-sha=03f6c31018096e7fdc439bac8e7b428bd5c53670&base-ref=main).
+
+The required workflow migration is a separate change in
+[PR #32](https://github.com/leynos/syrupy-mdast/pull/32), not this v1 PR. Its
+trusted-check path has the required full-history checkout, Cobertura report,
+secret preflight, project URL, and fork skip; however, its lint job currently
+fails before that path because the consumed shared coverage action retains a
+deprecated `actions/cache` reference. This operational dependency cannot be
+fixed safely by changing the v1 package branch.
+
+Why: issue [#23](https://github.com/leynos/syrupy-mdast/issues/23) owns the
+missing CodeScene authentication configuration. A successful observed upload
+and trusted changed-line check are still required before resolving that issue
+or marking EP-M7 complete. This evidence avoids incorrectly treating an empty
+secret as a passing skip while preserving DEC-6 and INV-3's mandatory
+keyword-only category reconstruction through `MarkdownAstError.__reduce__()`.
+
+Effect on remaining work: an authorized repository or organization maintainer
+must grant the secret and Actions-variable access, populate
+`CS_ACCESS_TOKEN` and `CODESCENE_CLI_SHA256`, refresh the shared coverage-action
+dependency used by PR #32, and rerun the trusted workflow. Record the observed
+`cs-coverage check` and external CodeScene result here; only then may EP-M7 and
+roadmap item 1.1.1 become complete. The plan therefore remains `IN PROGRESS`.
