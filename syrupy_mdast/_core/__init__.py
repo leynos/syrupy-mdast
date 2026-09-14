@@ -2,6 +2,22 @@
 
 from __future__ import annotations
 
-from .errors import CATEGORIES, MarkdownAstError
+from .errors import (
+    CATEGORIES,
+    AstShapeError,
+    InputTooLargeError,
+    MarkdownAstError,
+    ParseError,
+    SerializationError,
+    SourceEncodingError,
+)
 
-__all__ = ["CATEGORIES", "MarkdownAstError"]
+__all__ = [
+    "CATEGORIES",
+    "AstShapeError",
+    "InputTooLargeError",
+    "MarkdownAstError",
+    "ParseError",
+    "SerializationError",
+    "SourceEncodingError",
+]
