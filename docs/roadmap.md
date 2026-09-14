@@ -22,13 +22,16 @@ This step answers which differences v1 removes, preserves, and defers. Its
 outcome bounds every parser, serializer, and compatibility decision. See the
 [technical design](syrupy-mdast-design.md) §§2-4, §8, and §13.
 
-- [x] 1.1.1. Replace the generated package stub with the v1 public contract.
+- [ ] 1.1.1. Replace the generated package stub with the v1 public contract.
   - Declare the supported Python and Syrupy ranges in `pyproject.toml`.
   - Define the base domain error in a dependency-free core and export it with
     the extension without exposing parser internals.
   - Remove the generated `hello` API and document the compatibility policy.
   - Success: import and API-stability checks expose only the names defined in
     design §6.
+  - Completion remains open until EP-M7 records passing deterministic gates,
+    all compatibility-matrix legs, wheel inspection, and CodeScene timeout
+    resolution or an explicit classification.
 - [ ] 1.1.2. Record the parser-profile and snapshot-version policy in an ADR.
   - Requires 1.1.1.
   - Record the parser profile, normalization policy, comparison contract,

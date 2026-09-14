@@ -4,9 +4,20 @@ AST-aware Markdown snapshot support for [Syrupy](https://github.com/syrupy-proje
 
 The current pre-alpha public contract exports `MarkdownAstError` and
 `MarkdownAstSnapshotExtension`. It supports Python 3.12 or later and Syrupy
-5.x or 6.x. Parsing and canonical JSON serialisation arrive in roadmap task
+5.x or 6.x. Parsing and canonical JSON serialization arrive in roadmap task
 2.3.1; until then, the extension validates its input and raises
 `NotImplementedError` for valid Markdown source.
+
+Register the extension with Syrupy in a snapshot test:
+
+```python
+from syrupy_mdast import MarkdownAstSnapshotExtension
+
+snapshot.with_defaults(extension_class=MarkdownAstSnapshotExtension)
+```
+
+Valid Markdown is accepted by the adapter but currently raises
+`NotImplementedError` until serialization is implemented.
 
 The package uses Python dependencies only. It does not require Bun, Node.js,
 TypeScript, JavaScript packages, or JavaScript build assets.
