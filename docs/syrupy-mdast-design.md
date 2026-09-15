@@ -470,10 +470,13 @@ JavaScript packages.
 
 ## 13. Compatibility, distribution, and migration
 
-The wheel declares compatible Syrupy and exact Wenmode Python runtime
-dependencies. It contains no language-runtime binaries, JavaScript source,
-manifests, lockfiles, or installed JavaScript dependencies. Standard Python
-packaging is the only installation path.
+The wheel declares `syrupy>=5.0.0,<7.0.0` and will declare an exact Wenmode
+release when Wenmode becomes a runtime dependency. Syrupy supplies lifecycle
+behaviour, so the supported range permits reviewed compatible releases; Wenmode
+defines persisted snapshot bytes, so it requires an exact pin. The wheel
+contains no language-runtime binaries, JavaScript source, manifests, lockfiles,
+or installed JavaScript dependencies. Standard Python packaging is the only
+installation path.
 
 The snapshot format version follows the package's semantic versioning:
 

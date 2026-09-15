@@ -35,11 +35,12 @@ the interpreter prevents phantom findings on newer syntax.
 Investigate every finding before responding to it. Remove genuine dead code.
 For verified false positives, prefer a typed
 `[[tool.skylos.dead_code.entrypoints]]` rule in `pyproject.toml` when an
-implicit runtime caller can be modelled; otherwise record a documented
-allow-list entry with:
+implicit runtime caller can be modelled. Class attributes are not modelled by
+entry-point rules: record those as documented allow-list entries using the bare
+symbol name, because qualified names silently do not suppress the finding:
 
 ```bash
-make skylos-allow SYMBOL=<qualified.symbol> REASON="<evidence for the caller>"
+make skylos-allow SYMBOL=<symbol> REASON="<evidence for the runtime caller>"
 ```
 
 `SYMBOL` and `REASON` are both required and must contain non-whitespace text;
@@ -47,6 +48,11 @@ the target exits with status 2 otherwise. The variable is named `SYMBOL`
 (not `NAME`) because WSL injects `NAME` with the hostname. The write is
 serialized with `flock` on the ignored `.skylos-whitelist.lock` file, so
 concurrent recordings cannot lose entries.
+
+Bare-name allow-list entries apply repository-wide. Record a concrete runtime
+reader in the reason and update `tests/test_skylos_lint_contract.py` in the same
+change, so a later symbol with the same name cannot inherit an exception
+silently.
 
 ### How the Makefile workflows are covered
 
@@ -101,6 +107,20 @@ V1 uses Python dependencies only. Bun, Node.js, TypeScript, JavaScript
 manifests, lockfiles, and installed JavaScript package assets are not runtime,
 build, test, or wheel dependencies.
 
+### V1 public contract
+
+The package-level public surface is deliberately limited to
+`MarkdownAstError` and `MarkdownAstSnapshotExtension`. The dependency-free
+`syrupy_mdast._core` package owns the error taxonomy and must not import Syrupy
+or Wenmode. `_extension.py` is the thin Syrupy adapter: it uses the
+`mdast.json` filename suffix and text write mode, accepts only `str` input, and
+rejects unsupported Syrupy property controls before the unimplemented
+serialization seam.
+
+The package targets Python 3.12 or later and declares Syrupy
+`>=5.0.0,<7.0.0`. `syrupy_mdast/py.typed` is part of the wheel so type checkers
+can use the package's annotations from installed distributions.
+
 ### Upgrade Wenmode
 
 1. Keep Wenmode exactly pinned.
@@ -153,6 +173,15 @@ under `.github/`.
   coverage generation to the shared coverage action. When the Rust extension
   is enabled, it also sets up Rust, installs Rust lint and test tools, and
   passes `rust_extension/Cargo.toml` to coverage.
+- The same workflow's additive `compatibility-matrix` job uses
+  `fail-fast: false` and tests Python 3.12, 3.13, and 3.14 against the Syrupy
+  floor (`5.0.0`) and the newest release below 7.0.0. The floor lane explicitly
+  installs `syrupy==5.0.0` after dependency synchronisation; the latest lane
+  explicitly installs `syrupy<7.0.0` so resolution cannot cross the declared
+  upper bound. Each lane runs the package contract tests. The
+  `tests/test_compatibility_matrix_contract.py` test checks the matrix
+  dimensions, their relationship to the package dependency range, and the
+  explicit latest-lane installation command.
 - `.github/workflows/act-validation.yml` runs rendered workflow validation in a
   separate workflow. It installs `act`, checks Docker availability, installs
   the pinned Makeutil parser, and runs `make test WITH_ACT=1` outside the

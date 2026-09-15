@@ -12,6 +12,8 @@ documentation set.
   dependency-aware, outcome-oriented implementation slices.
 - [User guide](users-guide.md) explains how to use the generated project and
   its public build and test commands.
+- [Migration guide for 0.2.x](migration-0.2.md) records the pre-1.0 changes
+  from the generated package stub to the v1 public contract.
 - [Developer guide](developers-guide.md) explains the contributor workflow and
   points maintainers to script automation standards.
 - [Documentation style guide](documentation-style-guide.md) defines the

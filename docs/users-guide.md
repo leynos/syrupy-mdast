@@ -1,5 +1,26 @@
 # syrupy-mdast Users' Guide
 
+## V1 public contract
+
+Install `syrupy-mdast` with Python 3.12 or later. The package supports Syrupy
+5.x and 6.x and currently exports `MarkdownAstError` and
+`MarkdownAstSnapshotExtension`.
+
+Register the extension on Syrupy's `snapshot` fixture:
+
+```python
+from syrupy_mdast import MarkdownAstSnapshotExtension
+
+snapshot.with_defaults(extension_class=MarkdownAstSnapshotExtension)
+```
+
+The extension accepts Markdown source as `str` and is configured for text
+snapshots with the `mdast.json` suffix after serialization is implemented. The
+`exclude`, `include`, and `matcher` controls are not supported and are rejected
+with `ValueError`; non-string input is rejected with `TypeError`. Valid `str`
+input currently raises `NotImplementedError` until the parser and canonical
+serialization milestone is delivered.
+
 ## Quality Gates
 
 Generated projects use `make all` as the standard local quality gate. It runs

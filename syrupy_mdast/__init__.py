@@ -1,19 +1,11 @@
-"""syrupy-mdast package."""
+"""Markdown AST snapshot support for Syrupy.
 
-from __future__ import annotations
+The public exports join the dependency-free domain error with the Syrupy
+snapshot adapter. Markdown parsing and canonical serialization arrive in
+roadmap task 2.3.1.
+"""
 
-import importlib
-import typing as typ
+from ._core import MarkdownAstError
+from ._extension import MarkdownAstSnapshotExtension
 
-if typ.TYPE_CHECKING:
-    import collections.abc as cabc
-
-PACKAGE_NAME = "syrupy_mdast"
-
-try:  # pragma: no cover - Rust optional
-    rust = importlib.import_module(f"._{PACKAGE_NAME}_rs", package=__name__)
-    hello = typ.cast("cabc.Callable[[], str]", rust.hello)
-except ModuleNotFoundError:  # pragma: no cover - Python fallback
-    from .pure import hello
-
-__all__ = ["hello"]
+__all__ = ["MarkdownAstError", "MarkdownAstSnapshotExtension"]
