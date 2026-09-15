@@ -24,6 +24,11 @@ def test_matrix_floor_matches_declared_specifier() -> None:
     assert configuration["project"]["dependencies"] == ["syrupy>=5.0.0,<7.0.0"], (
         "the tested Syrupy floor must remain the declared package floor"
     )
+    assert mapping(
+        job.get("permissions"), subject="compatibility matrix permissions"
+    ) == {"contents": "read"}, (
+        "the compatibility matrix must use read-only repository permissions"
+    )
     steps = objects(job.get("steps"), subject="compatibility matrix steps")
     assert {
         "name": "Upgrade to the newest supported Syrupy release",

@@ -164,14 +164,24 @@ This repository includes GitHub Actions workflows and local composite actions
 under `.github/`.
 
 - `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. It
-  sets up Python 3.13, installs `uv`, validates the `Makefile` with `mbake`,
-  installs the pinned Makeutil parser, runs `make build`, `make check-fmt`,
-  `make lint` (Ruff + `interrogate --fail-under 100 $(PYTHON_TARGETS)` + the
-  PyPy-backed Pylint runner + the `df12-python-lints` pass + `ambrleaks` + the
-  strict Skylos dead-code gate), `make typecheck`, and `make audit`, then
-  delegates coverage generation to the shared coverage action. When the Rust
-  extension is enabled, it also sets up Rust, installs Rust lint and test
-  tools, and passes `rust_extension/Cargo.toml` to coverage.
+  sets up Python 3.13, installs `uv`, validates the `Makefile` with
+  `mbake`, installs the pinned Makeutil parser, runs `make build`,
+  `make check-fmt`, `make lint` (Ruff +
+  `interrogate --fail-under 100 $(PYTHON_TARGETS)` + the PyPy-backed Pylint
+  runner + the `df12-python-lints` pass + `ambrleaks` + the strict Skylos
+  dead-code gate), `make typecheck`, and `make audit`, then delegates
+  coverage generation to the shared coverage action. When the Rust extension
+  is enabled, it also sets up Rust, installs Rust lint and test tools, and
+  passes `rust_extension/Cargo.toml` to coverage.
+- The same workflow's additive `compatibility-matrix` job uses
+  `fail-fast: false` and tests Python 3.12, 3.13, and 3.14 against the Syrupy
+  floor (`5.0.0`) and the newest release below 7.0.0. The floor lane explicitly
+  installs `syrupy==5.0.0` after dependency synchronisation; the latest lane
+  explicitly installs `syrupy<7.0.0` so resolution cannot cross the declared
+  upper bound. Each lane runs the package contract tests. The
+  `tests/test_compatibility_matrix_contract.py` test checks the matrix
+  dimensions, their relationship to the package dependency range, and the
+  explicit latest-lane installation command.
 - `.github/workflows/act-validation.yml` runs rendered workflow validation in a
   separate workflow. It installs `act`, checks Docker availability, installs
   the pinned Makeutil parser, and runs `make test WITH_ACT=1` outside the

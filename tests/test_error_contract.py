@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import pickle  # ruff: ignore[suspicious-pickle-import] -- test-created object only.
 import typing as typ
 
@@ -84,3 +85,33 @@ def test_error_rejects_unknown_category() -> None:
     """The public error refuses categories outside the ratified taxonomy."""
     with pytest.raises(ValueError, match="unknown category"):
         MarkdownAstError("cannot parse source", category="unknown")
+
+
+def test_error_requires_keyword_only_category() -> None:
+    """The base error requires an explicit keyword-only category."""
+    error_type = typ.cast("typ.Any", MarkdownAstError)
+    with pytest.raises(TypeError, match="required keyword-only argument"):
+        error_type("cannot parse source")
+    with pytest.raises(TypeError, match="positional arguments"):
+        error_type("cannot parse source", "parse")
+
+
+@pytest.mark.parametrize(
+    ("error", "error_type", "category"),
+    [
+        (
+            MarkdownAstError("cannot parse source", category="parse"),
+            MarkdownAstError,
+            "parse",
+        ),
+        (ParseError("cannot parse source"), ParseError, "parse"),
+    ],
+)
+def test_error_copy_preserves_type_message_and_category(
+    error: MarkdownAstError, error_type: type[MarkdownAstError], category: str
+) -> None:
+    """Copy reconstruction retains each error's observable contract."""
+    copied = copy.copy(error)
+    assert type(copied) is error_type, "copying must preserve the concrete error type"
+    assert str(copied) == str(error), "copying must preserve the error message"
+    assert copied.category == category, "copying must preserve the error category"

@@ -203,6 +203,12 @@ Stop and escalate rather than improvising when any of these is reached.
   its shared coverage-action dependency is refreshed. The roadmap item and
   this milestone remain open pending an observed CodeScene upload and trusted
   pull-request check, or an accepted follow-up classification.
+  2026-09-15T19:44:34Z: a rebase onto `origin/main` was a verified no-op; the
+  review remediation adds isolated-wheel, keyword-only constructor, and copy
+  contracts, narrows matrix-job permissions, and records the required user and
+  contributor guidance. The final deterministic sweep passed: `make check-fmt`,
+  `make test` (64 passed), `make typecheck`, `make lint`, `make audit`,
+  `make markdownlint`, and `make nixie` all completed successfully.
 
 Update this section at every stopping point, with a UTC timestamp, splitting a
 partially completed milestone into "done" and "remaining" rather than leaving
@@ -829,8 +835,8 @@ mean facing six findings across two new modules with no way to attribute them.
 ### EP-M1 — Remove the generated stub
 
 Outcome: the package is empty of generated scaffolding and every gate is green.
-This commit is the known-good baseline and the reference point for every subsequent
-failure.
+This commit is the known-good baseline and the reference point for every
+subsequent failure.
 
 Order within the milestone is mandatory: delete `tests/test_stub.py` **first**,
 then `syrupy_mdast/pure.py` and the `hello`/`importlib` machinery in
@@ -899,7 +905,7 @@ and tested, and the Skylos findings are resolved.
 This is the milestone that will fight you. Expect `SKY-U003` on
 `file_extension` and `_write_mode`. Expect **no** `SKY-U006`, because DEC-3's
 input validation reads all four `serialize` parameters — if you see `SKY-U006`,
-if validation is incomplete. Follow this order:
+validation is incomplete. Follow this order:
 
 1. Write `_extension.py` with the full §6 input contract.
 2. Write the public API contract test.
@@ -1419,3 +1425,28 @@ must grant the secret and Actions-variable access, populate
 dependency used by PR #32, and rerun the trusted workflow. Record the observed
 `cs-coverage check` and external CodeScene result here; only then may EP-M7 and
 roadmap item 1.1.1 become complete. The plan therefore remains `IN PROGRESS`.
+
+### 2026-09-15 — rebase and remediate current review findings
+
+What changed: verified each review finding against `ccd8582`, then rebased the
+linear branch onto `origin/main` at `04d429e`. The replay was a no-op: the
+target was already the exclusive branch base, no conflict or Weave merge-driver
+path was selected, and the exact 15-commit range remained unchanged. The review
+repairs add tests for mandatory keyword-only category construction, copy
+reconstruction, the full built-wheel member set, and an isolated installed-wheel
+public import. The compatibility matrix now declares read-only contents
+permission, and its contract checks that declaration. Documentation now includes
+the 0.2.x migration guide, explicit matrix guidance, accurate snapshot status,
+and the defined CodeScene classification rule.
+
+Why: the source already satisfied the constructor and copy behaviour, but the
+published contracts did not prove it. The wheel test previously checked only a
+marker and exclusions, so a partial package could pass. The documentation and
+workflow findings were likewise valid current gaps rather than superseded
+comments.
+
+Effect on remaining work: validate this new candidate with the full deterministic
+gate suite and request a fresh CodeRabbit review. EP-M7 remains incomplete: the
+CodeScene coverage check timed out at `2026-09-15T02:14:39Z`, the authentication
+and shared-action dependency evidence is unchanged, issue #23 remains open, and
+no public API or pickle reconstruction behaviour has changed.

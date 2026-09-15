@@ -14,11 +14,12 @@ from syrupy_mdast import MarkdownAstSnapshotExtension
 snapshot.with_defaults(extension_class=MarkdownAstSnapshotExtension)
 ```
 
-The extension accepts Markdown source as `str` and writes text snapshots with
-the `mdast.json` suffix. The `exclude`, `include`, and `matcher` controls are
-not supported and are rejected with `ValueError`; non-string input is rejected
-with `TypeError`. Valid Markdown currently raises `NotImplementedError` until
-the parser and canonical serialization milestone is delivered.
+The extension accepts Markdown source as `str` and is configured for text
+snapshots with the `mdast.json` suffix after serialization is implemented. The
+`exclude`, `include`, and `matcher` controls are not supported and are rejected
+with `ValueError`; non-string input is rejected with `TypeError`. Valid `str`
+input currently raises `NotImplementedError` until the parser and canonical
+serialization milestone is delivered.
 
 ## Quality Gates
 

@@ -123,6 +123,8 @@ jobs:
   compatibility-matrix:
     name: py${{ matrix.python-version }} / syrupy ${{ matrix.syrupy-version }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:

@@ -30,8 +30,13 @@ outcome bounds every parser, serializer, and compatibility decision. See the
   - Success: import and API-stability checks expose only the names defined in
     design §6.
   - Completion remains open until EP-M7 records passing deterministic gates,
-    all compatibility-matrix legs, wheel inspection, and CodeScene timeout
-    resolution or an explicit classification.
+    all compatibility-matrix legs, wheel inspection, and either an observed
+    CodeScene upload plus trusted pull-request check or an accepted external
+    classification. The classification must link [issue #23][issue-23], identify
+    the missing authentication or migration dependency as the timeout cause,
+    and record the remediation required before the CodeScene checks can be
+    observed. The current classification is recorded in EP-M7, but the roadmap
+    item remains open until that follow-up is resolved.
 - [ ] 1.1.2. Record the parser-profile and snapshot-version policy in an ADR.
   - Requires 1.1.1.
   - Record the parser profile, normalization policy, comparison contract,
@@ -322,3 +327,5 @@ the v1 contract. See design §§2, 8, 12, and 15.
     isolation, teardown, and denial-of-service tests.
   - Success: in-process parsing remains the default unless an ADR demonstrates
     that hostile-input containment is a product requirement.
+
+[issue-23]: https://github.com/leynos/syrupy-mdast/issues/23
