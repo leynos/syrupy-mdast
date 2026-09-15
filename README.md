@@ -13,7 +13,10 @@ Register the extension with Syrupy in a snapshot test:
 ```python
 from syrupy_mdast import MarkdownAstSnapshotExtension
 
-snapshot.with_defaults(extension_class=MarkdownAstSnapshotExtension)
+mdast_snapshot = snapshot.with_defaults(
+    extension_class=MarkdownAstSnapshotExtension
+)
+assert mdast_snapshot == "# heading"
 ```
 
 Valid Markdown is accepted by the adapter but currently raises
