@@ -7,8 +7,8 @@
 
 The project inherits the df12 house lint policy from `leynos/lading`,
 `leynos/episodic`, and `leynos/cuprum`. A single `make lint` invocation must
-give contributors the complete Python lint verdict, and CI must run exactly
-the same command with exactly the same tool releases. Dead code is a distinct
+give contributors the complete Python lint verdict, and CI must run exactly the
+same command with exactly the same tool releases. Dead code is a distinct
 failure mode from style or correctness findings: it accumulates silently,
 survives review, and misleads readers about which code paths matter.
 
@@ -30,8 +30,8 @@ survives review, and misleads readers about which code paths matter.
 
 Skylos scans production targets only (`SKYLOS_PRODUCTION_TARGETS`), excludes
 the test tree (`SKYLOS_EXCLUDE_FOLDERS`), and uses the strict gate
-configuration in `pyproject.toml`. Its standalone tool environment is pinned
-to Python 3.14 because Skylos parses source with its own runtime AST; an older
+configuration in `pyproject.toml`. Its standalone tool environment is pinned to
+Python 3.14 because Skylos parses source with its own runtime AST; an older
 interpreter would report phantom findings on newer syntax.
 
 False positives follow a verified-exception policy. Implicit runtime callers
@@ -41,14 +41,14 @@ documented allow-list entry recorded, through
 `make skylos-allow SYMBOL=<symbol> REASON="<evidence>"`. The `skylos-allow`
 target validates that both values contain non-whitespace text, reads `SYMBOL`
 rather than WSL's caller-owned `NAME` environment variable, and serializes the
-read-modify-write update with `flock` on an ignored repository-local lock
-file, so concurrent recordings remain intact.
+read-modify-write update with `flock` on an ignored repository-local lock file,
+so concurrent recordings remain intact.
 
 Contract tests in `tests/test_skylos_lint_contract.py` and
 `tests/test_skylos_whitelist_boundary.py` parse the Makefile with the pinned
-`makeutil` binary and the workflows with PyYAML, asserting the tier order,
-tool pins, strict configuration, and whitelist argument forwarding rather
-than matching source text.
+`makeutil` binary and the workflows with PyYAML, asserting the tier order, tool
+pins, strict configuration, and whitelist argument forwarding rather than
+matching source text.
 
 ## Consequences
 

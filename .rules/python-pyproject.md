@@ -25,8 +25,8 @@ minimum, PEP 621 requires:
 - `name`
 - `version`
 
-However, most projects should include at least the following additional
-fields for clarity and compatibility:
+However, most projects should include at least the following additional fields
+for clarity and compatibility:
 
 ```toml
 [project]
@@ -81,11 +81,11 @@ exists on a contributor's machine.
 
 Table 1. Dependency field selection.
 
-| Field | Installed for | Use it for |
-| --- | --- | --- |
-| `project.dependencies` | Everyone who installs the package | Libraries the shipped code imports at runtime |
-| `project.optional-dependencies` | End users who opt into an *extra* | Optional runtime *features* (`package[extra]`) |
-| `dependency-groups` | Local development only | Test, lint, type-check, docs, and other tooling |
+| Field                           | Installed for                     | Use it for                                      |
+| ------------------------------- | --------------------------------- | ----------------------------------------------- |
+| `project.dependencies`          | Everyone who installs the package | Libraries the shipped code imports at runtime   |
+| `project.optional-dependencies` | End users who opt into an *extra* | Optional runtime *features* (`package[extra]`)  |
+| `dependency-groups`             | Local development only            | Test, lint, type-check, docs, and other tooling |
 
 ### Required runtime dependencies — `project.dependencies`
 
@@ -121,10 +121,9 @@ feature = [
 Tooling only contributors need: test frameworks, linters, type checkers,
 documentation builders, and property or mutation testers. These are
 **local-only** — PEP 735 dependency groups are *not* included in published
-package metadata (they are not part of the wheel), so they must live here rather
-than in `project.optional-dependencies`. Add them with
-`uv add <package> --dev` (the `dev` group) or
-`uv add <package> --group <name>`:
+package metadata (they are not part of the wheel), so they must live here
+rather than in `project.optional-dependencies`. Add them with
+`uv add <package> --dev` (the `dev` group) or `uv add <package> --group <name>`:
 
 ```toml
 [dependency-groups]
@@ -153,8 +152,7 @@ default-groups = ["dev", "docs"]  # or "all"
 Groups may nest via `{ include-group = "..." }`, and by default `uv` resolves
 every group together into a single `uv.lock`, so groups must be mutually
 compatible unless incompatible sets are declared explicitly under
-`[tool.uv].conflicts`.
-(Astral Docs[^6])
+`[tool.uv].conflicts`. (Astral Docs[^6])
 
 > **Rule of thumb:** if an end user needs it to *run* the code, it belongs
 > in `project.dependencies` (always) or `project.optional-dependencies`
@@ -202,14 +200,14 @@ build-backend = "setuptools.build_meta"
 
 - **`requires`:** A list of packages needed at build time. For editable installs
   in `uv`, at least `setuptools>=61.0` and `wheel` are needed. (Python
-  Packaging[^4], Astral Docs[^7])
+  Packaging [^4], Astral Docs[^7])
 - **`build-backend`:** The entry point for the build backend.
   `setuptools.build_meta` is the PEP 517-compliant backend for setuptools.
   (Python Packaging[^4], Astral Docs[^7])
 - **Note:** Omitting `[build-system]` causes `uv` to assume
   `setuptools.build_meta:__legacy__` and still install dependencies, but it
-  does not editably install the project itself unless
-  `tool.uv.package = true` is set (see next section). (Astral Docs[^7])
+  does not editably install the project itself unless `tool.uv.package = true`
+  is set (see next section). (Astral Docs[^7])
 
 ______________________________________________________________________
 
@@ -224,12 +222,12 @@ package = true
 ```
 
 - **`tool.uv.package = true`:** Forces `uv` to build and install the project
-  into its virtual environment every time `uv sync` or `uv run` runs.
-  Without this, `uv` only installs dependencies (not the project itself) if
+  into its virtual environment every time `uv sync` or `uv run` runs. Without
+  this, `uv` only installs dependencies (not the project itself) if
   `[build-system]` is missing. (Astral Docs[^7])
 - Other `uv`-specific keys (e.g., custom indexes, resolver policies) may also
-  be set under `[tool.uv]`, but `package` is the most common. (Python
-  Packaging[^4], Astral Docs[^7])
+  be set under `[tool.uv]`, but `package` is the most common. (Python Packaging
+  [^4], Astral Docs[^7])
 
 ______________________________________________________________________
 
@@ -379,8 +377,8 @@ A "modern" `pyproject.toml` for an Astral `uv` project should:
 - Include a `[tool.uv]` section, at minimum `package = true` to have `uv`
   build and install the package.
 
-Following these conventions ensures that a project is fully PEP-compliant,
-easy to maintain, and integrates seamlessly with Astral `uv`.
+Following these conventions ensures that a project is fully PEP-compliant, easy
+to maintain, and integrates seamlessly with Astral `uv`.
 
 [^1]: [Working on projects | uv - Astral Docs](https://docs.astral.sh/uv/guides/projects/)
 [^2]: [UV Tutorial: A Fast Python Package and Project Manager](https://www.ridgerun.ai/post/uv-tutorial-a-fast-python-package-and-project-manager)
