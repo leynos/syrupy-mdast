@@ -11,7 +11,10 @@ Register the extension on Syrupy's `snapshot` fixture:
 ```python
 from syrupy_mdast import MarkdownAstSnapshotExtension
 
-snapshot.with_defaults(extension_class=MarkdownAstSnapshotExtension)
+assertion = snapshot.with_defaults(
+    extension_class=MarkdownAstSnapshotExtension,
+)
+assert assertion == "# heading"
 ```
 
 The extension accepts Markdown source as `str` and is configured for text
@@ -20,6 +23,21 @@ snapshots with the `mdast.json` suffix after serialization is implemented. The
 with `ValueError`; non-string input is rejected with `TypeError`. Valid `str`
 input currently raises `NotImplementedError` until the parser and canonical
 serialization milestone is delivered.
+
+## Handling MarkdownAstError
+
+Catch `MarkdownAstError` around package operations and inspect its required
+keyword-only `category` when handling a failure:
+
+```python
+from syrupy_mdast import MarkdownAstError
+
+try:
+    # Run a package operation here.
+    ...
+except MarkdownAstError as error:
+    print(error.category)
+```
 
 ## Quality Gates
 

@@ -41,61 +41,96 @@ def test_declared_ranges_match_installed_metadata() -> None:
 def test_package_ships_py_typed_marker() -> None:
     """Built wheels contain every package module and no JavaScript assets."""
     repository_root = Path(__file__).parents[1]
-    uv_executable = which("uv")
-    assert uv_executable is not None, "the wheel contract requires uv on PATH"
+    uv_executable = _require_uv()
     with TemporaryDirectory() as temporary_directory:
         temporary_path = Path(temporary_directory)
-        subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed local build command.
-            [uv_executable, "build", "--wheel", "--out-dir", temporary_directory],
-            check=True,
-            cwd=repository_root,
-        )
-        wheel_path = next(temporary_path.glob("*.whl"))
-        with ZipFile(wheel_path) as wheel:
-            member_names = set(wheel.namelist())
-        required_members = {
-            "syrupy_mdast/__init__.py",
-            "syrupy_mdast/_core/__init__.py",
-            "syrupy_mdast/_core/errors.py",
-            "syrupy_mdast/_extension.py",
-            "syrupy_mdast/py.typed",
-        }
-        assert required_members <= member_names, (
-            "the installed wheel must contain every v1 Python package member"
-        )
-        virtual_environment = temporary_path / "wheel-environment"
-        subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed local environment command.
-            [uv_executable, "venv", "--python", sys.executable, virtual_environment],
-            check=True,
-            cwd=temporary_path,
-        )
-        wheel_python = virtual_environment / "bin" / "python"
-        subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed local wheel-install command.
-            [uv_executable, "pip", "install", "--python", wheel_python, wheel_path],
-            check=True,
-            cwd=temporary_path,
-        )
-        subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed isolated import contract.
-            [
-                wheel_python,
-                "-c",
-                "\n".join((
-                    "from pathlib import Path",
-                    "import sys",
-                    "import syrupy_mdast",
-                    "from syrupy_mdast import MarkdownAstError as Error",
-                    "Extension = syrupy_mdast.MarkdownAstSnapshotExtension",
-                    "module_path = Path(syrupy_mdast.__file__)",
-                    "assert module_path.is_relative_to(Path(sys.prefix))",
-                    "expected = {'MarkdownAstError', 'MarkdownAstSnapshotExtension'}",
-                    "assert set(syrupy_mdast.__all__) == expected",
-                    "assert Error.__module__ == 'syrupy_mdast._core.errors'",
-                    "assert Extension.__module__ == 'syrupy_mdast._extension'",
-                )),
-            ],
-            check=True,
-            cwd=temporary_path,
-        )
+        wheel_path = _build_wheel(uv_executable, repository_root, temporary_path)
+        member_names = _wheel_member_names(wheel_path)
+        _assert_required_wheel_members(member_names)
+        _assert_isolated_wheel_import(uv_executable, wheel_path, temporary_path)
+    _assert_no_javascript_assets(member_names)
+
+
+def _require_uv() -> str:
+    """Return the required local uv executable."""
+    uv_executable = which("uv")
+    assert uv_executable is not None, "the wheel contract requires uv on PATH"
+    return uv_executable
+
+
+def _build_wheel(
+    uv_executable: str, repository_root: Path, output_directory: Path
+) -> Path:
+    """Build one wheel in the supplied output directory."""
+    subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed local build command.
+        [uv_executable, "build", "--wheel", "--out-dir", output_directory],
+        check=True,
+        cwd=repository_root,
+    )
+    return next(output_directory.glob("*.whl"))
+
+
+def _wheel_member_names(wheel_path: Path) -> set[str]:
+    """Return the member names from a built wheel."""
+    with ZipFile(wheel_path) as wheel:
+        return set(wheel.namelist())
+
+
+def _assert_required_wheel_members(member_names: set[str]) -> None:
+    """Assert that a wheel contains every v1 package member."""
+    required_members = {
+        "syrupy_mdast/__init__.py",
+        "syrupy_mdast/_core/__init__.py",
+        "syrupy_mdast/_core/errors.py",
+        "syrupy_mdast/_extension.py",
+        "syrupy_mdast/py.typed",
+    }
+    assert required_members <= member_names, (
+        "the installed wheel must contain every v1 Python package member"
+    )
+
+
+def _assert_isolated_wheel_import(
+    uv_executable: str, wheel_path: Path, temporary_path: Path
+) -> None:
+    """Install a wheel in isolation and assert its public import contract."""
+    virtual_environment = temporary_path / "wheel-environment"
+    subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed local environment command.
+        [uv_executable, "venv", "--python", sys.executable, virtual_environment],
+        check=True,
+        cwd=temporary_path,
+    )
+    wheel_python = virtual_environment / "bin" / "python"
+    subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed local wheel-install command.
+        [uv_executable, "pip", "install", "--python", wheel_python, wheel_path],
+        check=True,
+        cwd=temporary_path,
+    )
+    subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed isolated import contract.
+        [
+            wheel_python,
+            "-c",
+            "\n".join((
+                "from pathlib import Path",
+                "import sys",
+                "import syrupy_mdast",
+                "from syrupy_mdast import MarkdownAstError as Error",
+                "Extension = syrupy_mdast.MarkdownAstSnapshotExtension",
+                "module_path = Path(syrupy_mdast.__file__)",
+                "assert module_path.is_relative_to(Path(sys.prefix))",
+                "expected = {'MarkdownAstError', 'MarkdownAstSnapshotExtension'}",
+                "assert set(syrupy_mdast.__all__) == expected",
+                "assert Error.__module__ == 'syrupy_mdast._core.errors'",
+                "assert Extension.__module__ == 'syrupy_mdast._extension'",
+            )),
+        ],
+        check=True,
+        cwd=temporary_path,
+    )
+
+
+def _assert_no_javascript_assets(member_names: set[str]) -> None:
+    """Assert that wheel members exclude JavaScript source and packaging files."""
     forbidden_names = {
         "package.json",
         "package-lock.json",

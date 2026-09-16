@@ -26,10 +26,12 @@ Register the extension through Syrupy's existing assertion configuration:
 ```python
 from syrupy_mdast import MarkdownAstSnapshotExtension
 
-assertion = snapshot.with_defaults(
-    extension_class=MarkdownAstSnapshotExtension,
-)
-assert assertion == value
+def test_markdown_snapshot(snapshot):
+    assertion = snapshot.with_defaults(
+        extension_class=MarkdownAstSnapshotExtension,
+    )
+    value = "# heading"
+    assert assertion == value
 ```
 
 The extension is configured for text snapshots using the `mdast.json` suffix

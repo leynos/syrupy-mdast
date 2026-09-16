@@ -428,6 +428,9 @@ Implementation observations are appended after the planning discoveries.
   compatibility policy therefore lands in `README.md` (consumer-facing) and
   design §13 (normative). Recorded so the omission reads as a decision.
   Date/Author: 2026-08-28, on Dinolump's recommendation.
+  Status: superseded during review remediation on 2026-09-16 when the guide
+  was updated to document the current v1 consumer contract pending roadmap
+  3.1.1's replacement.
 
 - DEC-13: Leave `docs/adr-001-python-lint-architecture.md` and the
   Pyright-versus-`ty` tension in `.rules/python-00.md` alone.
@@ -902,10 +905,10 @@ Compatibility decision: none.
 Outcome: the design §6 public surface exists, its input contract is enforced
 and tested, and the Skylos findings are resolved.
 
-This is the milestone that will fight you. Expect `SKY-U003` on
-`file_extension` and `_write_mode`. Expect **no** `SKY-U006`, because DEC-3's
-input validation reads all four `serialize` parameters — if you see `SKY-U006`,
-validation is incomplete. Follow this order:
+This milestone is expected to produce `SKY-U003` on `file_extension` and
+`_write_mode`. **No** `SKY-U006` finding is expected, because DEC-3's input
+validation reads all four `serialize` parameters; a `SKY-U006` finding means
+that validation is incomplete. Follow this order:
 
 1. Write `_extension.py` with the full §6 input contract.
 2. Write the public API contract test.
@@ -979,7 +982,9 @@ design §13 carries the concrete Syrupy range and its rationale; `AGENTS.md` and
 `docs/developers-guide.md` no longer point contributors at remedies that
 silently fail; the `ambrleaks` blind spot is recorded with a roadmap item.
 
-`docs/users-guide.md` is deliberately untouched (DEC-12).
+Review remediation supersedes DEC-12: `docs/users-guide.md` now documents the
+current v1 consumer contract, while roadmap 3.1.1 still owns its eventual
+template replacement.
 
 Requirements: RM-1.1.1 bullet 3; TDD-§13.
 Acceptance evidence: `make markdownlint` and `make fmt` green; the corrected
@@ -1450,3 +1455,23 @@ gate suite and request a fresh CodeRabbit review. EP-M7 remains incomplete: the
 CodeScene coverage check timed out at `2026-09-15T02:14:39Z`, the authentication
 and shared-action dependency evidence is unchanged, issue #23 remains open, and
 no public API or pickle reconstruction behaviour has changed.
+
+### 2026-09-16 — reconcile documentation scope after review
+
+What changed: review remediation superseded DEC-12 and added the consumer-facing
+v1 guidance to `docs/users-guide.md`. A new `docs/migration-0.2.md` records the
+pre-1.0 migration from the removed package stub to the v1 public exports,
+including the current serialization seam behaviour. The compatibility-matrix
+workflow contract assertions were strengthened, and the wheel contract test was
+refactored into focused helpers without changing its end-to-end assertions.
+The mandatory Interrogate 100% gate also required concise docstrings on the
+six private helpers.
+
+Why: the review required an accurate user-facing contract and a focused upgrade
+path. The guide now documents the behaviour that consumers can use today, while
+the migration note captures the breaking change without expanding the runtime
+API or altering roadmap 3.1.1's ownership of the eventual template replacement.
+
+Effect on remaining work: the documentation scope is resolved for EP-M6, but
+EP-M7 remains `IN PROGRESS` until its deterministic gates, compatibility matrix,
+wheel inspection, and CodeScene classification requirements are recorded.

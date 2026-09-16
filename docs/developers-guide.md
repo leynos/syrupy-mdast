@@ -176,9 +176,10 @@ under `.github/`.
 - The same workflow's additive `compatibility-matrix` job uses
   `fail-fast: false` and tests Python 3.12, 3.13, and 3.14 against the Syrupy
   floor (`5.0.0`) and the newest release below 7.0.0. The floor lane explicitly
-  installs `syrupy==5.0.0` after dependency synchronisation; the latest lane
-  explicitly installs `syrupy<7.0.0` so resolution cannot cross the declared
-  upper bound. Each lane runs the package contract tests. The
+  installs `syrupy==5.0.0` after dependency synchronization; the latest lane
+  runs `uv pip install --upgrade "syrupy<7.0.0"` so it explicitly upgrades
+  within the declared upper bound. Each lane runs the package contract tests.
+  The
   `tests/test_compatibility_matrix_contract.py` test checks the matrix
   dimensions, their relationship to the package dependency range, and the
   explicit latest-lane installation command.
