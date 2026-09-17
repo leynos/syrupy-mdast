@@ -89,7 +89,7 @@ jobs:
         run: make audit
 
       - name: Test and Measure Coverage
-        uses: leynos/shared-actions/.github/actions/generate-coverage@296dc4aa07acf3a7f60a54fb6bccb5672a597479
+        uses: leynos/shared-actions/.github/actions/generate-coverage@ee58fd34a2d01b7a5059d710119b264cf2f048a4
         with:
           output-path: coverage.xml
           format: cobertura
