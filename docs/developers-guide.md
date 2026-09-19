@@ -222,3 +222,42 @@ every run, so the manifest the pinned revision carries is the single source of
 truth for that digest; a caller-supplied value could only agree with it or go
 stale and fail the run. Bumping the action revision therefore needs no
 accompanying variable update — the manifest travels with the revision.
+
+### Why an immutable pin still needs maintenance
+
+Pinning to a full commit SHA stops a *tag* from moving. It does not freeze the
+pins inside the pinned thing. A composite action runs its own `uses:` entries,
+so `leynos/shared-actions/…@<sha>` resolves to whatever *that* revision pins,
+and a third-party action there can be retired without the composite's own SHA
+changing at all.
+
+That is not hypothetical. The `upload-codescene-coverage` revision at
+`395f8e86…` nested `actions/cache@6849a648…`, which is v4.1.2. GitHub retired
+that release, and any job reaching it fails during **action preparation** —
+before the first step runs:
+
+```text
+This request has been automatically failed because it uses a deprecated
+version of `actions/cache: 6849a648...`.
+```
+
+Two properties make this failure mode worth its own maintenance rule. It is
+invisible to every local gate, because nothing local resolves a composite's
+transitive pins; and it presents as a workflow that passed yesterday and fails
+today with no commit in between, which invites the wrong diagnosis (a flaky
+runner, or the repository's own change).
+
+So the rule is: a full-SHA pin buys immutability, not staleness immunity. Treat
+the transitive dependency set of every pinned composite as scheduled
+maintenance. `tests/support/approved_action_revisions.json` records each
+approved revision and the dependencies nested inside it, and
+`tests/test_codescene_workflow_contract.py` fails when a selected revision is
+unrecorded, or when a recorded revision reaches a SHA listed as retired. The
+record is checked in rather than fetched, because the contract tests must run
+without network access; refresh it when a pin moves, and let the reviewer see
+the dependency list change alongside the pin.
+
+Adding a pin therefore takes two edits: the `uses:` line, and the fixture entry
+that names what the new revision pulls in. A new dependency the fixture records
+as retired is a hard stop, not a warning — it will fail on GitHub regardless of
+what the local gates say.
