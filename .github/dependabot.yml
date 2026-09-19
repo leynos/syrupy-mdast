@@ -2,7 +2,18 @@ version: 2
 updates:
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
-    directory: "/"
+    # Batch every action bump into one pull request. Separate bumps all edit
+    # the same workflow files, so the first to merge leaves the remaining
+    # pull requests out of date and they stall awaiting manual rebases.
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+    # `/` only reaches `.github/workflows` and the root action manifest, so the
+    # composite actions under `.github/actions` need their own glob.
+    directories:
+      - "/"
+      - "/.github/actions/*"
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
