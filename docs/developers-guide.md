@@ -173,6 +173,24 @@ under `.github/`.
 - `.github/dependabot.yml` enables dependency update pull requests for GitHub
   Actions and Python packages. Rust-enabled projects also receive Cargo updates.
 
+### Dependabot policy
+
+GitHub Actions updates are batched into a single pull request by a wildcard
+`groups` rule. Ungrouped action bumps each edit the same workflow files, so
+whichever merges first leaves the remaining pull requests out of date, which
+disables their auto-merge and strands them until someone rebases them by hand.
+One group removes the same-file collision.
+
+The `github-actions` entry uses `directories` rather than `directory`, because
+`/` covers only `.github/workflows` and the root action manifest. Dependabot
+does not descend into `.github/actions`, so each composite action needs its own
+glob entry; without one, those action pins silently fall behind the workflows
+that call them.
+
+`tests/test_dependabot_config_contract.py` enforces both properties. It derives
+the expected action directories from the repository, so adding a composite
+action fails the suite until Dependabot is configured to watch it.
+
 The `CS_ACCESS_TOKEN` secret must be configured when CodeScene coverage upload
 is required. The `CODESCENE_CLI_SHA256` variable should be populated using the
 refresh workflow, so CI can verify the downloaded CodeScene installer before
