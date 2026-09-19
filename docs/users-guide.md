@@ -1,5 +1,46 @@
 # syrupy-mdast Users' Guide
 
+## V1 public contract
+
+Install `syrupy-mdast` with Python 3.12 or later. The package supports Syrupy
+5.x and 6.x and currently exports `MarkdownAstError` and
+`MarkdownAstSnapshotExtension`.
+
+Register the extension on Syrupy's `snapshot` fixture:
+
+```python
+from syrupy_mdast import MarkdownAstSnapshotExtension
+
+assertion = snapshot.with_defaults(
+    extension_class=MarkdownAstSnapshotExtension,
+)
+# After serialization is implemented, compare snapshots through the configured
+# assertion:
+# assert assertion == "# heading"
+```
+
+The extension accepts Markdown source as `str` and is configured for text
+snapshots with the `mdast.json` suffix after serialization is implemented. The
+`exclude`, `include`, and `matcher` controls are not supported and are rejected
+with `ValueError`; non-string input is rejected with `TypeError`. Valid `str`
+input currently raises `NotImplementedError` until the parser and canonical
+serialization milestone is delivered.
+
+## Handling MarkdownAstError
+
+Catch `MarkdownAstError` around package operations and inspect its required
+keyword-only `category` when handling a failure:
+
+```python
+from syrupy_mdast import MarkdownAstError
+
+try:
+    # Run a package operation here.
+    ...
+except MarkdownAstError as error:
+    print(error.category)
+```
+
 ## Quality Gates
 
 Generated projects use `make all` as the standard local quality gate. It runs
