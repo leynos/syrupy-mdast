@@ -16,9 +16,11 @@ from __future__ import annotations
 import re
 
 from tests.support.make_contract import (
+    REPO_ROOT,
     mapping,
     sole_workflow_step,
     workflow_jobs,
+    workflow_paths,
     workflow_steps,
 )
 
@@ -84,10 +86,10 @@ def test_default_branch_upload_publishes_the_measured_report() -> None:
     assert upload_inputs["mode"] == "upload", "main must use upload mode"
     assert upload_inputs["format"] == "cobertura", "main must upload Cobertura data"
     assert upload_inputs["path"] == "coverage.xml", "main must upload coverage.xml"
-    assert upload_inputs["archive-checksum"] == "${{ vars.CODESCENE_CLI_SHA256 }}", (
-        "the upload must verify the pinned CodeScene archive against the "
-        "manifest digest the refresh workflow publishes, not the deprecated "
-        "installer checksum"
+    assert "archive-checksum" not in upload_inputs, (
+        "the action verifies the CLI archive against its own cli-manifest.json "
+        "on every run, so a caller-supplied digest would only restate a value "
+        "the action already holds"
     )
     assert "installer-checksum" not in upload_inputs, (
         "the pinned action rejects a non-empty installer-checksum, so the "
@@ -130,53 +132,19 @@ def test_codescene_upload_uses_an_immutable_pin() -> None:
     ), "the shared CodeScene action must use an immutable commit SHA"
 
 
-def test_codescene_checksum_refresh_uses_an_immutable_action_reference() -> None:
-    """The retained checksum refresh workflow pins its GitHub API client."""
-    update_variable = sole_workflow_step(
-        ".github/workflows/get-codescene-sha.yml",
-        "refresh-sha",
-        "Update repository variable",
-    )
-    assert update_variable["uses"] == (
-        "actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd"
-    ), "checksum refresh must pin its GitHub API action"
-    update_inputs = mapping(
-        update_variable["with"], subject="CodeScene checksum refresh inputs"
-    )
-    assert "CODESCENE_CLI_SHA256" in str(update_inputs["script"]), (
-        "the checksum refresh workflow must continue to update CODESCENE_CLI_SHA256"
-    )
+def test_no_checksum_machinery_is_passed_or_maintained() -> None:
+    """No step restates the digest the action already verifies for itself.
 
-
-def test_refresh_publishes_the_digest_the_pinned_action_validates() -> None:
-    """The refreshed digest must come from the pinned action's own manifest.
-
-    The action compares the value it receives against `archive_sha256` in the
-    manifest at its own revision. A digest taken from anywhere else — the
-    upstream installer script, or a manifest at another revision — would fail
-    that comparison and break the upload the moment the variable was set.
+    The action reads `archive_sha256` from its own `cli-manifest.json` and
+    checks the downloaded archive against it on every run. A caller-supplied
+    digest adds no verification — it can only agree, or go stale and fail the
+    run. This holds the whole workflow to that, so a checksum input cannot be
+    reintroduced one step at a time alongside the refresh workflow that would
+    have to feed it.
     """
-    upload = sole_workflow_step(_CI_WORKFLOW, _CI_JOB, _UPLOAD_COVERAGE)
-    pinned_action = str(upload["uses"])
-    pinned_sha = pinned_action.rpartition("@")[2]
-
-    refresh = sole_workflow_step(
-        ".github/workflows/get-codescene-sha.yml",
-        "refresh-sha",
-        "Read the manifest digest & record it",
-    )
-    script = str(refresh.get("run", ""))
-    assert "cli-manifest.json" in script, (
-        "the refresh must read the digest from the action's cli-manifest.json"
-    )
-    assert "archive_sha256" in script, (
-        "the refresh must publish the manifest's archive digest, which is the "
-        "value the action compares archive-checksum against"
-    )
-    assert pinned_sha in script, (
-        "the refresh must read the manifest at the same immutable revision "
-        "ci.yml pins the action at; bump the two together"
-    )
-    assert "install-cs-coverage-tool.sh" not in script, (
-        "the deprecated installer-script digest is not what the action checks"
-    )
+    for workflow_path in workflow_paths():
+        text = (REPO_ROOT / workflow_path).read_text(encoding="utf-8")
+        assert "CODESCENE_CLI_SHA256" not in text, (
+            f"{workflow_path} references the retired CodeScene checksum "
+            "variable; the action verifies the archive from its own manifest"
+        )

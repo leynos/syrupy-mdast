@@ -122,6 +122,12 @@ jobs:
       # guard is deliberate defence in depth, so that even a mistaken future
       # widening of the condition skips the step rather than invoking the
       # external action without a token.
+      #
+      # No checksum input is passed. The action verifies the CLI archive it
+      # downloads against `archive_sha256` in its own `cli-manifest.json` on
+      # every run, so a caller-supplied digest would only restate a value the
+      # action already holds — and could only ever disagree with it by being
+      # stale. Passing nothing leaves that single source of truth intact.
       - name: Upload coverage data to CodeScene
         env:
           CS_ACCESS_TOKEN: ${{ secrets.CS_ACCESS_TOKEN }}
@@ -132,7 +138,6 @@ jobs:
           mode: upload
           path: coverage.xml
           access-token: ${{ env.CS_ACCESS_TOKEN }}
-          archive-checksum: ${{ vars.CODESCENE_CLI_SHA256 }}
 
   compatibility-matrix:
     name: py${{ matrix.python-version }} / syrupy ${{ matrix.syrupy-version }}
