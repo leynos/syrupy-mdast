@@ -163,9 +163,10 @@ under `.github/`.
 - `.github/workflows/build-wheels.yml` is a reusable workflow for extension
   builds. It accepts a Python version and builds wheels across Linux, Windows,
   and macOS architectures via `.github/actions/build-wheels`.
-- `.github/workflows/get-codescene-sha.yml` is manually dispatched. It fetches
-  the CodeScene coverage CLI installer, computes its SHA-256 digest, and writes
-  the result to the `CODESCENE_CLI_SHA256` repository variable.
+- `.github/workflows/get-codescene-sha.yml` is manually dispatched. It reads
+  the `archive_sha256` that the pinned shared action's `cli-manifest.json`
+  records for its `cli-version`, and writes that digest to the
+  `CODESCENE_CLI_SHA256` repository variable.
 - `.github/actions/build-wheels` wraps `cibuildwheel` with `uvx` and uploads
   architecture-specific wheel artifacts.
 - `.github/actions/pure-python-wheel` builds a pure Python wheel with
@@ -174,17 +175,27 @@ under `.github/`.
   Actions and Python packages. Rust-enabled projects also receive Cargo updates.
 
 The CodeScene workflow generates `coverage.xml` in Cobertura format before
-using the shared `upload-codescene-coverage` action. A push to `main` uses the
-action's `upload` mode to establish the analysed default-branch baseline. A
-trusted internal pull request targeting the default branch uses `check` mode
-to evaluate changed-line coverage; that path requires a full-history checkout
-and fails during preflight when `CS_ACCESS_TOKEN` is empty. The action is
-consumed at an immutable revision supplied by shared-actions PR #478, which
-keeps the upload and check modes distinct and preserves CLI diagnostics.
+using the shared `upload-codescene-coverage` action. CodeScene accepts
+`cs-coverage upload` only for analysed branches, so a push to `main` is the
+only event that uploads: it uses the action's `upload` mode to establish the
+analysed default-branch baseline that later analyses read.
 
-Fork pull requests do not receive `CS_ACCESS_TOKEN`. The workflow therefore
-emits a visible skip notice and does not invoke the external CodeScene check,
-so a check that cannot be produced does not leave the pull request waiting for
-a timeout. The `CODESCENE_CLI_SHA256` variable should be populated using the
-refresh workflow, so CI can verify the downloaded CodeScene installer before
-either mode runs.
+Pull requests do not contact CodeScene at all; they neither publish a report
+nor request a changed-line check. A pull request runs arbitrary head-repository
+code, so a CodeScene step it could reach would either hand `CS_ACCESS_TOKEN` to
+a fork or leave a secret-less fork waiting on a check that can never be
+produced. Pull-request coverage is instead enforced locally, by the ratchet that
+`Test and Measure Coverage` compares against the baseline the default branch
+last saved. The two events cannot race for that baseline: the action saves it
+with `actions/cache`, and GitHub scopes a cache a pull request writes to the
+merge ref, which neither the default branch nor another pull request can read.
+
+The upload step is guarded by `env.CS_ACCESS_TOKEN != ''`. A fork pull request
+receives no secret, so it skips the step rather than attempting an upload it
+cannot authenticate. The `CODESCENE_CLI_SHA256` variable holds the digest of
+the CLI *archive* the action resolves — not of the upstream installer script —
+and is populated using the refresh workflow. The action compares the value it
+receives against `archive_sha256` in its own `cli-manifest.json` and fails the
+run when the two differ, so the variable must be refreshed whenever the action
+revision, and with it the manifest, is bumped. While it is unset the action
+skips the comparison, and the upload proceeds on the manifest's own digest.

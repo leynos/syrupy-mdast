@@ -8,9 +8,14 @@ on:
 jobs:
   lint-test:
     runs-on: ubuntu-latest
+    # Read-only: every tool this job runs (checkout, mbake, makeutil, uv, the
+    # linters, CodeScene) either needs no repository write or authenticates
+    # with its own token. Pinning the token stops a compromised step from
+    # inheriting write access it never uses.
+    permissions:
+      contents: read
     env:
       CS_ACCESS_TOKEN: ${{ secrets.CS_ACCESS_TOKEN }}
-      CODESCENE_CLI_SHA256: ${{ vars.CODESCENE_CLI_SHA256 }}
       # Pin ruff and ty to the versions declared in the Makefile
       # (RUFF_VERSION/TY_VERSION) and pyproject.toml. Make reads these
       # environment variables, so CI and local runs invoke identical tool
@@ -28,8 +33,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
         with:
-          # The trusted pull-request CodeScene gate needs the merge base.
-          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Python
@@ -90,55 +93,40 @@ jobs:
       - name: Audit dependencies
         run: make audit
 
+      # The only test execution on this lane: measuring and testing in one
+      # instrumented run costs one compile instead of two. `with-ratchet` fails
+      # the run when total line coverage falls below the baseline the default
+      # branch last saved, so the pull-request coverage decision is that local
+      # ratchet rather than a CodeScene check. GitHub scopes a baseline a pull
+      # request saves to its merge ref, which the default branch cannot read,
+      # so the two events cannot race for it.
       - name: Test and Measure Coverage
         uses: leynos/shared-actions/.github/actions/generate-coverage@296dc4aa07acf3a7f60a54fb6bccb5672a597479
         with:
           output-path: coverage.xml
           format: cobertura
           artefact-name-suffix: syrupy-mdast
+          with-ratchet: 'true'
           
 
-      - name: Preflight CodeScene token for trusted pull requests
-        if: >-
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.base.ref == github.event.repository.default_branch &&
-          github.event.pull_request.head.repo.full_name == github.repository
+      # Main is the only CodeScene consumer. CodeScene accepts `cs-coverage
+      # upload` only for analysed branches, so the report this job generates on
+      # a default-branch push is published here. Pull requests neither publish
+      # a report nor contact CodeScene: they enforce coverage locally, through
+      # the ratchet that `Test and Measure Coverage` compares against the
+      # baseline this job saves. The `event_name == 'push'` term already keeps
+      # every pull request away from this step; the `env.CS_ACCESS_TOKEN != ''`
+      # guard is deliberate defence in depth, so that even a mistaken future
+      # widening of the condition skips the step rather than invoking the
+      # external action without a token.
+      - name: Upload coverage data to CodeScene
         env:
           CS_ACCESS_TOKEN: ${{ secrets.CS_ACCESS_TOKEN }}
-        run: |
-          if [ -z "$CS_ACCESS_TOKEN" ]; then
-            echo "::error title=CodeScene token required::CS_ACCESS_TOKEN is empty for a trusted pull request. Configure the repository secret before requesting the CodeScene changed-line coverage gate."
-            exit 1
-          fi
-
-      - name: Upload main coverage to CodeScene
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: leynos/shared-actions/.github/actions/upload-codescene-coverage@395f8e8630d431abb4a136847f1c14c4ad5a0ccc
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.CS_ACCESS_TOKEN != ''
+        uses: leynos/shared-actions/.github/actions/upload-codescene-coverage@a5765019912a8ab6882b12db049c7cde635f3a85
         with:
+          format: cobertura
           mode: upload
           path: coverage.xml
-          format: cobertura
-          access-token: ${{ secrets.CS_ACCESS_TOKEN }}
-          installer-checksum: ${{ vars.CODESCENE_CLI_SHA256 }}
-
-      - name: Check trusted pull request coverage with CodeScene
-        if: >-
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.base.ref == github.event.repository.default_branch &&
-          github.event.pull_request.head.repo.full_name == github.repository
-        uses: leynos/shared-actions/.github/actions/upload-codescene-coverage@395f8e8630d431abb4a136847f1c14c4ad5a0ccc
-        with:
-          mode: check
-          path: coverage.xml
-          format: cobertura
-          project-url: https://api.codescene.io/v2/projects/82582
-          access-token: ${{ secrets.CS_ACCESS_TOKEN }}
-          installer-checksum: ${{ vars.CODESCENE_CLI_SHA256 }}
-
-      - name: Skip CodeScene coverage gate for fork pull requests
-        if: >-
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.base.ref == github.event.repository.default_branch &&
-          github.event.pull_request.head.repo.full_name != github.repository
-        run: |
-          echo "::notice title=CodeScene coverage gate skipped::Fork pull requests do not receive CS_ACCESS_TOKEN, so the external CodeScene gate is intentionally not invoked."
+          access-token: ${{ env.CS_ACCESS_TOKEN }}
+          archive-checksum: ${{ vars.CODESCENE_CLI_SHA256 }}
