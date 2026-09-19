@@ -133,6 +133,29 @@ def make_executable() -> str:
     return executable
 
 
+def workflow_paths() -> tuple[str, ...]:
+    """Return every workflow in the repository, as repository-relative paths.
+
+    Use this when a contract must hold across all workflows rather than one
+    named file, so a rule cannot be escaped by adding a workflow the contract
+    does not know about.
+
+    Returns
+    -------
+    tuple[str, ...]
+        Each ``.github/workflows`` entry, sorted for a stable report.
+
+    Examples
+    --------
+    >>> ".github/workflows/ci.yml" in workflow_paths()
+    True
+    """
+    directory = REPO_ROOT / ".github" / "workflows"
+    return tuple(
+        sorted(str(path.relative_to(REPO_ROOT)) for path in directory.iterdir())
+    )
+
+
 def workflow_jobs(workflow_path: str) -> dict[str, object]:
     """Return the job mapping of a repository workflow.
 
