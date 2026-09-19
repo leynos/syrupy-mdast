@@ -163,9 +163,6 @@ under `.github/`.
 - `.github/workflows/build-wheels.yml` is a reusable workflow for extension
   builds. It accepts a Python version and builds wheels across Linux, Windows,
   and macOS architectures via `.github/actions/build-wheels`.
-- `.github/workflows/get-codescene-sha.yml` is manually dispatched. It fetches
-  the CodeScene coverage CLI installer, computes its SHA-256 digest, and writes
-  the result to the `CODESCENE_CLI_SHA256` repository variable.
 - `.github/actions/build-wheels` wraps `cibuildwheel` with `uvx` and uploads
   architecture-specific wheel artifacts.
 - `.github/actions/pure-python-wheel` builds a pure Python wheel with
@@ -173,7 +170,27 @@ under `.github/`.
 - `.github/dependabot.yml` enables dependency update pull requests for GitHub
   Actions and Python packages. Rust-enabled projects also receive Cargo updates.
 
-The `CS_ACCESS_TOKEN` secret must be configured when CodeScene coverage upload
-is required. The `CODESCENE_CLI_SHA256` variable should be populated using the
-refresh workflow, so CI can verify the downloaded CodeScene installer before
-upload.
+The CodeScene workflow generates `coverage.xml` in Cobertura format before
+using the shared `upload-codescene-coverage` action. CodeScene accepts
+`cs-coverage upload` only for analysed branches, so a push to `main` is the
+only event that uploads: it uses the action's `upload` mode to establish the
+analysed default-branch baseline that later analyses read.
+
+Pull requests do not contact CodeScene at all; they neither publish a report
+nor request a changed-line check. A pull request runs arbitrary head-repository
+code, so a CodeScene step it could reach would either hand `CS_ACCESS_TOKEN` to
+a fork or leave a secret-less fork waiting on a check that can never be
+produced. Pull-request coverage is instead enforced locally, by the ratchet that
+`Test and Measure Coverage` compares against the baseline the default branch
+last saved. The two events cannot race for that baseline: the action saves it
+with `actions/cache`, and GitHub scopes a cache a pull request writes to the
+merge ref, which neither the default branch nor another pull request can read.
+
+The upload step is guarded by `env.CS_ACCESS_TOKEN != ''`. A fork pull request
+receives no secret, so it skips the step rather than attempting an upload it
+cannot authenticate. No checksum input is passed. The action verifies the CLI
+archive it downloads against `archive_sha256` in its own `cli-manifest.json` on
+every run, so the manifest the pinned revision carries is the single source of
+truth for that digest; a caller-supplied value could only agree with it or go
+stale and fail the run. Bumping the action revision therefore needs no
+accompanying variable update — the manifest travels with the revision.
