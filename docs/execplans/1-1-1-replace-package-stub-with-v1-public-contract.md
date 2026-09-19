@@ -1,9 +1,9 @@
 # Replace the generated package stub with the v1 public contract
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & discoveries`,
-`Decision log`, `Outcomes & retrospective`, `Conformance basis`, and
-`Verification plan` must be kept up to date as work proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & discoveries`, `Decision log`,
+`Outcomes & retrospective`, `Conformance basis`, and `Verification plan` must
+be kept up to date as work proceeds.
 
 Status: IN PROGRESS
 
@@ -19,8 +19,8 @@ names, `MarkdownAstError` and `MarkdownAstSnapshotExtension`, matching the
 technical design's §6. They can import them, catch the error type, subclass the
 extension, and read a documented, version-bounded statement of which Python and
 Syrupy releases are supported. Attempting to snapshot a non-string, or to pass
-Syrupy's `exclude`, `include`, or `matcher` controls, fails immediately with the
-declared exception type and an actionable message rather than silently
+Syrupy's `exclude`, `include`, or `matcher` controls, fails immediately with
+the declared exception type and an actionable message rather than silently
 producing a misleading snapshot.
 
 Observable success, in one command:
@@ -65,8 +65,9 @@ These are hard invariants. Violating one requires escalation, not a workaround.
    design §9 Table 2. This plan may not invent a category, and specifically may
    not add a "not implemented" category.
 5. No release may be cut between this task and roadmap 2.3.1. The version stays
-   at `0.1.0` and the package is classified `Development Status :: 2 -
-   Pre-Alpha`. The plateau claim in this plan depends on this.
+   at `0.1.0` and the package is classified
+   `Development Status :: 2 - Pre-Alpha`. The plateau claim in this plan
+   depends on this.
 6. `Wenmode` must not be added as a dependency here. That is roadmap task
    1.2.1, and the release to pin is decided by the roadmap 1.1.2 ADR.
 7. All four commit gates must pass before each commit: `make check-fmt`,
@@ -96,18 +97,16 @@ Stop and escalate rather than improvising when any of these is reached.
 ## Risks
 
 1. Risk: Skylos flags `file_extension` and `_write_mode` as unused variables
-   (`SKY-U003`), and neither documented remedy works.
-   Severity: high. Likelihood: high — empirically observed during planning.
-   Mitigation: use bare symbol names in
-   `[tool.skylos.whitelist.documented]`, update
+   (`SKY-U003`), and neither documented remedy works. Severity: high.
+   Likelihood: high — empirically observed during planning. Mitigation: use
+   bare symbol names in `[tool.skylos.whitelist.documented]`, update
    `tests/test_skylos_lint_contract.py::_DOCUMENTED_WHITELIST_NAMES` in the
    same commit, and correct the guidance in `AGENTS.md` and
    `docs/developers-guide.md`. See EP-M4 and DEC-7.
 
 2. Risk: Ruff `PLR6301` (no-self-use) fires on `serialize()` because the method
-   validates its arguments without reading `self`.
-   Severity: low. Likelihood: medium.
-   Mitigation: prefer naming the instance in the diagnostic, which is
+   validates its arguments without reading `self`. Severity: low. Likelihood:
+   medium. Mitigation: prefer naming the instance in the diagnostic, which is
    independently useful to the caller. If that is insufficient, apply a scoped
    `# noqa: PLR6301` carrying a link to roadmap 2.3.1, per `AGENTS.md`'s
    temporary-suppression rule. Verify before choosing; do not pre-suppress.
@@ -115,8 +114,7 @@ Stop and escalate rather than improvising when any of these is reached.
 3. Risk: a declared bound is never resolved against. `uv` resolves
    highest-compatible, so without intervention CI exercises Syrupy 6.x on
    Python 3.13 only, while the package declares `syrupy>=5.0.0,<7.0.0` and
-   `requires-python = ">=3.12"`.
-   Severity: medium. Likelihood: medium.
+   `requires-python = ">=3.12"`. Severity: medium. Likelihood: medium.
    Mitigation: EP-M5 adds a `compatibility-matrix` job to
    `.github/workflows/ci.yml` covering Python 3.12, 3.13, and 3.14 against both
    the declared Syrupy floor and the latest resolvable release. `INV-6` asserts
@@ -124,39 +122,35 @@ Stop and escalate rather than improvising when any of these is reached.
    `pyproject.toml`, so the declaration and the evidence cannot drift apart.
 
 4. Risk: `_write_mode` is a private Syrupy attribute carrying no compatibility
-   promise, yet is depended upon across two major versions.
-   Severity: medium. Likelihood: low.
-   Mitigation: `INV-4` asserts its continued existence, converting a silent
-   behaviour change into a failing test in the pull request that bumps Syrupy.
-   The EP-M5 matrix now exercises that assertion at both ends of the declared
-   range rather than at one resolved point. Recorded in design §13 as the
-   stated reason for the upper bound.
+   promise, yet is depended upon across two major versions. Severity: medium.
+   Likelihood: low. Mitigation: `INV-4` asserts its continued existence,
+   converting a silent behaviour change into a failing test in the pull request
+   that bumps Syrupy. The EP-M5 matrix now exercises that assertion at both
+   ends of the declared range rather than at one resolved point. Recorded in
+   design §13 as the stated reason for the upper bound.
 
 5. Risk: deleting `hello()` before deleting `tests/test_stub.py` breaks pytest
    at collection time, which under `-n auto` surfaces as xdist worker-crash
-   output rather than a clean assertion failure.
-   Severity: low. Likelihood: high if ordering is ignored.
-   Mitigation: EP-M1 deletes the test first. This ordering is mandatory.
+   output rather than a clean assertion failure. Severity: low. Likelihood:
+   high if ordering is ignored. Mitigation: EP-M1 deletes the test first. This
+   ordering is mandatory.
 
 6. Risk: `uv.lock` is not regenerated after adding the first runtime
-   dependency, so CI diverges from the working tree.
-   Severity: medium. Likelihood: medium.
-   Mitigation: EP-M2 runs `make build` and commits the regenerated lockfile in
-   the same commit as the `pyproject.toml` change.
+   dependency, so CI diverges from the working tree. Severity: medium.
+   Likelihood: medium. Mitigation: EP-M2 runs `make build` and commits the
+   regenerated lockfile in the same commit as the `pyproject.toml` change.
 
 7. Risk: the wheel omits `syrupy_mdast/_core/` or `py.typed`.
-   Severity: medium. Likelihood: low.
-   Mitigation: `_core/__init__.py` exists so hatchling treats it as a
-   subpackage; EP-M7 inspects the built wheel.
+   Severity: medium. Likelihood: low. Mitigation: `_core/__init__.py` exists so
+   hatchling treats it as a subpackage; EP-M7 inspects the built wheel.
 
 8. Risk: a matrix combination fails for a reason unrelated to this package —
-   for example an old Syrupy release lacking Python 3.14 support.
-   Severity: low. Likelihood: medium.
-   Mitigation: `fail-fast: false` so every leg reports independently. A
-   genuinely unsupportable combination is recorded with a `matrix.exclude`
-   entry carrying a comment naming the incompatibility. Do not narrow the
-   declared range to make a leg pass without first deciding, deliberately, that
-   the range was wrong.
+   for example an old Syrupy release lacking Python 3.14 support. Severity:
+   low. Likelihood: medium. Mitigation: `fail-fast: false` so every leg reports
+   independently. A genuinely unsupportable combination is recorded with a
+   `matrix.exclude` entry carrying a comment naming the incompatibility. Do not
+   narrow the declared range to make a leg pass without first deciding,
+   deliberately, that the range was wrong.
 
 ## Progress
 
@@ -175,17 +169,16 @@ Stop and escalate rather than improvising when any of these is reached.
   then passed; `make build` and `make audit` passed.
 - [x] EP-M3 Establish the dependency-free domain core and its import guard —
   2026-08-29T00:35:00Z: the static AST guard scans every core module and its
-  negative control rejects `import syrupy`. All deterministic gates passed
-  with 43 tests.
+  negative control rejects `import syrupy`. All deterministic gates passed with
+  43 tests.
 - [x] EP-M4 Deliver the Syrupy adapter and the public API contract test —
   2026-08-29T01:00:00Z: the exact two-name public surface and validation seam
   are green. The two required Syrupy class attributes have the approved,
-  evidence-bearing Skylos exceptions; all deterministic gates passed (45
-  tests).
+  evidence-bearing Skylos exceptions; all deterministic gates passed (45 tests).
 - [x] EP-M5 Add the Python and Syrupy compatibility matrix to CI —
-  2026-08-29T01:20:00Z: the additive job tests Python 3.12–3.14 against
-  Syrupy 5.0.0 and latest. Its metadata-binding contract is green; all
-  deterministic gates passed (46 tests).
+  2026-08-29T01:20:00Z: the additive job tests Python 3.12–3.14 against Syrupy
+  5.0.0 and latest. Its metadata-binding contract is green; all deterministic
+  gates passed (46 tests).
 - [x] EP-M6 Update documentation and correct the Skylos guidance —
   2026-08-29T01:45:00Z: updated the README, compatibility policy, and bare-name
   exception guidance; roadmap task 1.1.1 remains open pending EP-M7. All
@@ -194,20 +187,20 @@ Stop and escalate rather than improvising when any of these is reached.
   2026-09-14T20:07:53Z: the clean-tree deterministic sweep passed
   (`make clean && make all`, 61 tests), and the wheel inspection found
   `syrupy_mdast/_core/__init__.py`, `syrupy_mdast/_core/errors.py`, and
-  `syrupy_mdast/py.typed`, with no JavaScript assets. The hosted
-  `lint-test`, `act-validation`, and all six compatibility-matrix legs are
-  green for PR #18. CodeScene is explicitly classified as an external
-  configuration and migration-dependency block: issue #23 remains open,
-  Actions secret and variable administration is unavailable to the current
-  credential, and the separate migration PR #32 cannot reach its check until
-  its shared coverage-action dependency is refreshed. The roadmap item and
-  this milestone remain open pending an observed CodeScene upload and trusted
-  pull-request check, or an accepted follow-up classification.
-  2026-09-15T19:44:34Z: a rebase onto `origin/main` was a verified no-op; the
-  review remediation adds isolated-wheel, keyword-only constructor, and copy
-  contracts, narrows matrix-job permissions, and records the required user and
-  contributor guidance. The final deterministic sweep passed: `make check-fmt`,
-  `make test` (64 passed), `make typecheck`, `make lint`, `make audit`,
+  `syrupy_mdast/py.typed`, with no JavaScript assets. The hosted `lint-test`,
+  `act-validation`, and all six compatibility-matrix legs are green for PR #18.
+  CodeScene is explicitly classified as an external configuration and
+  migration-dependency block: issue #23 remains open, Actions secret and
+  variable administration is unavailable to the current credential, and the
+  separate migration PR #32 cannot reach its check until its shared
+  coverage-action dependency is refreshed. The roadmap item and this milestone
+  remain open pending an observed CodeScene upload and trusted pull-request
+  check, or an accepted follow-up classification. 2026-09-15T19:44:34Z: a
+  rebase onto `origin/main` was a verified no-op; the review remediation adds
+  isolated-wheel, keyword-only constructor, and copy contracts, narrows
+  matrix-job permissions, and records the required user and contributor
+  guidance. The final deterministic sweep passed: `make check-fmt`, `make test`
+  (64 passed), `make typecheck`, `make lint`, `make audit`,
   `make markdownlint`, and `make nixie` all completed successfully.
 
 Update this section at every stopping point, with a UTC timestamp, splitting a
@@ -223,84 +216,79 @@ implementer would otherwise make.
 Implementation observations are appended after the planning discoveries.
 
 1. Observation: Skylos does **not** flag a class re-exported through `__all__`
-   with no in-package caller.
-   Evidence: a scratch package mirroring this layout scanned clean, exit 0,
-   under the repository's exact gate command with `strict = true`.
-   Impact: no entry-point rule is needed for `MarkdownAstError` or
-   `MarkdownAstSnapshotExtension` themselves. `_RUNTIME_ENTRY_POINT_NAMES` in
-   `tests/test_skylos_lint_contract.py` stays an empty frozenset.
+   with no in-package caller. Evidence: a scratch package mirroring this layout
+   scanned clean, exit 0, under the repository's exact gate command with
+   `strict = true`. Impact: no entry-point rule is needed for
+   `MarkdownAstError` or `MarkdownAstSnapshotExtension` themselves.
+   `_RUNTIME_ENTRY_POINT_NAMES` in `tests/test_skylos_lint_contract.py` stays
+   an empty frozenset.
 
 2. Observation: Skylos **does** flag class attributes that override an
    inherited attribute, and flags every parameter of a method whose body does
-   not read them.
-   Evidence: a probe of the design §6 class shape with a stubbed `serialize()`
-   returned six findings — `SKY-U003` for `file_extension` and `_write_mode`,
-   and `SKY-U006` for `data`, `exclude`, `include`, and `matcher`.
-   Impact: decisive. Implementing §6's input contract makes all four parameters
-   live, so a *real* implementation costs four fewer findings than a stub. This
-   is the primary technical argument behind DEC-3.
+   not read them. Evidence: a probe of the design §6 class shape with a stubbed
+   `serialize()` returned six findings — `SKY-U003` for `file_extension` and
+   `_write_mode`, and `SKY-U006` for `data`, `exclude`, `include`, and
+   `matcher`. Impact: decisive. Implementing §6's input contract makes all four
+   parameters live, so a *real* implementation costs four fewer findings than a
+   stub. This is the primary technical argument behind DEC-3.
 
 3. Observation: Skylos 4.33.2 matches whitelist entries on the **bare symbol
    name only**. A qualified name is accepted by `skylos whitelist`, which
    prints a success tick and writes it to `pyproject.toml`, and then suppresses
    nothing. A typed `[[tool.skylos.dead_code.entrypoints]]` rule does not model
-   class attributes at all and also fails to suppress.
-   Evidence: five spellings tested against one finding; only `file_extension`
-   and `*file_extension` suppressed it.
-   Impact: both remedies documented in `AGENTS.md` and
+   class attributes at all and also fails to suppress. Evidence: five spellings
+   tested against one finding; only `file_extension` and `*file_extension`
+   suppressed it. Impact: both remedies documented in `AGENTS.md` and
    `docs/developers-guide.md` are wrong for this construct. EP-M6 corrects
    them. Note the blast radius: a bare-name entry is repository-global.
 
 4. Observation: `ambrleaks` scans only `.ambr` files, so it is structurally
-   blind to this project's own `.mdast.json` snapshots.
-   Evidence: byte-identical content in `__snapshots__/t.ambr` produced one
-   finding and exit 1; in `__snapshots__/t.mdast.json` it produced none and
-   exit 0.
-   Impact: not a blocker for this task, which writes no snapshots, but this is
-   the task that fixes `file_extension = "mdast.json"`. EP-M6 records the gap
-   in the developers' guide and adds a roadmap item so it is closed before
-   roadmap 2.3.1 begins writing snapshots.
+   blind to this project's own `.mdast.json` snapshots. Evidence:
+   byte-identical content in `__snapshots__/t.ambr` produced one finding and
+   exit 1; in `__snapshots__/t.mdast.json` it produced none and exit 0. Impact:
+   not a blocker for this task, which writes no snapshots, but this is the task
+   that fixes `file_extension = "mdast.json"`. EP-M6 records the gap in the
+   developers' guide and adds a roadmap item so it is closed before roadmap
+   2.3.1 begins writing snapshots.
 
 5. Observation: `requires-python = ">=3.12"` is **already declared** at
-   `pyproject.toml` line 6.
-   Evidence: direct inspection.
-   Impact: the roadmap bullet "declare the supported Python and Syrupy ranges"
-   is half-complete. Only the Syrupy range is new work here.
+   `pyproject.toml` line 6. Evidence: direct inspection. Impact: the roadmap
+   bullet "declare the supported Python and Syrupy ranges" is half-complete.
+   Only the Syrupy range is new work here.
 
 6. Observation: `syrupy` is absent from `uv.lock`; the sole match is the
-   project's own name.
-   Evidence: `grep -n 'name = "syrupy"' uv.lock` returns nothing.
-   Impact: the lockfile must be regenerated and committed in EP-M2.
+   project's own name. Evidence: `grep -n 'name = "syrupy"' uv.lock` returns
+   nothing. Impact: the lockfile must be regenerated and committed in EP-M2.
 
 7. Observation: the repository has no `py.typed` marker, so under PEP 561 a
    consumer's type checker must ignore every annotation the package ships.
-   Evidence: `find . -name py.typed` returns nothing.
-   Impact: design §2.1's goal of a "narrow and fully typed" public API is
-   currently unobservable downstream. EP-M2 adds the marker.
+   Evidence: `find . -name py.typed` returns nothing. Impact: design §2.1's
+   goal of a "narrow and fully typed" public API is currently unobservable
+   downstream. EP-M2 adds the marker.
 
 8. Observation: local possession of `CS_ACCESS_TOKEN` is insufficient to
-   establish the hosted CodeScene path when the GitHub credential lacks
-   Actions secret and variable administration.
-   Evidence: on 2026-09-14, GitHub denied both the repository-secret public-key
-   read and the `CODESCENE_CLI_SHA256` variable update. The checksum refresh run
-   computed the CLI hash but failed with `actions_variables=write` unavailable.
-   Impact: issue #23 remains the authentication follow-up. EP-M7 must stay open
-   until an authorized maintainer provisions the secret and checksum variable,
-   and a trusted CodeScene check is observed.
+   establish the hosted CodeScene path when the GitHub credential lacks Actions
+   secret and variable administration. Evidence: on 2026-09-14, GitHub denied
+   both the repository-secret public-key read and the `CODESCENE_CLI_SHA256`
+   variable update. The checksum refresh run computed the CLI hash but failed
+   with `actions_variables=write` unavailable. Impact: issue #23 remains the
+   authentication follow-up. EP-M7 must stay open until an authorized
+   maintainer provisions the secret and checksum variable, and a trusted
+   CodeScene check is observed.
 
 ## Decision log
 
 - DEC-1: Lay out the package as `syrupy_mdast/_core/` (a package containing
   `__init__.py` and `errors.py`), `syrupy_mdast/_extension.py`, and
-  `syrupy_mdast/__init__.py` re-exporting exactly two names.
-  Rationale: design §5 mandates a dependency-free core with narrow adapters
-  around it. A `_core` *package* rather than a single module is justified
-  within two roadmap tasks — by 2.1.2 the core additionally holds
-  canonicalization, AST-shape validation, the normative field-order constant,
-  and two resource limits, and `AGENTS.md` caps files at 400 lines. This is
-  known growth, not speculation. `_core/__init__.py` stays a pure re-export
-  with no logic, so relocating `errors.py` later touches no call site.
-  Date/Author: 2026-08-28, planning agent, on Pandalump's recommendation.
+  `syrupy_mdast/__init__.py` re-exporting exactly two names. Rationale: design
+  §5 mandates a dependency-free core with narrow adapters around it. A `_core`
+  *package* rather than a single module is justified within two roadmap tasks —
+  by 2.1.2 the core additionally holds canonicalization, AST-shape validation,
+  the normative field-order constant, and two resource limits, and `AGENTS.md`
+  caps files at 400 lines. This is known growth, not speculation.
+  `_core/__init__.py` stays a pure re-export with no logic, so relocating
+  `errors.py` later touches no call site. Date/Author: 2026-08-28, planning
+  agent, on Pandalump's recommendation.
 
 - DEC-2: Name the Syrupy adapter module `_extension.py`, not `extension.py`.
   Rationale: `from .extension import ...` binds `extension` as an attribute of
@@ -309,8 +297,8 @@ Implementation observations are appended after the planning discoveries.
   would defeat the milestone's own success criterion. With every module
   private, the API-stability assertion becomes a clean set equality, and
   roadmap 2.3.2's promise that "a consumer can copy the recipe without
-  importing internal modules" becomes structurally true.
-  Date/Author: 2026-08-28, raised independently by Telefono and Pandalump.
+  importing internal modules" becomes structurally true. Date/Author:
+  2026-08-28, raised independently by Telefono and Pandalump.
 
 - DEC-3: **Approved roadmap amendment.** Deliver design §6's input contract —
   `TypeError` for non-`str` data, `ValueError` for non-`None` `exclude`,
@@ -321,57 +309,51 @@ Implementation observations are appended after the planning discoveries.
   ExecPlan rule against compatibility theatre. And empirically it *removes*
   four Skylos `SKY-U006` findings, because a stubbed `serialize()` leaves all
   four parameters unread. Roadmap 2.3.1 correspondingly shrinks to wiring the
-  pipeline into the seam. Approved by the user on 2026-08-28.
-  Date/Author: 2026-08-28, user-approved.
+  pipeline into the seam. Approved by the user on 2026-08-28. Date/Author:
+  2026-08-28, user-approved.
 
 - DEC-4: The serialization seam raises `NotImplementedError`, not
-  `MarkdownAstError`.
-  Rationale: design §6 declares `MarkdownAstError`'s `category` values stable
-  and §9 Table 2 enumerates them exhaustively. There is no "not implemented"
-  category, and inventing one would inject a temporary implementation state
-  into a versioned public taxonomy. `NotImplementedError` sits outside the
-  documented failure contract and therefore cannot be depended upon. Its
-  message must name roadmap task 2.3.1 so its removal is a deliberate,
-  test-visible act.
-  Date/Author: 2026-08-28, planning agent.
+  `MarkdownAstError`. Rationale: design §6 declares `MarkdownAstError`'s
+  `category` values stable and §9 Table 2 enumerates them exhaustively. There
+  is no "not implemented" category, and inventing one would inject a temporary
+  implementation state into a versioned public taxonomy. `NotImplementedError`
+  sits outside the documented failure contract and therefore cannot be depended
+  upon. Its message must name roadmap task 2.3.1 so its removal is a
+  deliberate, test-visible act. Date/Author: 2026-08-28, planning agent.
 
 - DEC-5: Model `MarkdownAstError.category` as a `str` attribute backed by
   module-level `typ.Final` constants and a `CATEGORIES` tuple, not as a
-  `StrEnum`.
-  Rationale: an unexported enum used as the type of a public attribute is a
-  leaky contract — a typed downstream consumer has no importable annotation and
-  must widen to `str` anyway. Declaring `category: str` now permits a later
-  narrowing to `Literal[...]` in a minor release, which is backward-compatible
-  for every reader because `Literal` is a subtype of `str`; promoting a private
-  enum to public later is a rename-shaped break. Start wide, narrow later,
-  never the reverse. `.rules/python-typing.md` prefers `StrEnum` "where values
-  are unimportant"; here the values *are* the public contract, so that
-  precondition does not hold and the rule does not bind.
+  `StrEnum`. Rationale: an unexported enum used as the type of a public
+  attribute is a leaky contract — a typed downstream consumer has no importable
+  annotation and must widen to `str` anyway. Declaring `category: str` now
+  permits a later narrowing to `Literal[...]` in a minor release, which is
+  backward-compatible for every reader because `Literal` is a subtype of `str`;
+  promoting a private enum to public later is a rename-shaped break. Start
+  wide, narrow later, never the reverse. `.rules/python-typing.md` prefers
+  `StrEnum` "where values are unimportant"; here the values *are* the public
+  contract, so that precondition does not hold and the rule does not bind.
   Date/Author: 2026-08-28, on Telefono's recommendation, over Dinolump's
   contrary suggestion.
 
 - DEC-6: `category` is a required keyword-only constructor argument, and
-  `MarkdownAstError` defines an explicit `__reduce__`.
-  Rationale: an error documented as always carrying a stable category must not
-  be constructible without one, or a raiser could silently emit an
-  uncategorized error and break Table 2. Keyword-only because positional
-  `MarkdownAstError("...", "parse")` invites argument transposition. The
-  explicit `__reduce__` is required because `BaseException.__reduce__`
-  reconstructs via `type(exc)(*exc.args)`, which raises `TypeError` for a
-  required keyword-only argument — breaking `copy.copy`, `pickle`, and
-  propagation across any executor boundary. Cheap now, expensive after
-  ratification.
-  Date/Author: 2026-08-28, on Telefono's R1.
+  `MarkdownAstError` defines an explicit `__reduce__`. Rationale: an error
+  documented as always carrying a stable category must not be constructible
+  without one, or a raiser could silently emit an uncategorized error and break
+  Table 2. Keyword-only because positional `MarkdownAstError("...", "parse")`
+  invites argument transposition. The explicit `__reduce__` is required because
+  `BaseException.__reduce__` reconstructs via `type(exc)(*exc.args)`, which
+  raises `TypeError` for a required keyword-only argument — breaking
+  `copy.copy`, `pickle`, and propagation across any executor boundary. Cheap
+  now, expensive after ratification. Date/Author: 2026-08-28, on Telefono's R1.
 
 - DEC-7: Resolve the Skylos `SKY-U003` findings with bare-name entries in
   `[tool.skylos.whitelist.documented]`, and correct the guidance that points at
-  the broken remedies.
-  Rationale: entry-point rules were empirically shown not to model class
-  attributes, and qualified whitelist names silently no-op. Do **not** add an
-  in-package reader purely to satisfy the linter — that is production code
-  shaped by a tool, which ADR-001's policy exists to prevent. Reading
-  `self.file_extension` inside a diagnostic message is acceptable only where it
-  genuinely improves the message. Approved by the user on 2026-08-28.
+  the broken remedies. Rationale: entry-point rules were empirically shown not
+  to model class attributes, and qualified whitelist names silently no-op. Do
+  **not** add an in-package reader purely to satisfy the linter — that is
+  production code shaped by a tool, which ADR-001's policy exists to prevent.
+  Reading `self.file_extension` inside a diagnostic message is acceptable only
+  where it genuinely improves the message. Approved by the user on 2026-08-28.
   Date/Author: 2026-08-28, user-approved.
 
 - DEC-8: Declare `syrupy>=5.0.0,<7.0.0`.
@@ -384,12 +366,10 @@ Implementation observations are appended after the planning discoveries.
   on. Note the asymmetry worth stating in the compatibility policy: Wenmode
   defines the persisted bytes and is therefore pinned exactly per §13; Syrupy
   defines storage and lifecycle and therefore takes a range. Approved by the
-  user on 2026-08-28.
-  Date/Author: 2026-08-28, user-approved.
+  user on 2026-08-28. Date/Author: 2026-08-28, user-approved.
 
 - DEC-9: Defer `pytest-bdd`, `tests/features/`, and `tests/steps/` to roadmap
-  2.3.1.
-  Rationale: this task introduces two type declarations, a dependency
+  2.3.1. Rationale: this task introduces two type declarations, a dependency
   declaration, and deletions. A Gherkin scenario for "a consumer imports the
   package" restates the unit test across three additional files without adding
   behavioural meaning. It would force a `conftest.py` that changes collection
@@ -417,8 +397,8 @@ Implementation observations are appended after the planning discoveries.
   plausible source of one exists. What remains would test hatchling, not this
   change. A one-off wheel inspection is retained in EP-M7 as a manual
   acceptance step rather than a suite test, keeping it out of the 30-second
-  pytest timeout and off the `-n auto` critical path.
-  Date/Author: 2026-08-28, on Dinolump's recommendation.
+  pytest timeout and off the `-n auto` critical path. Date/Author: 2026-08-28,
+  on Dinolump's recommendation.
 
 - DEC-12: Leave `docs/users-guide.md` untouched.
   Rationale: it is wholly Copier-template content describing the template's own
@@ -427,48 +407,44 @@ Implementation observations are appended after the planning discoveries.
   section to it would produce an incoherent artefact that 3.1.1 deletes. The
   compatibility policy therefore lands in `README.md` (consumer-facing) and
   design §13 (normative). Recorded so the omission reads as a decision.
-  Date/Author: 2026-08-28, on Dinolump's recommendation.
-  Status: superseded during review remediation on 2026-09-16 when the guide
-  was updated to document the current v1 consumer contract pending roadmap
-  3.1.1's replacement.
+  Date/Author: 2026-08-28, on Dinolump's recommendation. Status: superseded
+  during review remediation on 2026-09-16 when the guide was updated to
+  document the current v1 consumer contract pending roadmap 3.1.1's replacement.
 
 - DEC-13: Leave `docs/adr-001-python-lint-architecture.md` and the
-  Pyright-versus-`ty` tension in `.rules/python-00.md` alone.
-  Rationale: ADR-001 uses a Nygard-style layout where
-  `docs/documentation-style-guide.md` prescribes a different template, but it
-  concerns lint architecture and has no connection to the v1 contract; roadmap
-  3.1.2 already owns documentation reconciliation. `.rules/python-00.md`
-  mandates strict Pyright, whereas the actual gate is `ty`; that file is shared
-  estate-wide boilerplate and amending it exceeds this repository. This plan's
-  only obligation is to tell the implementer plainly which typechecker to run.
-  A handoff note requires that the roadmap 1.1.2 ADR follow the documented
-  template so the deviation stops spreading.
-  Date/Author: 2026-08-28, on Dinolump's recommendation.
+  Pyright-versus-`ty` tension in `.rules/python-00.md` alone. Rationale:
+  ADR-001 uses a Nygard-style layout where `docs/documentation-style-guide.md`
+  prescribes a different template, but it concerns lint architecture and has no
+  connection to the v1 contract; roadmap 3.1.2 already owns documentation
+  reconciliation. `.rules/python-00.md` mandates strict Pyright, whereas the
+  actual gate is `ty`; that file is shared estate-wide boilerplate and amending
+  it exceeds this repository. This plan's only obligation is to tell the
+  implementer plainly which typechecker to run. A handoff note requires that
+  the roadmap 1.1.2 ADR follow the documented template so the deviation stops
+  spreading. Date/Author: 2026-08-28, on Dinolump's recommendation.
 
 - DEC-14: Add the Python and Syrupy compatibility matrix in this task rather
-  than deferring it to roadmap 2.4.2.
-  Rationale: the plan originally recorded the untested `>=5.0.0` floor as an
-  accepted residual gap. That was the wrong call. The declared bounds are
-  ratified *here*, and a bound nobody resolves against is a claim rather than a
-  contract — the same objection Telefono and Pandalump raised independently
-  against the floor and the Python range. The cost is one additive CI job and
-  one contract test; the cost of discovering the floor was wrong is a published
-  package whose metadata lies to a resolver. Roadmap 2.4.2 retains the wider
-  combinatorial matrix over Wenmode releases and pytest-xdist, which this does
-  not attempt. Requested by the user on 2026-08-29.
-  Date/Author: 2026-08-29, user-requested.
+  than deferring it to roadmap 2.4.2. Rationale: the plan originally recorded
+  the untested `>=5.0.0` floor as an accepted residual gap. That was the wrong
+  call. The declared bounds are ratified *here*, and a bound nobody resolves
+  against is a claim rather than a contract — the same objection Telefono and
+  Pandalump raised independently against the floor and the Python range. The
+  cost is one additive CI job and one contract test; the cost of discovering
+  the floor was wrong is a published package whose metadata lies to a resolver.
+  Roadmap 2.4.2 retains the wider combinatorial matrix over Wenmode releases
+  and pytest-xdist, which this does not attempt. Requested by the user on
+  2026-08-29. Date/Author: 2026-08-29, user-requested.
 
 - DEC-15: Pin the Syrupy floor by explicit install plus `uv run --no-sync`,
-  not by `uv sync --resolution lowest-direct`.
-  Rationale: `lowest-direct` floors every direct dependency including the `dev`
-  group, where `pytest` is declared with no lower bound and `hypothesis` only as
-  `>=6,<7`. It would resolve absurd tooling versions and produce failures that
-  say nothing about the Syrupy bound under test. Installing the exact floor
-  release keeps the experiment aimed at the one variable this matrix exists to
-  vary. `--no-sync` is required because `uv run` otherwise re-syncs and
-  silently restores the resolved version, which would make every floor leg a
-  duplicate of the latest leg — a vacuous pass.
-  Date/Author: 2026-08-29, planning agent.
+  not by `uv sync --resolution lowest-direct`. Rationale: `lowest-direct`
+  floors every direct dependency including the `dev` group, where `pytest` is
+  declared with no lower bound and `hypothesis` only as `>=6,<7`. It would
+  resolve absurd tooling versions and produce failures that say nothing about
+  the Syrupy bound under test. Installing the exact floor release keeps the
+  experiment aimed at the one variable this matrix exists to vary. `--no-sync`
+  is required because `uv run` otherwise re-syncs and silently restores the
+  resolved version, which would make every floor leg a duplicate of the latest
+  leg — a vacuous pass. Date/Author: 2026-08-29, planning agent.
 
 - DEC-16: **User-directed scope exception.** Retain the 22-file implementation
   rather than removing required tests, CI evidence, documentation, or the
@@ -479,19 +455,18 @@ Implementation observations are appended after the planning discoveries.
   Date/Author: 2026-08-29, user-directed.
 
 - DEC-17: Route CodeScene coverage through the shared action's distinct
-  `upload` and `check` modes, with the default branch establishing the
-  baseline and trusted internal pull requests evaluating changed-line
-  coverage.
-  Rationale: an upload publishes a branch baseline but does not evaluate a
-  pull request. The consumer workflow therefore generates a Cobertura report,
-  uses a full-history checkout for the trusted pull-request path, fails early
-  when `CS_ACCESS_TOKEN` is absent, and emits a visible skip notice for fork
-  pull requests that cannot receive secrets. The shared-actions change is
-  consumed at an immutable SHA from dependency PR #478; the action's checksum
-  refresh workflow remains the source of `CODESCENE_CLI_SHA256`. The
-  corresponding shared-actions and git-donkey changes are separate reviewable
-  changes, not commits to this pull request.
-  Date/Author: 2026-09-14, user-directed migration decision.
+  `upload` and `check` modes, with the default branch establishing the baseline
+  and trusted internal pull requests evaluating changed-line coverage.
+  Rationale: an upload publishes a branch baseline but does not evaluate a pull
+  request. The consumer workflow therefore generates a Cobertura report, uses a
+  full-history checkout for the trusted pull-request path, fails early when
+  `CS_ACCESS_TOKEN` is absent, and emits a visible skip notice for fork pull
+  requests that cannot receive secrets. The shared-actions change is consumed
+  at an immutable SHA from dependency PR #478; the action's checksum refresh
+  workflow remains the source of `CODESCENE_CLI_SHA256`. The corresponding
+  shared-actions and git-donkey changes are separate reviewable changes, not
+  commits to this pull request. Date/Author: 2026-09-14, user-directed
+  migration decision.
 
 - DEC-18: Make wheel contents an executable contract in the package manifest
   tests while retaining the broader installed-wheel suite for roadmap 2.4.1.
@@ -500,8 +475,8 @@ Implementation observations are appended after the planning discoveries.
   wheel and asserts that `syrupy_mdast/py.typed` and the Python core are
   present while JavaScript sources, manifests, lockfiles, and package
   directories are absent. This closes the v1 packaging evidence gap without
-  pulling the full end-to-end wheel suite into this milestone.
-  Date/Author: 2026-09-14, review remediation.
+  pulling the full end-to-end wheel suite into this milestone. Date/Author:
+  2026-09-14, review remediation.
 
 - DEC-19: Classify the outstanding CodeScene result as external configuration
   and migration-dependency work, without changing the v1 public contract.
@@ -509,9 +484,9 @@ Implementation observations are appended after the planning discoveries.
   deliberately separated into PR #32. The local clean-tree sweep, wheel
   inspection, hosted validation, and compatibility matrix are green, but the
   current GitHub credential cannot provision `CS_ACCESS_TOKEN` or update
-  `CODESCENE_CLI_SHA256`. In addition, PR #32's lint job stops at the
-  deprecated `actions/cache` reference in its shared coverage-action
-  dependency before the trusted CodeScene preflight can run. Altering
+  `CODESCENE_CLI_SHA256`. In addition, PR #32's lint job stops at the deprecated
+  `actions/cache` reference in its shared coverage-action dependency before
+  the trusted CodeScene preflight can run. Altering
   `MarkdownAstError.__reduce__()` would violate DEC-6 and INV-3 and is outside
   this operational follow-up. Issue #23 remains the authentication authority
   and no issue is closed without an observed successful coverage check.
@@ -582,8 +557,7 @@ Read these, in this order, before writing code:
 1. `docs/syrupy-mdast-design.md` §6 — the exact public surface, and the
    rationale for `file_extension` rather than `_file_extension`. This is the
    single most important passage for this task. Then §5 (core and adapter
-   split), §9 Table 2 (the category values), and §2.3 with §13
-   (compatibility).
+   split), §9 Table 2 (the category values), and §2.3 with §13 (compatibility).
 2. `docs/roadmap.md` task 1.1.1 and its neighbours 1.1.2, 1.2.1, 2.3.1, and
    2.4.1 — so you know what *not* to build. Scope discipline is the main
    failure mode here.
@@ -591,8 +565,8 @@ Read these, in this order, before writing code:
    Skylos policy, and "Python verification and testing".
 4. `docs/developers-guide.md` — the Skylos dead-code gate section, and the
    `makeutil` bootstrap.
-5. `pyproject.toml` `[tool.ruff.lint.flake8-import-conventions]` — `from
-   typing import ...` is **banned**. Use `import typing as typ` and
+5. `pyproject.toml` `[tool.ruff.lint.flake8-import-conventions]` —
+   `from typing import …` is **banned**. Use `import typing as typ` and
    `import collections.abc as cabc`. This silently breaks the obvious import
    style and the error message is not self-explanatory.
 6. `.rules/python-exception-design-raising-handling-and-logging.md` — governs
@@ -650,8 +624,7 @@ DEC-3       -> RM-2.3.1 -> EP-M4 -> tests/test_public_api_contract.py::test_seri
 
 ### Axioms
 
-These are assumed, not verified. Do not attempt to verify third-party
-internals.
+These are assumed, not verified. Do not attempt to verify third-party internals.
 
 1. Syrupy's `syrupy.extensions.single_file` module exposes
    `SingleFileSnapshotExtension` and `WriteMode`, and the base class reads the
@@ -671,45 +644,40 @@ internals.
 
 ### Obligations
 
-**INV-1 — Public surface equality.**
-Statement: the set of non-underscore attributes reachable from the
-`syrupy_mdast` namespace equals exactly `{"MarkdownAstError",
-"MarkdownAstSnapshotExtension"}`, and equals `set(syrupy_mdast.__all__)`.
-Method: explicit unit assertion. A property test is inappropriate — the domain
-is a single fixed set, not a range.
-Rationale: this is the roadmap's literal success criterion. Asserting `__all__`
-alone would be theatre, because `__all__` governs `import *` and nothing else;
-the namespace check is what catches a leaked public submodule.
-Domain: the imported module namespace.
-Artefact: `tests/test_public_api_contract.py`.
-Evidence: fails before EP-M4 because `MarkdownAstSnapshotExtension` does not
-exist; passes after.
-Non-vacuity: the test must also assert the set is non-empty, so a failed import
-cannot pass it silently. Negative control: temporarily rename `_extension.py`
-to `extension.py` and confirm the test fails on the leaked `extension`
-attribute. Revert immediately.
+**INV-1 — Public surface equality.** Statement: the set of non-underscore
+attributes reachable from the `syrupy_mdast` namespace equals exactly
+`{"MarkdownAstError", "MarkdownAstSnapshotExtension"}`, and equals
+`set(syrupy_mdast.__all__)`. Method: explicit unit assertion. A property test
+is inappropriate — the domain is a single fixed set, not a range. Rationale:
+this is the roadmap's literal success criterion. Asserting `__all__` alone
+would be theatre, because `__all__` governs `import *` and nothing else; the
+namespace check is what catches a leaked public submodule. Domain: the imported
+module namespace. Artefact: `tests/test_public_api_contract.py`. Evidence:
+fails before EP-M4 because `MarkdownAstSnapshotExtension` does not exist;
+passes after. Non-vacuity: the test must also assert the set is non-empty, so a
+failed import cannot pass it silently. Negative control: temporarily rename
+`_extension.py` to `extension.py` and confirm the test fails on the leaked
+`extension` attribute. Revert immediately.
 
-**INV-2 — Domain core import boundary.**
-Statement: every module under `syrupy_mdast/_core/` imports only `__future__`,
-an explicitly allowlisted stdlib set, and `level == 1` relative siblings.
-Method: static `ast` scan over the directory.
-Rationale: design §5's guard. A static scan is strictly stronger than a runtime
-check here, and a runtime check is in fact *unsound*: importing
+**INV-2 — Domain core import boundary.** Statement: every module under
+`syrupy_mdast/_core/` imports only `__future__`, an explicitly allowlisted
+stdlib set, and `level == 1` relative siblings. Method: static `ast` scan over
+the directory. Rationale: design §5's guard. A static scan is strictly stronger
+than a runtime check here, and a runtime check is in fact *unsound*: importing
 `syrupy_mdast._core` executes `syrupy_mdast/__init__.py` first, which imports
 `_extension`, which imports Syrupy — so `"syrupy" in sys.modules` is
 unavoidably true. The static scan also catches `if typ.TYPE_CHECKING:` imports,
 which the repository's Ruff `TC` rules actively push code towards and which no
-runtime probe can ever observe, plus imports on unexecuted branches.
-Domain: all `*.py` files under `syrupy_mdast/_core/`, walked in full via
-`ast.walk` so function-local imports are included.
-Artefact: `tests/test_core_import_boundary.py`.
-Evidence: passes at EP-M3 for the new core.
-Non-vacuity: assert the discovered file set is non-empty and include the
+runtime probe can ever observe, plus imports on unexecuted branches. Domain: all
+`*.py` files under `syrupy_mdast/_core/`, walked in full via `ast.walk` so
+function-local imports are included. Artefact:
+`tests/test_core_import_boundary.py`. Evidence: passes at EP-M3 for the new
+core. Non-vacuity: assert the discovered file set is non-empty and include the
 discovered paths in the failure message — the commonest failure of an
-architecture test is a glob that silently matches nothing after a move and
-then passes forever. Negative control: write `import syrupy` into a temporary
-copy of a core module in a `tmp_path` fixture and assert the scanner rejects
-it, exercising the detector rather than merely the current tree.
+architecture test is a glob that silently matches nothing after a move and then
+passes forever. Negative control: write `import syrupy` into a temporary copy
+of a core module in a `tmp_path` fixture and assert the scanner rejects it,
+exercising the detector rather than merely the current tree.
 
 The allowlist must be explicit, not `sys.stdlib_module_names`: `json`,
 `pathlib`, `io`, and `os` are all stdlib and all violate §5's "performs no
@@ -717,88 +685,77 @@ snapshot lifecycle or JSON I/O". Start with `typing`, `collections.abc`,
 `dataclasses`, `enum`. Reject `level >= 2` relative imports, every absolute
 `syrupy_mdast.*` import, and any reference to `importlib` or `__import__`.
 
-**INV-3 — Error construction and round-trip.**
-Statement: for every category `c` in `CATEGORIES` and every message string `m`,
-`MarkdownAstError(m, category=c)` has `.category == c`, renders `m` via `str()`,
-is catchable as `Exception`, and survives a pickle round-trip preserving both.
-A category outside `CATEGORIES` raises `ValueError`.
-Method: parameterization over the five categories, plus one Hypothesis property
-over `st.text()` for the message.
-Rationale: the category set is closed and enumerable, so parameterization gives
-exhaustive coverage there and reads better than `st.sampled_from`. Hypothesis
-earns its place only on the message, where arbitrary text — newlines,
-formatting characters, empty strings — can surprise message composition and
-`str()` behaviour. This is the narrow, justified use.
-Domain: five categories × generated text; plus a rejection case.
-Artefact: `tests/test_error_contract.py`.
-Evidence: fails before EP-M3; passes after.
-Non-vacuity: each of the five categories must appear as a witness — assert the
-parameterized case count is five, pinned against `CATEGORIES`, so a category
-silently dropped from the tuple fails the suite. The `ValueError` case is the
-negative control. The pickle round-trip is itself a seeded-fault detector for
-DEC-6: remove the explicit `__reduce__` and it must fail with `TypeError`.
+**INV-3 — Error construction and round-trip.** Statement: for every category
+`c` in `CATEGORIES` and every message string `m`,
+`MarkdownAstError(m, category=c)` has `.category == c`, renders `m` via
+`str()`, is catchable as `Exception`, and survives a pickle round-trip
+preserving both. A category outside `CATEGORIES` raises `ValueError`. Method:
+parameterization over the five categories, plus one Hypothesis property over
+`st.text()` for the message. Rationale: the category set is closed and
+enumerable, so parameterization gives exhaustive coverage there and reads
+better than `st.sampled_from`. Hypothesis earns its place only on the message,
+where arbitrary text — newlines, formatting characters, empty strings — can
+surprise message composition and `str()` behaviour. This is the narrow,
+justified use. Domain: five categories × generated text; plus a rejection case.
+Artefact: `tests/test_error_contract.py`. Evidence: fails before EP-M3; passes
+after. Non-vacuity: each of the five categories must appear as a witness —
+assert the parameterized case count is five, pinned against `CATEGORIES`, so a
+category silently dropped from the tuple fails the suite. The `ValueError` case
+is the negative control. The pickle round-trip is itself a seeded-fault
+detector for DEC-6: remove the explicit `__reduce__` and it must fail with
+`TypeError`.
 
-**INV-4 — Declared range matches reality.**
-Statement: the Syrupy specifier in installed package metadata matches the
-declared policy; `requires-python` matches design §2.3; and the installed
-Syrupy exposes `SingleFileSnapshotExtension`, `WriteMode.TEXT`, and
-`SingleFileSnapshotExtension._write_mode`.
-Method: contract test reading `importlib.metadata` and importing the real
-Syrupy interface.
-Rationale: this is the repository-owned configuration logic that sits on an
-external interface, so the ExecPlan methodology requires verifying it against
-the real interface. It converts a Syrupy upgrade that moves the ground into a
-failing test in the pull request that bumps it, rather than a downstream user's
-broken suite weeks later.
-Domain: installed distribution metadata and the resolved Syrupy release.
-Artefact: `tests/test_package_manifest_contract.py`.
-Evidence: fails before EP-M2 (no Syrupy dependency); passes after.
-Non-vacuity: assert the specifier string is non-empty and equals the literal
-declared in the test, so `pyproject.toml` drift fails the gate. Negative
-control: temporarily alter the specifier in `pyproject.toml`, re-sync, and
-confirm the test fails.
+**INV-4 — Declared range matches reality.** Statement: the Syrupy specifier in
+installed package metadata matches the declared policy; `requires-python`
+matches design §2.3; and the installed Syrupy exposes
+`SingleFileSnapshotExtension`, `WriteMode.TEXT`, and
+`SingleFileSnapshotExtension._write_mode`. Method: contract test reading
+`importlib.metadata` and importing the real Syrupy interface. Rationale: this
+is the repository-owned configuration logic that sits on an external interface,
+so the ExecPlan methodology requires verifying it against the real interface.
+It converts a Syrupy upgrade that moves the ground into a failing test in the
+pull request that bumps it, rather than a downstream user's broken suite weeks
+later. Domain: installed distribution metadata and the resolved Syrupy release.
+Artefact: `tests/test_package_manifest_contract.py`. Evidence: fails before
+EP-M2 (no Syrupy dependency); passes after. Non-vacuity: assert the specifier
+string is non-empty and equals the literal declared in the test, so
+`pyproject.toml` drift fails the gate. Negative control: temporarily alter the
+specifier in `pyproject.toml`, re-sync, and confirm the test fails.
 
-**INV-5 — Extension input contract.**
-Statement: `serialize()` raises `TypeError` for any non-`str` `data`, and
-`ValueError` when any of `exclude`, `include`, or `matcher` is not `None`,
-naming the offending control. With valid input it raises `NotImplementedError`
-whose message names roadmap task 2.3.1.
+**INV-5 — Extension input contract.** Statement: `serialize()` raises
+`TypeError` for any non-`str` `data`, and `ValueError` when any of `exclude`,
+`include`, or `matcher` is not `None`, naming the offending control. With valid
+input it raises `NotImplementedError` whose message names roadmap task 2.3.1.
 Method: parameterization over input types and over each of the three controls
-independently.
-Rationale: finite, explicitly enumerable partitions — exactly what
-parameterization is for. This is the behaviour DEC-3 pulls forward, and it is
-what makes the milestone a plateau rather than a facade.
-Domain: `{int, bytes, None, list}` for `data`; each control set independently
-and in combination.
-Artefact: `tests/test_public_api_contract.py`.
-Evidence: fails before EP-M4; passes after.
-Non-vacuity: assert on the exception *message content* for the control case, so
-a blanket `ValueError` cannot pass a test that claims to identify which control
-was supplied. The `NotImplementedError` assertion must match the roadmap
-reference in the message — otherwise it is tautological, asserting only that an
-unimplemented method is unimplemented.
+independently. Rationale: finite, explicitly enumerable partitions — exactly
+what parameterization is for. This is the behaviour DEC-3 pulls forward, and it
+is what makes the milestone a plateau rather than a facade. Domain:
+`{int, bytes, None, list}` for `data`; each control set independently and in
+combination. Artefact: `tests/test_public_api_contract.py`. Evidence: fails
+before EP-M4; passes after. Non-vacuity: assert on the exception *message
+content* for the control case, so a blanket `ValueError` cannot pass a test
+that claims to identify which control was supplied. The `NotImplementedError`
+assertion must match the roadmap reference in the message — otherwise it is
+tautological, asserting only that an unimplemented method is unimplemented.
 
-**INV-6 — Declared range and tested range agree.**
-Statement: the Syrupy floor pinned by the `compatibility-matrix` job equals the
-lower bound of the Syrupy specifier in `pyproject.toml`, and every Python
-version admitted by `requires-python` and available to the runner appears in
-the matrix.
-Method: contract test parsing `pyproject.toml` and
-`.github/workflows/ci.yml`, in the established style of
-`tests/test_toolchain_contract.py`.
-Rationale: a matrix is only worth having if it cannot silently stop testing
-what the package claims. Without this, someone widens the declared range to
-`>=4.0.0` and CI keeps testing 5.0.0 while the metadata promises more. This is
-the same failure the repository already guards against for the Ruff and `ty`
-pins, and it is the mechanism that turns Risk 3 from accepted into defended.
-Domain: the declared specifier and the workflow matrix definition.
-Artefact: `tests/test_compatibility_matrix_contract.py`.
-Evidence: fails before EP-M5 because no matrix job exists; passes after.
-Non-vacuity: assert the parsed matrix version list is non-empty and that the
-job exists by name, so a renamed or deleted job fails loudly rather than
-vacuously passing on an empty scan. Negative control: temporarily change the
-`pyproject.toml` floor to `>=5.1.0` and confirm the test fails on the
-disagreement.
+**INV-6 — Declared range and tested range agree.** Statement: the Syrupy floor
+pinned by the `compatibility-matrix` job equals the lower bound of the Syrupy
+specifier in `pyproject.toml`, and every Python version admitted by
+`requires-python` and available to the runner appears in the matrix. Method:
+contract test parsing `pyproject.toml` and `.github/workflows/ci.yml`, in the
+established style of `tests/test_toolchain_contract.py`. Rationale: a matrix is
+only worth having if it cannot silently stop testing what the package claims.
+Without this, someone widens the declared range to `>=4.0.0` and CI keeps
+testing 5.0.0 while the metadata promises more. This is the same failure the
+repository already guards against for the Ruff and `ty` pins, and it is the
+mechanism that turns Risk 3 from accepted into defended. Domain: the declared
+specifier and the workflow matrix definition. Artefact:
+`tests/test_compatibility_matrix_contract.py`. Evidence: fails before EP-M5
+because no matrix job exists; passes after. Non-vacuity: assert the parsed
+matrix version list is non-empty and that the job exists by name, so a renamed
+or deleted job fails loudly rather than vacuously passing on an empty scan.
+Negative control: temporarily change the `pyproject.toml` floor to `>=5.1.0`
+and confirm the test fails on the disagreement.
 
 ### Residual gaps, stated explicitly
 
@@ -847,16 +804,14 @@ then `syrupy_mdast/pure.py` and the `hello`/`importlib` machinery in
 which under `-n auto` surfaces as worker-crash output rather than a clean
 failure.
 
-Requirements: RM-1.1.1 bullet 3 (partial).
-Acceptance evidence: `make all` green; `uv run python -c "import syrupy_mdast;
-syrupy_mdast.hello()"` raises `AttributeError`.
-Conformance check: no public interface added; no dependency change; design §5
-not yet engaged.
-Recovery: `git revert` the single commit.
+Requirements: RM-1.1.1 bullet 3 (partial). Acceptance evidence: `make all`
+green; `uv run python -c "import syrupy_mdast; syrupy_mdast.hello()"` raises
+`AttributeError`. Conformance check: no public interface added; no dependency
+change; design §5 not yet engaged. Recovery: `git revert` the single commit.
 Remaining gaps: the package now exports nothing. That is intentional and
-transient within this plan.
-Compatibility decision: none required. `hello()` is generated scaffolding,
-pre-1.0, with no external consumer and no release tag exposing it.
+transient within this plan. Compatibility decision: none required. `hello()` is
+generated scaffolding, pre-1.0, with no external consumer and no release tag
+exposing it.
 
 ### EP-M2 — Declare metadata and the Syrupy runtime dependency
 
@@ -866,18 +821,16 @@ and committed.
 
 Run `make build` and then `make audit` **before writing any code against
 Syrupy**. This isolates dependency-resolution and `pip-audit` surface failures
-from code failures — this is the project's first ever runtime dependency, so
-the `pip-audit` surface changes here for the first time.
+from code failures — this is the project's first ever runtime dependency, so the
+`pip-audit` surface changes here for the first time.
 
-Requirements: RM-1.1.1 bullet 1; TDD-§2.1; TDD-§2.3.
-Acceptance evidence: `tests/test_package_manifest_contract.py` passes; `uv.lock`
-contains a `syrupy` entry; `make audit` green.
-Conformance check: exactly one runtime dependency; `requires-python` unchanged
-at `>=3.12`; no public interface yet.
-Recovery: revert `pyproject.toml` and `uv.lock` together; they must never
-diverge.
-Remaining gaps: the floor is not resolution-tested (Risk 3).
-Compatibility decision: none.
+Requirements: RM-1.1.1 bullet 1; TDD-§2.1; TDD-§2.3. Acceptance evidence:
+`tests/test_package_manifest_contract.py` passes; `uv.lock` contains a `syrupy`
+entry; `make audit` green. Conformance check: exactly one runtime dependency;
+`requires-python` unchanged at `>=3.12`; no public interface yet. Recovery:
+revert `pyproject.toml` and `uv.lock` together; they must never diverge.
+Remaining gaps: the floor is not resolution-tested (Risk 3). Compatibility
+decision: none.
 
 ### EP-M3 — Domain core and import guard
 
@@ -889,16 +842,14 @@ Land the guard with the boundary it guards. Design §5's architecture test is
 nominally roadmap 2.1.2's, but this is the task that *creates* the core, and a
 boundary is cheapest to defend before anyone has had the chance to violate it.
 
-Requirements: TDD-§5; TDD-§9; RM-1.1.1 bullet 2 (partial).
-Acceptance evidence: `tests/test_error_contract.py` and
-`tests/test_core_import_boundary.py` pass; `make lint` green — Skylos was
-confirmed during planning not to flag the error class or its constants.
-Conformance check: `_core` imports nothing outside the allowlist; category set
-matches §9 Table 2 exactly; no public surface change yet.
-Recovery: the core is additive and self-contained; revert the commit.
+Requirements: TDD-§5; TDD-§9; RM-1.1.1 bullet 2 (partial). Acceptance evidence:
+`tests/test_error_contract.py` and `tests/test_core_import_boundary.py` pass;
+`make lint` green — Skylos was confirmed during planning not to flag the error
+class or its constants. Conformance check: `_core` imports nothing outside the
+allowlist; category set matches §9 Table 2 exactly; no public surface change
+yet. Recovery: the core is additive and self-contained; revert the commit.
 Remaining gaps: nothing raises `MarkdownAstError` yet. Correct — raisers land
-at roadmap 2.2.2.
-Compatibility decision: none.
+at roadmap 2.2.2. Compatibility decision: none.
 
 ### EP-M4 — Syrupy adapter and public API contract
 
@@ -920,17 +871,15 @@ that validation is incomplete. Follow this order:
    **in the same commit** — that frozenset is currently empty and a contract
    test enforces it, so it will otherwise fail in a file you never opened.
 
-Requirements: TDD-§6; DEC-3; RM-1.1.1 bullets 2 and 4.
-Acceptance evidence: `make all` green; the `Purpose` section's two-command
-transcript reproduces exactly.
-Conformance check: public surface is exactly two names; no unapproved
+Requirements: TDD-§6; DEC-3; RM-1.1.1 bullets 2 and 4. Acceptance evidence:
+`make all` green; the `Purpose` section's two-command transcript reproduces
+exactly. Conformance check: public surface is exactly two names; no unapproved
 interface; `_write_mode` exposure recorded in Risks; trace links current.
-Recovery: revert; EP-M3 remains a valid plateau.
-Remaining gaps: serialization itself. This is the plateau boundary — one
-`raise` becomes one pipeline call at roadmap 2.3.1, and nothing written here is
-deleted then.
-Compatibility decision: none. Pre-1.0, unreleased, no external consumer.
-Constraint 5 forbids cutting a release before 2.3.1.
+Recovery: revert; EP-M3 remains a valid plateau. Remaining gaps: serialization
+itself. This is the plateau boundary — one `raise` becomes one pipeline call at
+roadmap 2.3.1, and nothing written here is deleted then. Compatibility
+decision: none. Pre-1.0, unreleased, no external consumer. Constraint 5 forbids
+cutting a release before 2.3.1.
 
 ### EP-M5 — Python and Syrupy compatibility matrix
 
@@ -950,30 +899,28 @@ assertions in `tests/test_skylos_lint_contract.py`.
 
 The matrix runs **only** the package contract tests
 (`tests/test_public_api_contract.py`, `tests/test_error_contract.py`,
-`tests/test_package_manifest_contract.py`, `tests/test_core_import_boundary.py`).
-It must not run the full suite: the infrastructure contract tests require the
-Rust-built `makeutil` binary, which would add a nightly toolchain build to every
-leg, and they assert Makefile and workflow structure that is invariant across
-interpreter and Syrupy version. Keeping the matrix cheap is what makes it worth
-having.
+`tests/test_package_manifest_contract.py`,
+`tests/test_core_import_boundary.py`). It must not run the full suite: the
+infrastructure contract tests require the Rust-built `makeutil` binary, which
+would add a nightly toolchain build to every leg, and they assert Makefile and
+workflow structure that is invariant across interpreter and Syrupy version.
+Keeping the matrix cheap is what makes it worth having.
 
-Pin the Syrupy floor by installing it explicitly after the sync, then run pytest
-with `--no-sync` so `uv` does not silently restore the resolved version. Do not
-use `uv sync --resolution lowest-direct`: it would also floor the dev group,
-where `pytest` is declared without a lower bound, and resolve absurd tooling
-versions.
+Pin the Syrupy floor by installing it explicitly after the sync, then run
+pytest with `--no-sync` so `uv` does not silently restore the resolved version.
+Do not use `uv sync --resolution lowest-direct`: it would also floor the dev
+group, where `pytest` is declared without a lower bound, and resolve absurd
+tooling versions.
 
 Requirements: TDD-§2.3; DEC-8; DEC-14; retires most of residual gap 1.
 Acceptance evidence: all matrix legs green on the pull request;
-`tests/test_compatibility_matrix_contract.py` passes.
-Conformance check: no change to the declared ranges, only to the evidence for
-them; no public interface change; `lint-test` untouched.
-Recovery: the job is additive and independent; revert the workflow hunk and the
-contract test together.
-Remaining gaps: Wenmode releases, pytest-xdist, and the wider combinatorial
-coverage of design §11 remain roadmap 2.4.2's, which this milestone reduces
-rather than replaces.
-Compatibility decision: none.
+`tests/test_compatibility_matrix_contract.py` passes. Conformance check: no
+change to the declared ranges, only to the evidence for them; no public
+interface change; `lint-test` untouched. Recovery: the job is additive and
+independent; revert the workflow hunk and the contract test together. Remaining
+gaps: Wenmode releases, pytest-xdist, and the wider combinatorial coverage of
+design §11 remain roadmap 2.4.2's, which this milestone reduces rather than
+replaces. Compatibility decision: none.
 
 ### EP-M6 — Documentation and Skylos guidance correction
 
@@ -986,31 +933,28 @@ Review remediation supersedes DEC-12: `docs/users-guide.md` now documents the
 current v1 consumer contract, while roadmap 3.1.1 still owns its eventual
 template replacement.
 
-Requirements: RM-1.1.1 bullet 3; TDD-§13.
-Acceptance evidence: `make markdownlint` and `make fmt` green; the corrected
-Skylos guidance states the bare-name matching rule and its repository-global
-blast radius.
-Conformance check: design §13 updated because this task *makes* the range
-decision, per `AGENTS.md`'s rule that new decisions update the relevant
-document.
-Recovery: documentation-only; revert freely.
-Remaining gaps: full user-guide replacement (roadmap 3.1.1); ADR-001 template
-conformance (roadmap 3.1.2).
+Requirements: RM-1.1.1 bullet 3; TDD-§13. Acceptance evidence:
+`make markdownlint` and `make fmt` green; the corrected Skylos guidance states
+the bare-name matching rule and its repository-global blast radius. Conformance
+check: design §13 updated because this task *makes* the range decision, per
+`AGENTS.md`'s rule that new decisions update the relevant document. Recovery:
+documentation-only; revert freely. Remaining gaps: full user-guide replacement
+(roadmap 3.1.1); ADR-001 template conformance (roadmap 3.1.2).
 
 ### EP-M7 — Full sweep and roadmap tick
 
 Outcome: every gate green from a clean tree, all `compatibility-matrix` legs
 green, the built-wheel contract and manual inspection recorded,
 `docs/roadmap.md` task 1.1.1 marked `[x]`, CodeScene coverage either passing or
-explicitly classified with its timeout cause and remediation, and this plan
-set to `COMPLETE` after reconciling discoveries against `Conformance basis`.
+explicitly classified with its timeout cause and remediation, and this plan set
+to `COMPLETE` after reconciling discoveries against `Conformance basis`.
 
-Acceptance evidence: `make clean && make all` green; `uv build --wheel` produces
-a wheel containing `syrupy_mdast/_core/` and `syrupy_mdast/py.typed` and no
-JavaScript asset; the six matrix legs and hosted workflow validation are green;
-the CodeScene main-branch upload and trusted pull-request check are observed,
-or the remaining external failure is explicitly classified with a follow-up.
-Recovery: not applicable; this milestone only verifies.
+Acceptance evidence: `make clean && make all` green; `uv build --wheel`
+produces a wheel containing `syrupy_mdast/_core/` and `syrupy_mdast/py.typed`
+and no JavaScript asset; the six matrix legs and hosted workflow validation are
+green; the CodeScene main-branch upload and trusted pull-request check are
+observed, or the remaining external failure is explicitly classified with a
+follow-up. Recovery: not applicable; this milestone only verifies.
 
 ## Concrete steps
 
@@ -1281,10 +1225,10 @@ no additions — `pytest` and `hypothesis` are already in the `dev` group, and
 `pytest-bdd` is deferred to roadmap 2.3.1 per DEC-9.
 
 In `.github/workflows/ci.yml`, a new job `compatibility-matrix`, additive and
-independent of `lint-test`. In
-`tests/test_compatibility_matrix_contract.py`, a test binding the matrix's
-pinned Syrupy floor to the lower bound of the `pyproject.toml` specifier, and
-the matrix's Python versions to `requires-python`.
+independent of `lint-test`. In `tests/test_compatibility_matrix_contract.py`, a
+test binding the matrix's pinned Syrupy floor to the lower bound of the
+`pyproject.toml` specifier, and the matrix's Python versions to
+`requires-python`.
 
 ## Revision notes
 
@@ -1301,20 +1245,20 @@ and therefore no discovery to record.
 Effect on remaining work: none. The technical design was already the plan's
 governing artefact throughout — it heads the signposted reading, anchors the
 `Conformance basis`, and supplies every `TDD-§` trace link. No milestone,
-obligation, decision, or acceptance criterion changes. `Surprises &
-discoveries` now holds seven entries.
+obligation, decision, or acceptance criterion changes.
+`Surprises & discoveries` now holds seven entries.
 
 ### 2026-08-29 — add the compatibility matrix instead of deferring it
 
-What changed: the untested-bound risk is no longer an accepted residual gap.
-A new milestone `EP-M5` adds a `compatibility-matrix` job to
+What changed: the untested-bound risk is no longer an accepted residual gap. A
+new milestone `EP-M5` adds a `compatibility-matrix` job to
 `.github/workflows/ci.yml` covering Python 3.12, 3.13, and 3.14 against the
 declared Syrupy floor and the latest resolvable release, plus a new obligation
 `INV-6` and a contract test binding the matrix to the declarations in
-`pyproject.toml`. The documentation milestone became `EP-M6` and the final
-sweep `EP-M7`; every cross-reference, trace link, and residual-gap entry was
-updated. `Tolerances` scope rose from 16 to 20 files. Two decisions were added
-(DEC-14, DEC-15) and one risk (Risk 8, unrelated matrix-leg failures).
+`pyproject.toml`. The documentation milestone became `EP-M6` and the final sweep
+`EP-M7`; every cross-reference, trace link, and residual-gap entry was updated.
+`Tolerances` scope rose from 16 to 20 files. Two decisions were added (DEC-14,
+DEC-15) and one risk (Risk 8, unrelated matrix-leg failures).
 
 Why: the plan had recorded the untested `>=5.0.0` floor as accepted debt owed
 to roadmap 2.4.2. That was the wrong call — this is the task that ratifies the
@@ -1334,8 +1278,8 @@ What changed: removed the generated `hello()` API, its Python fallback module,
 and its only test.
 
 Why: roadmap task 1.1.1 requires replacing, not retaining, the unreleased
-Copier-template public surface. Keeping an alias would be compatibility
-theatre for a pre-1.0 scaffold with no external consumer.
+Copier-template public surface. Keeping an alias would be compatibility theatre
+for a pre-1.0 scaffold with no external consumer.
 
 Effect on remaining work: the package intentionally has no public API until
 EP-M4. The baseline and EP-M1 full gates passed; the next milestone declares
@@ -1343,8 +1287,8 @@ the package metadata and its sole authorized runtime dependency.
 
 ### 2026-08-29 — record implementation progress through EP-M6 documentation
 
-What changed: recorded completed EP-M1 through EP-M5 evidence, the real
-Syrupy 6.0.0 resolution, the two bare-name Skylos exceptions, and the
+What changed: recorded completed EP-M1 through EP-M5 evidence, the real Syrupy
+6.0.0 resolution, the two bare-name Skylos exceptions, and the
 compatibility-matrix contract. Updated the README, technical design, and
 maintainer guidance, and marked roadmap task 1.1.1 complete.
 
@@ -1360,12 +1304,12 @@ be marked complete.
 
 What changed: the review follow-up extends the dependency-free error core with
 one `Error`-suffixed class for each ratified category, adds tests for the
-concrete hierarchy and its pickle contract, and pins the exact public
-extension inheritance, suffix, and text-mode attributes. The input-contract
-tests now cover every invalid data partition, each unsupported control, and
-their combination. The core import guard walks nested modules, the latest
-Syrupy matrix lane explicitly installs the newest release below 7.0.0, and
-the package manifest test builds a temporary wheel to inspect its contents.
+concrete hierarchy and its pickle contract, and pins the exact public extension
+inheritance, suffix, and text-mode attributes. The input-contract tests now
+cover every invalid data partition, each unsupported control, and their
+combination. The core import guard walks nested modules, the latest Syrupy
+matrix lane explicitly installs the newest release below 7.0.0, and the package
+manifest test builds a temporary wheel to inspect its contents.
 
 The separate syrupy-mdast consumer workflow change separates CodeScene's
 main-branch baseline upload from its trusted internal pull-request changed-line
@@ -1382,18 +1326,18 @@ report from leaving a pull request waiting for an external check.
 
 Effect on remaining work: EP-M7 remains in progress. The roadmap item stays
 open until the clean-tree gates, all six compatibility legs, wheel inspection,
-hosted validation, and CodeScene timeout resolution or explicit
-classification are recorded. Shared-actions and git-donkey migration work
-continues in separate reviewable changes; it is not folded into this pull
-request. Git-donkey's CodeScene project API URL is not discoverable from its
-repository metadata or accessible without authentication, so its consumer
-check cannot be configured safely without an authoritative URL.
+hosted validation, and CodeScene timeout resolution or explicit classification
+are recorded. Shared-actions and git-donkey migration work continues in
+separate reviewable changes; it is not folded into this pull request.
+Git-donkey's CodeScene project API URL is not discoverable from its repository
+metadata or accessible without authentication, so its consumer check cannot be
+configured safely without an authoritative URL.
 
 ### 2026-09-14 — classify the remaining EP-M7 CodeScene evidence
 
-What changed: recorded the successful clean-tree `make clean && make all`
-sweep (61 tests), the wheel listing, and the green hosted validation for PR
-18: `lint-test`, `act-validation`, and every Python 3.12–3.14 by Syrupy
+What changed: recorded the successful clean-tree `make clean && make all` sweep
+(61 tests), the wheel listing, and the green hosted validation for PR 18:
+`lint-test`, `act-validation`, and every Python 3.12–3.14 by Syrupy
 5.0.0/latest compatibility leg. The wheel evidence is retained in
 `/tmp/m7-wheel-build-syrupy-mdast-1-1-1-replace-package-stub-with-v1-public-contract.out`
 and
@@ -1425,9 +1369,9 @@ secret as a passing skip while preserving DEC-6 and INV-3's mandatory
 keyword-only category reconstruction through `MarkdownAstError.__reduce__()`.
 
 Effect on remaining work: an authorized repository or organization maintainer
-must grant the secret and Actions-variable access, populate
-`CS_ACCESS_TOKEN` and `CODESCENE_CLI_SHA256`, refresh the shared coverage-action
-dependency used by PR #32, and rerun the trusted workflow. Record the observed
+must grant the secret and Actions-variable access, populate `CS_ACCESS_TOKEN`
+and `CODESCENE_CLI_SHA256`, refresh the shared coverage-action dependency used
+by PR #32, and rerun the trusted workflow. Record the observed
 `cs-coverage check` and external CodeScene result here; only then may EP-M7 and
 roadmap item 1.1.1 become complete. The plan therefore remains `IN PROGRESS`.
 
@@ -1438,11 +1382,11 @@ linear branch onto `origin/main` at `04d429e`. The replay was a no-op: the
 target was already the exclusive branch base, no conflict or Weave merge-driver
 path was selected, and the exact 15-commit range remained unchanged. The review
 repairs add tests for mandatory keyword-only category construction, copy
-reconstruction, the full built-wheel member set, and an isolated installed-wheel
-public import. The compatibility matrix now declares read-only contents
-permission, and its contract checks that declaration. Documentation now includes
-the 0.2.x migration guide, explicit matrix guidance, accurate snapshot status,
-and the defined CodeScene classification rule.
+reconstruction, the full built-wheel member set, and an isolated
+installed-wheel public import. The compatibility matrix now declares read-only
+contents permission, and its contract checks that declaration. Documentation
+now includes the 0.2.x migration guide, explicit matrix guidance, accurate
+snapshot status, and the defined CodeScene classification rule.
 
 Why: the source already satisfied the constructor and copy behaviour, but the
 published contracts did not prove it. The wheel test previously checked only a
@@ -1450,22 +1394,23 @@ marker and exclusions, so a partial package could pass. The documentation and
 workflow findings were likewise valid current gaps rather than superseded
 comments.
 
-Effect on remaining work: validate this new candidate with the full deterministic
-gate suite and request a fresh CodeRabbit review. EP-M7 remains incomplete: the
-CodeScene coverage check timed out at `2026-09-15T02:14:39Z`, the authentication
-and shared-action dependency evidence is unchanged, issue #23 remains open, and
-no public API or pickle reconstruction behaviour has changed.
+Effect on remaining work: validate this new candidate with the full
+deterministic gate suite and request a fresh CodeRabbit review. EP-M7 remains
+incomplete: the CodeScene coverage check timed out at `2026-09-15T02:14:39Z`,
+the authentication and shared-action dependency evidence is unchanged, issue
+`#23` remains open, and no public API or pickle reconstruction behaviour has
+changed.
 
 ### 2026-09-16 — reconcile documentation scope after review
 
-What changed: review remediation superseded DEC-12 and added the consumer-facing
-v1 guidance to `docs/users-guide.md`. A new `docs/migration-0.2.md` records the
-pre-1.0 migration from the removed package stub to the v1 public exports,
-including the current serialization seam behaviour. The compatibility-matrix
-workflow contract assertions were strengthened, and the wheel contract test was
-refactored into focused helpers without changing its end-to-end assertions.
-The mandatory Interrogate 100% gate also required concise docstrings on the
-six private helpers.
+What changed: review remediation superseded DEC-12 and added the
+consumer-facing v1 guidance to `docs/users-guide.md`. A new
+`docs/migration-0.2.md` records the pre-1.0 migration from the removed package
+stub to the v1 public exports, including the current serialization seam
+behaviour. The compatibility-matrix workflow contract assertions were
+strengthened, and the wheel contract test was refactored into focused helpers
+without changing its end-to-end assertions. The mandatory Interrogate 100% gate
+also required concise docstrings on the six private helpers.
 
 Why: the review required an accurate user-facing contract and a focused upgrade
 path. The guide now documents the behaviour that consumers can use today, while
@@ -1473,5 +1418,25 @@ the migration note captures the breaking change without expanding the runtime
 API or altering roadmap 3.1.1's ownership of the eventual template replacement.
 
 Effect on remaining work: the documentation scope is resolved for EP-M6, but
-EP-M7 remains `IN PROGRESS` until its deterministic gates, compatibility matrix,
-wheel inspection, and CodeScene classification requirements are recorded.
+EP-M7 remains `IN PROGRESS` until its deterministic gates, compatibility
+matrix, wheel inspection, and CodeScene classification requirements are
+recorded.
+
+### 2026-09-19 — rebase and current review remediation
+
+What changed: rebased the branch from its old base `04d429e` onto `origin/main`
+at `f51dc88`. One conflict in `docs/developers-guide.md` was resolved by
+retaining main's Markdown-formatting baseline and this branch's
+compatibility-matrix guidance. Current review remediation adds the top-level CI
+read-only default, a real-Syrupy registration test, the Windows isolated- wheel
+interpreter path, and expected-`NotImplementedError` examples to the
+documentation.
+
+The real-Syrupy equality path supplies its internal matcher wrapper, so the
+registration test instantiates the extension through `with_defaults` and then
+calls its valid-string seam directly because v1 correctly rejects all matchers
+before serialization; the guides label equality as post-serialization.
+
+Effect on remaining work: EP-M7 remains `IN PROGRESS`. The remediation does not
+provide an observed CodeScene success, so no CodeScene upload or trusted
+pull-request check is claimed as passing.

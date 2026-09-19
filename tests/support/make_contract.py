@@ -133,10 +133,15 @@ def make_executable() -> str:
     return executable
 
 
+def workflow_document(workflow_path: str) -> dict[str, object]:
+    """Return the parsed repository workflow document."""
+    workflow = yaml.safe_load((REPO_ROOT / workflow_path).read_text(encoding="utf-8"))
+    return mapping(workflow, subject=f"{workflow_path} workflow")
+
+
 def workflow_job(workflow_path: str, job_name: str) -> dict[str, object]:
     """Return the named job from a repository workflow."""
-    workflow = yaml.safe_load((REPO_ROOT / workflow_path).read_text(encoding="utf-8"))
-    workflow_mapping = mapping(workflow, subject=f"{workflow_path} workflow")
+    workflow_mapping = workflow_document(workflow_path)
     jobs = mapping(workflow_mapping.get("jobs"), subject=f"{workflow_path} jobs")
     return mapping(jobs.get(job_name), subject=f"{workflow_path} job {job_name!r}")
 

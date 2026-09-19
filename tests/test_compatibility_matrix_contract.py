@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import tomllib
 
-from tests.support.make_contract import REPO_ROOT, mapping, objects, workflow_job
+from tests.support.make_contract import (
+    REPO_ROOT,
+    mapping,
+    objects,
+    workflow_document,
+    workflow_job,
+)
 
 
 def test_matrix_floor_matches_declared_specifier() -> None:
@@ -12,7 +18,12 @@ def test_matrix_floor_matches_declared_specifier() -> None:
     configuration = tomllib.loads(
         (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     )
-    job = workflow_job(".github/workflows/ci.yml", "compatibility-matrix")
+    workflow_path = ".github/workflows/ci.yml"
+    workflow = workflow_document(workflow_path)
+    assert mapping(workflow.get("permissions"), subject="workflow permissions") == {
+        "contents": "read"
+    }, "the CI workflow must default to read-only repository permissions"
+    job = workflow_job(workflow_path, "compatibility-matrix")
     strategy = mapping(job.get("strategy"), subject="compatibility matrix strategy")
     assert strategy["fail-fast"] is False, (
         "the compatibility matrix must report every independent lane failure"

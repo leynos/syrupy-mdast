@@ -50,8 +50,8 @@ with `flock` on the ignored `.skylos-whitelist.lock` file, so concurrent
 recordings cannot lose entries.
 
 Bare-name allow-list entries apply repository-wide. Record a concrete runtime
-reader in the reason and update `tests/test_skylos_lint_contract.py` in the same
-change, so a later symbol with the same name cannot inherit an exception
+reader in the reason and update `tests/test_skylos_lint_contract.py` in the
+same change, so a later symbol with the same name cannot inherit an exception
 silently.
 
 ### How the Makefile workflows are covered
@@ -109,17 +109,16 @@ build, test, or wheel dependencies.
 
 ### V1 public contract
 
-The package-level public surface is deliberately limited to
-`MarkdownAstError` and `MarkdownAstSnapshotExtension`. The dependency-free
-`syrupy_mdast._core` package owns the error taxonomy and must not import Syrupy
-or Wenmode. `_extension.py` is the thin Syrupy adapter: it uses the
-`mdast.json` filename suffix and text write mode, accepts only `str` input, and
-rejects unsupported Syrupy property controls before the unimplemented
-serialization seam.
+The package-level public surface is deliberately limited to `MarkdownAstError`
+and `MarkdownAstSnapshotExtension`. The dependency-free `syrupy_mdast._core`
+package owns the error taxonomy and must not import Syrupy or Wenmode.
+`_extension.py` is the thin Syrupy adapter: it uses the `mdast.json` filename
+suffix and text write mode, accepts only `str` input, and rejects unsupported
+Syrupy property controls before the unimplemented serialization seam.
 
-The package targets Python 3.12 or later and declares Syrupy
-`>=5.0.0,<7.0.0`. `syrupy_mdast/py.typed` is part of the wheel so type checkers
-can use the package's annotations from installed distributions.
+The package targets Python 3.12 or later and declares Syrupy `>=5.0.0,<7.0.0`.
+`syrupy_mdast/py.typed` is part of the wheel so type checkers can use the
+package's annotations from installed distributions.
 
 ### Upgrade Wenmode
 
@@ -164,23 +163,21 @@ This repository includes GitHub Actions workflows and local composite actions
 under `.github/`.
 
 - `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. It
-  sets up Python 3.13, installs `uv`, validates the `Makefile` with
-  `mbake`, installs the pinned Makeutil parser, runs `make build`,
-  `make check-fmt`, `make lint` (Ruff +
-  `interrogate --fail-under 100 $(PYTHON_TARGETS)` + the PyPy-backed Pylint
-  runner + the `df12-python-lints` pass + `ambrleaks` + the strict Skylos
-  dead-code gate), `make typecheck`, and `make audit`, then delegates
-  coverage generation to the shared coverage action. When the Rust extension
-  is enabled, it also sets up Rust, installs Rust lint and test tools, and
-  passes `rust_extension/Cargo.toml` to coverage.
+  sets up Python 3.13, installs `uv`, validates the `Makefile` with `mbake`,
+  installs the pinned Makeutil parser, runs `make build`, `make check-fmt`,
+  `make lint` (Ruff + `interrogate --fail-under 100 $(PYTHON_TARGETS)` + the
+  PyPy-backed Pylint runner + the `df12-python-lints` pass + `ambrleaks` + the
+  strict Skylos dead-code gate), `make typecheck`, and `make audit`, then
+  delegates coverage generation to the shared coverage action. When the Rust
+  extension is enabled, it also sets up Rust, installs Rust lint and test
+  tools, and passes `rust_extension/Cargo.toml` to coverage.
 - The same workflow's additive `compatibility-matrix` job uses
   `fail-fast: false` and tests Python 3.12, 3.13, and 3.14 against the Syrupy
   floor (`5.0.0`) and the newest release below 7.0.0. The floor lane explicitly
   installs `syrupy==5.0.0` after dependency synchronization; the latest lane
   runs `uv pip install --upgrade "syrupy<7.0.0"` so it explicitly upgrades
   within the declared upper bound. Each lane runs the package contract tests.
-  The
-  `tests/test_compatibility_matrix_contract.py` test checks the matrix
+  The `tests/test_compatibility_matrix_contract.py` test checks the matrix
   dimensions, their relationship to the package dependency range, and the
   explicit latest-lane installation command.
 - `.github/workflows/act-validation.yml` runs rendered workflow validation in a

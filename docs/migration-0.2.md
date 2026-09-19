@@ -31,7 +31,9 @@ def test_markdown_snapshot(snapshot):
         extension_class=MarkdownAstSnapshotExtension,
     )
     value = "# heading"
-    assert assertion == value
+    # After serialization is implemented, compare snapshots through the
+    # configured assertion:
+    # assert assertion == value
 ```
 
 The extension is configured for text snapshots using the `mdast.json` suffix

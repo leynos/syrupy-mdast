@@ -10,6 +10,7 @@ from syrupy.extensions.single_file import SingleFileSnapshotExtension, WriteMode
 import syrupy_mdast
 
 if typ.TYPE_CHECKING:
+    from syrupy.assertion import SnapshotAssertion
     from syrupy.types import SerializableData
 
 
@@ -71,3 +72,17 @@ def test_extension_defers_valid_serialisation_to_roadmap_task() -> None:
     extension = syrupy_mdast.MarkdownAstSnapshotExtension()
     with pytest.raises(NotImplementedError, match=r"2\.3\.1"):
         extension.serialize("# Title")
+
+
+def test_registered_extension_defers_valid_serialisation(
+    snapshot: SnapshotAssertion,
+) -> None:
+    """A real Syrupy assertion reaches the visible serialization seam."""
+    assertion = snapshot.with_defaults(
+        extension_class=syrupy_mdast.MarkdownAstSnapshotExtension
+    )
+    assert isinstance(assertion.extension, syrupy_mdast.MarkdownAstSnapshotExtension), (
+        "Syrupy registration must instantiate the Markdown AST extension"
+    )
+    with pytest.raises(NotImplementedError, match=r"2\.3\.1"):
+        assertion.extension.serialize("# Title")

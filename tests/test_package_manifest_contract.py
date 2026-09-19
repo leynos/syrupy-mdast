@@ -100,7 +100,11 @@ def _assert_isolated_wheel_import(
         check=True,
         cwd=temporary_path,
     )
-    wheel_python = virtual_environment / "bin" / "python"
+    wheel_python = (
+        virtual_environment / "Scripts" / "python.exe"
+        if sys.platform == "win32"
+        else virtual_environment / "bin" / "python"
+    )
     subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed local wheel-install command.
         [uv_executable, "pip", "install", "--python", wheel_python, wheel_path],
         check=True,

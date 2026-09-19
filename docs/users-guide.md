@@ -14,7 +14,9 @@ from syrupy_mdast import MarkdownAstSnapshotExtension
 assertion = snapshot.with_defaults(
     extension_class=MarkdownAstSnapshotExtension,
 )
-assert assertion == "# heading"
+# After serialization is implemented, compare snapshots through the configured
+# assertion:
+# assert assertion == "# heading"
 ```
 
 The extension accepts Markdown source as `str` and is configured for text
