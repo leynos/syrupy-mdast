@@ -51,7 +51,10 @@ _MAKEUTIL_INSTALL_TOKENS: typ.Final = (
 # documented whitelist and the typed entry-point rules are deliberately empty.
 # Recording a new exception must extend these sets alongside the
 # `skylos-allow` run or entry-point rule that justifies it.
-_DOCUMENTED_WHITELIST_NAMES: typ.Final[frozenset[str]] = frozenset()
+_DOCUMENTED_WHITELIST_NAMES: typ.Final[frozenset[str]] = frozenset({
+    "_write_mode",
+    "file_extension",
+})
 _RUNTIME_ENTRY_POINT_NAMES: typ.Final[frozenset[str]] = frozenset()
 _FULL_SUITE_WORKFLOW_JOBS: typ.Final = (
     (".github/workflows/ci.yml", "lint-test"),
