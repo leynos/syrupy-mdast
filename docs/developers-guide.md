@@ -167,10 +167,12 @@ under `.github/`.
   installs the pinned Makeutil parser, runs `make build`, `make check-fmt`,
   `make lint` (Ruff + `interrogate --fail-under 100 $(PYTHON_TARGETS)` + the
   PyPy-backed Pylint runner + the `df12-python-lints` pass + `ambrleaks` + the
-  strict Skylos dead-code gate), `make typecheck`, and `make audit`, then
-  delegates coverage generation to the shared coverage action. When the Rust
-  extension is enabled, it also sets up Rust, installs Rust lint and test
-  tools, and passes `rust_extension/Cargo.toml` to coverage.
+  strict Skylos dead-code gate), `make typecheck`, and `make audit`. On a pull
+  request it then delegates test execution and coverage generation to the
+  shared coverage action, which ratchets coverage against the baseline `main`
+  last saved. When the Rust extension is enabled, it also sets up Rust,
+  installs Rust lint and test tools, and passes `rust_extension/Cargo.toml` to
+  coverage.
 - The same workflow's additive `compatibility-matrix` job uses
   `fail-fast: false` and tests Python 3.12, 3.13, and 3.14 against the Syrupy
   floor (`5.0.0`) and the newest release below 7.0.0. The floor lane explicitly
@@ -180,6 +182,11 @@ under `.github/`.
   The `tests/test_compatibility_matrix_contract.py` test checks the matrix
   dimensions, their relationship to the package dependency range, and the
   explicit latest-lane installation command.
+- `.github/workflows/coverage-main.yml` runs on pushes to `main` and on manual
+  dispatch. It runs the test suite through the shared coverage action, which
+  writes the ratchet baseline, and uploads the report to CodeScene. It is the
+  only workflow that contacts CodeScene; see
+  [CodeScene coverage publication](#codescene-coverage-publication).
 - `.github/workflows/act-validation.yml` runs rendered workflow validation in a
   separate workflow. It installs `act`, checks Docker availability, installs
   the pinned Makeutil parser, and runs `make test WITH_ACT=1` outside the
@@ -198,30 +205,54 @@ under `.github/`.
 - `.github/dependabot.yml` enables dependency update pull requests for GitHub
   Actions and Python packages. Rust-enabled projects also receive Cargo updates.
 
-The CodeScene workflow generates `coverage.xml` in Cobertura format before
-using the shared `upload-codescene-coverage` action. CodeScene accepts
-`cs-coverage upload` only for analysed branches, so a push to `main` is the
-only event that uploads: it uses the action's `upload` mode to establish the
-analysed default-branch baseline that later analyses read.
+### CodeScene coverage publication
 
-Pull requests do not contact CodeScene at all; they neither publish a report
-nor request a changed-line check. A pull request runs arbitrary head-repository
-code, so a CodeScene step it could reach would either hand `CS_ACCESS_TOKEN` to
-a fork or leave a secret-less fork waiting on a check that can never be
-produced. Pull-request coverage is instead enforced locally, by the ratchet that
-`Test and Measure Coverage` compares against the baseline the default branch
-last saved. The two events cannot race for that baseline: the action saves it
-with `actions/cache`, and GitHub scopes a cache a pull request writes to the
-merge ref, which neither the default branch nor another pull request can read.
+[ADR-002](adr-002-main-owns-codescene-coverage-publication.md) records the
+decision and the options it rejected.
 
-The upload step is guarded by `env.CS_ACCESS_TOKEN != ''`. A fork pull request
-receives no secret, so it skips the step rather than attempting an upload it
-cannot authenticate. No checksum input is passed. The action verifies the CLI
-archive it downloads against `archive_sha256` in its own `cli-manifest.json` on
-every run, so the manifest the pinned revision carries is the single source of
-truth for that digest; a caller-supplied value could only agree with it or go
-stale and fail the run. Bumping the action revision therefore needs no
-accompanying variable update — the manifest travels with the revision.
+Main owns CodeScene. `.github/workflows/coverage-main.yml` is the one
+publisher: on each push to `main` it measures coverage, writes the ratchet
+baseline, and uploads the report. Pull requests measure coverage in `ci.yml`
+and ratchet it against that baseline, but never contact CodeScene. A pull
+request runs arbitrary head-repository code, so a CodeScene step it could reach
+would either hand `CS_ACCESS_TOKEN` to a fork or leave a secret-less fork
+waiting on a check that can never be produced.
+
+- The pull-request lane's `Test and Measure Coverage` step runs only on pull
+  requests, sets `with-ratchet: 'true'` and `publish-artefact: 'false'`, and
+  holds no CodeScene step, client, host, or credential. The rule covers every
+  workflow a pull request can start, including local reusable workflows and
+  local composite actions those workflows run.
+- The publisher's check step runs one exact command,
+  `echo "available=${{ secrets.CS_ACCESS_TOKEN != '' }}" >> "$GITHUB_OUTPUT"`.
+  The upload step runs only when that output is `true` and the ref is
+  `refs/heads/main`, and passes the secret straight to the uploader's
+  `access-token` input. No `env` block holds the token, because the uploader is
+  a composite action that hands its step's `env` to the nested steps it runs.
+- No checksum input is passed. The uploader verifies the CLI archive it
+  downloads against `archive_sha256` in its own `cli-manifest.json` on every
+  run, so the manifest the pinned revision carries is the single source of
+  truth for that digest.
+- The publisher's concurrency group is `coverage-main-${{ github.ref }}`, never
+  cancelled. Runs for `main` never overlap, and a newer trigger replaces an
+  older pending run rather than queueing behind it. GitHub does not promise to
+  start runs in trigger order, so this does not guarantee commit order. A
+  manual re-run of an older run keeps its SHA and its run id: it republishes
+  that commit's coverage to CodeScene, but replaces no ratchet baseline unless
+  the original run saved none.
+- Merges made by the Dependabot automerge workflow with `GITHUB_TOKEN` fire no
+  push, so they reach the publisher only through a later push or a dispatch.
+- A dispatch that replaces a pending push uploads the same or a newer commit.
+  `generate-coverage` saves the baseline only on a push, so the baseline can
+  lag by more than one commit until a later push saves it.
+
+`tests/test_codescene_repository.py` holds this shape over the repository's own
+workflows and local actions, using the readers and rules in
+`tests/codescene_contract/`. The other `tests/test_codescene_*.py` files prove
+that each rule refuses the shape it exists to refuse. Each case starts from a
+compliant fixture tree and changes one thing. Workflows are read strictly: a
+duplicate key, or a workflow declaring both a quoted and an unquoted `on` key,
+is refused rather than silently resolved.
 
 ### Why an immutable pin still needs maintenance
 
@@ -251,7 +282,7 @@ So the rule is: a full-SHA pin buys immutability, not staleness immunity. Treat
 the transitive dependency set of every pinned composite as scheduled
 maintenance. `tests/support/approved_action_revisions.json` records each
 approved revision and the dependencies nested inside it, and
-`tests/test_codescene_workflow_contract.py` fails when a selected revision is
+`tests/test_action_revision_contract.py` fails when a selected revision is
 unrecorded, or when a recorded revision reaches a SHA listed as retired. The
 record is checked in rather than fetched, because the contract tests must run
 without network access; refresh it when a pin moves, and let the reviewer see
