@@ -13,6 +13,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.codescene_contract.actions import read_actions
 from tests.codescene_contract.credential import (
     check_step_violations,
     token_scope_violations,
@@ -22,7 +23,7 @@ from tests.codescene_contract.lanes import (
     pull_request_lane_violations,
     second_writer_violations,
 )
-from tests.codescene_contract.loading import Document, read_actions, read_workflows
+from tests.codescene_contract.loading import Document, read_workflows
 from tests.codescene_contract.publisher import find_publisher
 from tests.codescene_contract.publisher_rules import (
     concurrency_violations,

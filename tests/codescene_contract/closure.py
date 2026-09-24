@@ -112,7 +112,7 @@ def called_workflows(
 def local_action(reference: str) -> str | None:
     """Return the tree path a step-level `uses:` names, or None for a remote one.
 
-    The path is the key `loading.read_actions` files the action under.
+    The path is the key `actions.read_actions` files the action under.
 
     Parameters
     ----------
