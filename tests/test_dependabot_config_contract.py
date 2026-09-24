@@ -1,12 +1,13 @@
 """Contract tests for the Dependabot update configuration.
 
 ``.github/dependabot.yml`` decides which manifests Dependabot watches and how
-it batches the resulting pull requests. Two properties matter for the GitHub
-Actions ecosystem and are invisible to a YAML syntax check:
+it batches the resulting pull requests. Two properties matter and are
+invisible to a YAML syntax check:
 
-* every action bump is grouped into a single pull request, because ungrouped
-  bumps all edit the same workflow files and the first to merge leaves its
-  siblings out of date; and
+* every ecosystem runs daily, and its minor and patch bumps are grouped into a
+  single pull request, because ungrouped bumps all edit the same files and the
+  first to merge leaves its siblings out of date, while each major stays
+  ungrouped so it can be reviewed on its own; and
 * the configured directories cover both ``.github/workflows`` and every local
   composite action manifest, because ``/`` reaches only the workflows and the
   root action manifest.
@@ -19,6 +20,7 @@ from __future__ import annotations
 
 import typing as typ
 
+import pytest
 import yaml
 
 from tests.support.make_contract import REPO_ROOT, mapping, objects, text_sequence
@@ -30,6 +32,12 @@ _COMPOSITE_ACTION_MANIFESTS: typ.Final = ("action.yml", "action.yaml")
 _WORKFLOW_DIRECTORY: typ.Final = "/"
 _COMPOSITE_ACTION_PATTERN: typ.Final = "/.github/actions/*"
 _GROUP_PATTERN_MATCH_ALL: typ.Final = "*"
+# Estate Dependabot policy: every ecosystem is checked daily, and one
+# catch-all group batches minor and patch bumps while majors stay ungrouped.
+_ECOSYSTEMS: typ.Final = ("github-actions", "pip")
+_INTERVAL: typ.Final = "daily"
+_GROUPED_UPDATE_TYPES: typ.Final = frozenset(("minor", "patch"))
+_VERSION_UPDATES: typ.Final = "version-updates"
 
 
 def _dependabot_config() -> dict[str, object]:
@@ -86,21 +94,61 @@ def _composite_action_directories() -> frozenset[str]:
     return frozenset(directories)
 
 
-def test_github_actions_updates_are_grouped_into_one_pull_request() -> None:
-    """GitHub Actions bumps are batched so sibling pull requests cannot stall."""
-    update = _update_for("github-actions")
-    groups = mapping(update.get("groups"), subject="github-actions groups")
-    assert list(groups) == ["github-actions"], (
-        "github-actions updates should define exactly one group"
+def test_the_policy_covers_every_declared_ecosystem() -> None:
+    """A new ecosystem must join the policy deliberately, not bypass it."""
+    updates = objects(_dependabot_config().get("updates"), subject="updates")
+    declared = sorted(str(update.get("package-ecosystem")) for update in updates)
+    assert declared == sorted(_ECOSYSTEMS), (
+        f"the Dependabot policy covers {sorted(_ECOSYSTEMS)}; "
+        f"the configuration declares {declared}"
     )
-    group = mapping(groups["github-actions"], subject="github-actions group")
+
+
+@pytest.mark.parametrize("ecosystem", _ECOSYSTEMS)
+def test_every_update_block_checks_daily(ecosystem: str) -> None:
+    """Each ecosystem is checked for updates every day."""
+    schedule = mapping(
+        _update_for(ecosystem).get("schedule"), subject=f"{ecosystem} schedule"
+    )
+    assert schedule.get("interval") == _INTERVAL, (
+        f"the {ecosystem} update block should run {_INTERVAL!r}; "
+        f"got {schedule.get('interval')!r}"
+    )
+
+
+@pytest.mark.parametrize("ecosystem", _ECOSYSTEMS)
+def test_every_update_block_batches_minor_and_patch_updates_only(
+    ecosystem: str,
+) -> None:
+    """Routine bumps share one pull request; each major arrives on its own."""
+    groups = mapping(
+        _update_for(ecosystem).get("groups"), subject=f"{ecosystem} groups"
+    )
+    assert len(groups) == 1, (
+        f"{ecosystem} updates should define exactly one group; got {sorted(groups)}"
+    )
+    [(name, raw_group)] = groups.items()
+    group = mapping(raw_group, subject=f"{ecosystem} group {name}")
     patterns = text_sequence(group.get("patterns"), subject="group patterns")
-    assert _GROUP_PATTERN_MATCH_ALL in patterns, (
-        "the github-actions group should match every action with the '*' pattern"
+    assert tuple(patterns) == (_GROUP_PATTERN_MATCH_ALL,), (
+        f"the {ecosystem} group should match every dependency with '*' alone; "
+        f"got {patterns}"
+    )
+    # Without `update-types` the group also takes majors, which would then
+    # hide a breaking bump inside the routine batch.
+    update_types = text_sequence(group.get("update-types"), subject="update-types")
+    assert frozenset(update_types) == _GROUPED_UPDATE_TYPES, (
+        f"the {ecosystem} group should batch exactly minor and patch; "
+        f"got {update_types}"
     )
     assert group.get("exclude-patterns") is None, (
-        "no action should be excluded from the group, or it reappears as a lone "
-        "pull request that collides with the group"
+        "no dependency should be excluded from the group, or it reappears as a "
+        "lone pull request that collides with the group"
+    )
+    applies_to = group.get("applies-to", _VERSION_UPDATES)
+    assert applies_to == _VERSION_UPDATES, (
+        f"the {ecosystem} group should apply to {_VERSION_UPDATES!r}; "
+        f"got {applies_to!r}"
     )
 
 
