@@ -10,13 +10,14 @@ from __future__ import annotations
 import textwrap
 import typing as typ
 
+from .actions import load_action
 from .credential import check_step_violations, token_scope_violations
 from .lanes import (
     publisher_lane_violations,
     pull_request_lane_violations,
     second_writer_violations,
 )
-from .loading import Document, load_action, load_workflow
+from .loading import Document, load_workflow
 from .publisher import find_publisher
 from .publisher_rules import (
     concurrency_violations,
