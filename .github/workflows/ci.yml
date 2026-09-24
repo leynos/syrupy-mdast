@@ -12,13 +12,12 @@ jobs:
   lint-test:
     runs-on: ubuntu-latest
     # Read-only: every tool this job runs (checkout, mbake, makeutil, uv, the
-    # linters, CodeScene) either needs no repository write or authenticates
-    # with its own token. Pinning the token stops a compromised step from
+    # linters) either needs no repository write or authenticates with its own
+    # token. Pinning the token stops a compromised step from
     # inheriting write access it never uses.
     permissions:
       contents: read
     env:
-      CS_ACCESS_TOKEN: ${{ secrets.CS_ACCESS_TOKEN }}
       # Pin ruff and ty to the versions declared in the Makefile
       # (RUFF_VERSION/TY_VERSION) and pyproject.toml. Make reads these
       # environment variables, so CI and local runs invoke identical tool
@@ -98,46 +97,21 @@ jobs:
 
       # The only test execution on this lane: measuring and testing in one
       # instrumented run costs one compile instead of two. `with-ratchet` fails
-      # the run when total line coverage falls below the baseline the default
-      # branch last saved, so the pull-request coverage decision is that local
-      # ratchet rather than a CodeScene check. GitHub scopes a baseline a pull
-      # request saves to its merge ref, which the default branch cannot read,
-      # so the two events cannot race for it.
+      # the run when total line coverage falls below the baseline
+      # coverage-main.yml saves on main, so the pull-request coverage decision
+      # is that local ratchet rather than a CodeScene check. On a push to main
+      # this step is skipped: coverage-main.yml measures main and is the one
+      # baseline writer and the one CodeScene publisher. Pull requests never
+      # contact CodeScene. tests/test_codescene_repository.py holds the shape.
       - name: Test and Measure Coverage
-        uses: leynos/shared-actions/.github/actions/generate-coverage@296dc4aa07acf3a7f60a54fb6bccb5672a597479
+        if: github.event_name == 'pull_request'
+        uses: leynos/shared-actions/.github/actions/generate-coverage@dbe2e22ceaf498d85512679ccded38be9dbe7777
         with:
           output-path: coverage.xml
           format: cobertura
           artefact-name-suffix: syrupy-mdast
           with-ratchet: 'true'
-          
-
-      # Main is the only CodeScene consumer. CodeScene accepts `cs-coverage
-      # upload` only for analysed branches, so the report this job generates on
-      # a default-branch push is published here. Pull requests neither publish
-      # a report nor contact CodeScene: they enforce coverage locally, through
-      # the ratchet that `Test and Measure Coverage` compares against the
-      # baseline this job saves. The `event_name == 'push'` term already keeps
-      # every pull request away from this step; the `env.CS_ACCESS_TOKEN != ''`
-      # guard is deliberate defence in depth, so that even a mistaken future
-      # widening of the condition skips the step rather than invoking the
-      # external action without a token.
-      #
-      # No checksum input is passed. The action verifies the CLI archive it
-      # downloads against `archive_sha256` in its own `cli-manifest.json` on
-      # every run, so a caller-supplied digest would only restate a value the
-      # action already holds — and could only ever disagree with it by being
-      # stale. Passing nothing leaves that single source of truth intact.
-      - name: Upload coverage data to CodeScene
-        env:
-          CS_ACCESS_TOKEN: ${{ secrets.CS_ACCESS_TOKEN }}
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.CS_ACCESS_TOKEN != ''
-        uses: leynos/shared-actions/.github/actions/upload-codescene-coverage@a5765019912a8ab6882b12db049c7cde635f3a85
-        with:
-          format: cobertura
-          mode: upload
-          path: coverage.xml
-          access-token: ${{ env.CS_ACCESS_TOKEN }}
+          publish-artefact: 'false'
 
   compatibility-matrix:
     name: py${{ matrix.python-version }} / syrupy ${{ matrix.syrupy-version }}
