@@ -18,6 +18,7 @@ composite action fails this contract until Dependabot is told to watch it.
 
 from __future__ import annotations
 
+import re
 import typing as typ
 
 import pytest
@@ -75,19 +76,31 @@ def _configured_directories(update: dict[str, object]) -> frozenset[str]:
 
 
 def _directory_pattern_matches(pattern: str, directory: str) -> bool:
-    """Return whether a Dependabot directory pattern covers ``directory``."""
-    prefix, separator, suffix = pattern.partition("/*")
-    if not separator:
-        return pattern == directory
-    return directory.startswith(f"{prefix}/") and "/" not in suffix
+    """Return whether a Dependabot directory pattern covers ``directory``.
+
+    ``*`` matches within one path segment and ``**`` spans segments, so
+    ``/.github/actions/*`` covers ``/.github/actions/lint`` but not
+    ``/.github/actions/release/sign``.
+
+    Returns
+    -------
+    bool
+        Whether ``pattern`` covers ``directory``.
+    """
+    regex = "".join(
+        ".*" if part == "**" else "[^/]*" if part == "*" else re.escape(part)
+        for part in re.split(r"(\*\*|\*)", pattern)
+    )
+    return re.fullmatch(regex, directory) is not None
 
 
 def _composite_action_directories() -> frozenset[str]:
     """Return the repository's composite action directories in Dependabot form."""
-    actions_root = REPO_ROOT / ".github" / "actions"
+    # Search every depth: an action nested below another directory still needs
+    # a pattern that reaches its own directory.
     directories = {
-        f"/.github/actions/{manifest.parent.name}"
-        for manifest in actions_root.glob("*/*")
+        f"/{manifest.parent.relative_to(REPO_ROOT).as_posix()}"
+        for manifest in (REPO_ROOT / ".github" / "actions").rglob("action.y*ml")
         if manifest.name in _COMPOSITE_ACTION_MANIFESTS
     }
     assert directories, "expected at least one composite action manifest"
@@ -149,6 +162,26 @@ def test_every_update_block_batches_minor_and_patch_updates_only(
     assert applies_to == _VERSION_UPDATES, (
         f"the {ecosystem} group should apply to {_VERSION_UPDATES!r}; "
         f"got {applies_to!r}"
+    )
+
+
+@pytest.mark.parametrize(
+    ("pattern", "directory", "expected"),
+    [
+        ("/", "/", True),
+        ("/.github/actions/*", "/.github/actions/lint", True),
+        ("/.github/actions/*", "/.github/actions/release/sign", False),
+        ("/.github/actions/**", "/.github/actions/release/sign", True),
+        ("/.github/actions/lint", "/.github/actions/lint", True),
+        ("/.github/actions/lint", "/.github/actions/lints", False),
+    ],
+)
+def test_directory_patterns_match_like_dependabot(
+    pattern: str, directory: str, *, expected: bool
+) -> None:
+    """``*`` stays within one path segment; ``**`` spans segments."""
+    assert _directory_pattern_matches(pattern, directory) is expected, (
+        f"{pattern!r} should {'cover' if expected else 'not cover'} {directory!r}"
     )
 
 
