@@ -26,6 +26,9 @@ documentation set.
   records the blocking lint tiers (Ruff, Interrogate, Pylint, and Skylos
   dead-code detection), their version pins, and the verified false-positive
   policy.
+- [ADR-002: `main` owns CodeScene coverage publication](adr-002-main-owns-codescene-coverage-publication.md)
+  records why only the push-to-`main` publisher contacts CodeScene, and how
+  pull requests ratchet coverage without it.
 
 ## Engineering practice
 

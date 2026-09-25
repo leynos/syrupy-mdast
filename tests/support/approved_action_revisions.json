@@ -1,0 +1,35 @@
+{
+  "_comment": "Approved leynos/shared-actions revisions and the third-party actions nested inside them. Read by tests/test_action_revision_contract.py, which is offline by design, so this file is the checked-in record of what the pins resolve to.",
+  "retired": {
+    "actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a": "actions/cache v4.1.2. GitHub retired it, so any workflow reaching it fails during action preparation with 'uses a deprecated version of actions/cache'. A composite action that pins it poisons every consumer.",
+    "leynos/shared-actions/.github/actions/upload-codescene-coverage@395f8e8630d431abb4a136847f1c14c4ad5a0ccc": "Obsolete shared-actions revision. It pins actions/cache@6849a648, never honoured archive-checksum, and has been superseded by a5765019 and its descendants. Do not reintroduce it."
+  },
+  "approved": {
+    "leynos/shared-actions/.github/actions/upload-codescene-coverage": {
+      "dbe2e22ceaf498d85512679ccded38be9dbe7777": {
+        "nested_uses": {
+          "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9": "v6.1.0, the estate's cache pin",
+          "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a": "full SHA"
+        }
+      }
+    },
+    "leynos/shared-actions/.github/actions/generate-coverage": {
+      "dbe2e22ceaf498d85512679ccded38be9dbe7777": {
+        "nested_uses": {
+          "astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b": "full SHA",
+          "actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9": "v6.1.0, the estate's cache pin",
+          "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9": "v6.1.0, the estate's cache pin",
+          "actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9": "v6.1.0, the estate's cache pin",
+          "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a": "full SHA"
+        }
+      }
+    },
+    "leynos/shared-actions/.github/actions/install-mdtablefix": {
+      "c5a54701c8603a0fa756a6b34c49bc2af75a6c11": {
+        "nested_uses": {
+          "cargo-bins/cargo-binstall@75b4bfae1b2c753a6806bbce6e6cb89b602de33c": "v1.22.0, full SHA"
+        }
+      }
+    }
+  }
+}

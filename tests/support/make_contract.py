@@ -139,11 +139,59 @@ def workflow_document(workflow_path: str) -> dict[str, object]:
     return mapping(workflow, subject=f"{workflow_path} workflow")
 
 
+def workflow_paths() -> tuple[str, ...]:
+    """Return every workflow in the repository, as repository-relative paths.
+
+    Use this when a contract must hold across all workflows rather than one
+    named file, so a rule cannot be escaped by adding a workflow the contract
+    does not know about.
+
+    Returns
+    -------
+    tuple[str, ...]
+        Each ``.github/workflows`` entry, sorted for a stable report.
+
+    Examples
+    --------
+    >>> ".github/workflows/ci.yml" in workflow_paths()
+    True
+    """
+    directory = REPO_ROOT / ".github" / "workflows"
+    return tuple(
+        sorted(path.relative_to(REPO_ROOT).as_posix() for path in directory.iterdir())
+    )
+
+
+def workflow_jobs(workflow_path: str) -> dict[str, object]:
+    """Return the job mapping of a repository workflow.
+
+    Use this rather than :func:`workflow_job` when a contract must sweep every
+    job, so a step cannot escape the contract by moving to another job.
+
+    Returns
+    -------
+    dict[str, object]
+        The workflow's jobs, keyed by job name.
+
+    Examples
+    --------
+    >>> sorted(workflow_jobs(".github/workflows/ci.yml"))
+    ['compatibility-matrix', 'lint-test']
+    """
+    workflow_mapping = workflow_document(workflow_path)
+    return mapping(workflow_mapping.get("jobs"), subject=f"{workflow_path} jobs")
+
+
 def workflow_job(workflow_path: str, job_name: str) -> dict[str, object]:
     """Return the named job from a repository workflow."""
-    workflow_mapping = workflow_document(workflow_path)
-    jobs = mapping(workflow_mapping.get("jobs"), subject=f"{workflow_path} jobs")
+    jobs = workflow_jobs(workflow_path)
     return mapping(jobs.get(job_name), subject=f"{workflow_path} job {job_name!r}")
+
+
+def workflow_steps(workflow_path: str, job_name: str) -> list[dict[str, object]]:
+    """Return every step of a workflow job, in declaration order."""
+    job = workflow_job(workflow_path, job_name)
+    return objects(job.get("steps"), subject=f"{workflow_path} job {job_name!r} steps")
 
 
 def sole_workflow_step(
