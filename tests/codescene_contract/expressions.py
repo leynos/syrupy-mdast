@@ -145,3 +145,49 @@ def missing_terms(condition: object, required: frozenset[str]) -> list[str]:
     """
     present = set(conjuncts(condition))
     return sorted(term for term in required if term not in present)
+
+
+def expression_bodies(text: str) -> list[str]:
+    r"""Return the body of every `${{ }}` expression in a text.
+
+    GitHub reads single-quoted literals while it looks for an expression's
+    end, so a `}}` inside one does not close it: `${{ format('}}', x) }}` is
+    one expression. An expression left open runs to the end of the text, so
+    nothing after a stray `${{` escapes the reading.
+
+    Parameters
+    ----------
+    text : str
+        The text to scan, such as a `run` body.
+
+    Returns
+    -------
+    list[str]
+        Each expression's body, in order.
+
+    Examples
+    --------
+    >>> expression_bodies("a ${{ format('}}', x) }} b ${{ y }}")
+    [" format('}}', x) ", ' y ']
+    >>> expression_bodies("${{ open")
+    [' open']
+
+    """
+    bodies = []
+    start = text.find("${{")
+    while start >= 0:
+        end = _expression_end(text, start + 3)
+        bodies.append(text[start + 3 : end])
+        start = text.find("${{", end)
+    return bodies
+
+
+def _expression_end(text: str, start: int) -> int:
+    """Return where an expression body ends, or the text's length if never."""
+    is_quoted = False
+    for index in range(start, len(text)):
+        if text[index] == "'":
+            is_quoted = not is_quoted
+        elif not is_quoted and text.startswith("}}", index):
+            return index
+    return len(text)

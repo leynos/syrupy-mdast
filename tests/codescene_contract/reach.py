@@ -12,6 +12,7 @@ import re
 import typing as typ
 
 from .closure import reachable
+from .expressions import expression_bodies
 from .loading import Document, WorkflowReadingError
 from .reading import PULL_REQUEST_TRIGGERS, jobs, texts, trigger_filters, triggers
 
@@ -158,7 +159,6 @@ def codescene_contacts(document: Document) -> list[str]:
 
 
 #: A whole `${{ }}` expression, which is where Actions reads contexts.
-_EXPRESSION: typ.Final[re.Pattern[str]] = re.compile(r"\$\{\{(.*?)\}\}", re.DOTALL)
 
 #: A read of the `secrets` context that does not name one secret literally,
 #: such as `toJSON(secrets)` or `secrets[format('CS_{0}', 'ACCESS_TOKEN')]`.
@@ -200,8 +200,7 @@ def unnamed_secret_references(document: Document) -> list[str]:
         text
         for text in texts(document)
         if any(
-            _UNNAMED_SECRETS.search(body.casefold())
-            for body in _EXPRESSION.findall(text)
+            _UNNAMED_SECRETS.search(body.casefold()) for body in expression_bodies(text)
         )
     ]
 
