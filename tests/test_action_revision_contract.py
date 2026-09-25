@@ -141,6 +141,24 @@ def test_the_obsolete_codescene_revision_is_rejected() -> None:
         text = (REPO_ROOT / workflow_path).read_text(encoding="utf-8")
         for pin, reason in retired.items():
             assert pin not in text, f"{workflow_path} pins a retired action: {reason}"
+        found = _retired_references(_uses_of(workflow_document(workflow_path)), retired)
+        assert not found, f"{workflow_path} pins retired actions: {found}"
+
+
+def _retired_references(references: list[str], retired: dict[str, object]) -> list[str]:
+    """Return the references that are retired pins or their sub-actions."""
+    return [reference for reference in references if _is_retired(reference, retired)]
+
+
+def test_a_direct_retired_sub_action_is_refused() -> None:
+    """A workflow naming a retired revision's sub-action fails the same way."""
+    retired = mapping(_revision_fixture()["retired"], subject="retired pins")
+    references = [
+        "actions/checkout@v4",
+        "actions/cache/restore@6849a6489940f00c2f30c0fb92c6274307ccb58a",
+    ]
+    found = _retired_references(references, retired)
+    assert found == [references[1]], found
 
 
 def test_selected_revisions_carry_no_retired_nested_dependency() -> None:

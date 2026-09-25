@@ -146,10 +146,13 @@ def workflow_paths() -> tuple[str, ...]:
     named file, so a rule cannot be escaped by adding a workflow the contract
     does not know about.
 
+    Only regular files with a ``.yml`` or ``.yaml`` suffix, in any case, are
+    returned, as GitHub runs no other entry of the directory.
+
     Returns
     -------
     tuple[str, ...]
-        Each ``.github/workflows`` entry, sorted for a stable report.
+        Each workflow file, sorted for a stable report.
 
     Examples
     --------
@@ -158,7 +161,11 @@ def workflow_paths() -> tuple[str, ...]:
     """
     directory = REPO_ROOT / ".github" / "workflows"
     return tuple(
-        sorted(path.relative_to(REPO_ROOT).as_posix() for path in directory.iterdir())
+        sorted(
+            path.relative_to(REPO_ROOT).as_posix()
+            for path in directory.iterdir()
+            if path.is_file() and path.suffix.casefold() in {".yml", ".yaml"}
+        )
     )
 
 
