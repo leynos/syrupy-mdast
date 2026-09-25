@@ -1,9 +1,9 @@
 # ADR-002: `main` owns CodeScene coverage publication
 
-- Status: accepted
+- Status: Accepted
 - Date: 2026-09-24
 
-## Context
+## Context and Problem Statement
 
 Coverage was measured in `ci.yml`, and the same job sent the report to
 CodeScene. Pull requests reached CodeScene too, first through a changed-line

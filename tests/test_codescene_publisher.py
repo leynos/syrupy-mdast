@@ -210,6 +210,7 @@ def test_the_token_is_refused_outside_its_two_uses(old: str, new: str) -> None:
     [
         "echo ${{ toJSON(secrets) }}",
         "echo ${{ secrets[format('CS_{0}', 'ACCESS_TOKEN')] }}",
+        "echo ${{ format('}}', toJSON(secrets)) }}",
     ],
 )
 def test_an_unnamed_secret_read_is_refused_in_the_publisher(run: str) -> None:

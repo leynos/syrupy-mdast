@@ -118,6 +118,11 @@ def test_the_closure_follows_a_chain_of_calls() -> None:
             "assembled name",
             "      - run: echo ${{ secrets[format('CS_{0}', 'ACCESS_TOKEN')] }}\n",
         ),
+        (
+            "literal closer",
+            "      - run: echo ${{ format('}}', toJSON(secrets)) }}\n",
+        ),
+        ("unterminated", "      - run: echo ${{ toJSON(secrets)\n"),
         ("client", "      - run: cs-coverage check coverage.xml\n"),
         (
             "uploader",

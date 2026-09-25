@@ -158,7 +158,7 @@ def workflow_paths() -> tuple[str, ...]:
     """
     directory = REPO_ROOT / ".github" / "workflows"
     return tuple(
-        sorted(str(path.relative_to(REPO_ROOT)) for path in directory.iterdir())
+        sorted(path.relative_to(REPO_ROOT).as_posix() for path in directory.iterdir())
     )
 
 

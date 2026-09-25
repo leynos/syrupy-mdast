@@ -11,9 +11,17 @@ when a pin moves.
 from __future__ import annotations
 
 import json
-import re
 
-from tests.support.make_contract import REPO_ROOT, mapping, workflow_paths
+import pytest
+import yaml
+
+from tests.support.make_contract import (
+    REPO_ROOT,
+    mapping,
+    objects,
+    workflow_document,
+    workflow_paths,
+)
 
 _ACTION_REVISIONS = "tests/support/approved_action_revisions.json"
 
@@ -49,12 +57,75 @@ def _workflow_uses() -> list[tuple[str, str]]:
     list[tuple[str, str]]
         Each ``uses:`` value split into its action path and revision.
     """
-    pinned = []
-    for workflow_path in workflow_paths():
-        text = (REPO_ROOT / workflow_path).read_text(encoding="utf-8")
-        for action, revision in re.findall(r"uses:\s*(\S+?)@(\S+)", text):
-            pinned.append((action, revision))
-    return pinned
+    references = [
+        reference
+        for workflow_path in workflow_paths()
+        for reference in _uses_of(workflow_document(workflow_path))
+    ]
+    return [
+        (action, revision)
+        for action, _, revision in (
+            reference.partition("@") for reference in references
+        )
+        if revision
+    ]
+
+
+def _uses_of(document: dict[str, object]) -> list[str]:
+    """Return every job-level and step-level ``uses:`` scalar in a workflow.
+
+    The parsed scalar is read, not the line, so a quoted reference is seen
+    without its quotes.
+
+    Parameters
+    ----------
+    document : dict[str, object]
+        A parsed workflow.
+
+    Returns
+    -------
+    list[str]
+        Each ``uses:`` value, as GitHub reads it.
+    """
+    jobs = mapping(document.get("jobs", {}), subject="workflow jobs")
+    holders = [
+        holder
+        for job in jobs.values()
+        if isinstance(job, dict)
+        for holder in (job, *objects(job.get("steps", []), subject="job steps"))
+    ]
+    return [str(holder["uses"]) for holder in holders if "uses" in holder]
+
+
+def _repository_pin(reference: str) -> str:
+    """Return ``owner/repository@revision`` for any action reference."""
+    path, _, revision = reference.partition("@")
+    return "/".join(path.split("/")[:2]) + "@" + revision
+
+
+def _is_retired(dependency: str, retired: dict[str, object]) -> bool:
+    """Return whether a dependency is a retired pin or a sub-action of one.
+
+    A retired entry naming a whole repository at a revision, such as
+    ``actions/cache@<sha>``, also retires the sub-actions that revision
+    ships, such as ``actions/cache/restore@<sha>``: they fail in the same
+    action preparation. An entry naming one action path retires only that
+    path.
+
+    Parameters
+    ----------
+    dependency : str
+        The nested ``uses:`` reference to judge.
+    retired : dict[str, object]
+        The fixture's retired pins.
+
+    Returns
+    -------
+    bool
+        Whether the dependency is retired.
+    """
+    whole_repositories = {pin for pin in retired if pin == _repository_pin(pin)}
+    return dependency in retired or _repository_pin(dependency) in whole_repositories
 
 
 def test_the_obsolete_codescene_revision_is_rejected() -> None:
@@ -98,6 +169,44 @@ def test_selected_revisions_carry_no_retired_nested_dependency() -> None:
         detail = mapping(releases[revision], subject=f"{action}@{revision}")
         nested = mapping(detail["nested_uses"], subject=f"{action}@{revision} uses")
         for dependency in nested:
-            assert dependency not in retired, (
+            assert not _is_retired(dependency, retired), (
                 f"{action}@{revision} reaches {dependency}, which is retired"
             )
+
+
+@pytest.mark.parametrize(
+    ("dependency", "expected"),
+    [
+        ("actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a", True),
+        ("actions/cache/restore@6849a6489940f00c2f30c0fb92c6274307ccb58a", True),
+        ("actions/cache/save@6849a6489940f00c2f30c0fb92c6274307ccb58a", True),
+        ("actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9", False),
+        (
+            (
+                "leynos/shared-actions/.github/actions/generate-coverage"
+                "@395f8e8630d431abb4a136847f1c14c4ad5a0ccc"
+            ),
+            False,
+        ),
+    ],
+)
+def test_a_retired_revision_retires_its_sub_actions(
+    dependency: str, *, expected: bool
+) -> None:
+    """A sub-action of a retired repository revision fails the same way."""
+    retired = mapping(_revision_fixture()["retired"], subject="retired pins")
+    assert _is_retired(dependency, retired) == expected, dependency
+
+
+def test_a_quoted_reference_is_read_without_its_quotes() -> None:
+    """A quoted ``uses:`` must not escape the approved-revision check."""
+    document = yaml.safe_load(
+        "jobs:\n  a:\n    steps:\n"
+        '      - uses: "leynos/shared-actions/.github/actions/x@abc"\n'
+        "  b:\n    uses: 'leynos/shared-actions/.github/workflows/y.yml@def'\n"
+    )
+    found = _uses_of(document)
+    assert found == [
+        "leynos/shared-actions/.github/actions/x@abc",
+        "leynos/shared-actions/.github/workflows/y.yml@def",
+    ], found
