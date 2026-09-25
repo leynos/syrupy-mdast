@@ -69,3 +69,21 @@ def test_a_directory_that_cannot_be_listed_is_refused(tmp_path: Path) -> None:
             read_actions(tmp_path)
     finally:
         hidden.chmod(0o700)
+
+
+@pytest.mark.skipif(
+    not hasattr(os, "geteuid") or os.geteuid() == 0,
+    reason="needs POSIX permissions and a user that is not root",
+)
+def test_an_actions_directory_that_cannot_be_checked_is_refused(
+    tmp_path: Path,
+) -> None:
+    """Only absence reads as no actions; any other failure is reported."""
+    github = tmp_path / ".github"
+    _write(tmp_path, ".github/actions/build/action.yml", ACTION)
+    github.chmod(0o600)
+    try:
+        with pytest.raises(WorkflowReadingError, match="could not be checked"):
+            read_actions(tmp_path)
+    finally:
+        github.chmod(0o700)

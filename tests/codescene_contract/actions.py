@@ -90,7 +90,7 @@ def read_actions(root: Path) -> dict[str, Document]:
 
     """
     directory = root / ".github" / "actions"
-    if not directory.exists():
+    if not _is_present(directory):
         return {}
     paths = _action_files(directory)
     keys = [path.parent.relative_to(root).as_posix() for path in paths]
@@ -98,6 +98,33 @@ def read_actions(root: Path) -> dict[str, Document]:
         key: load_file(path, load_action, key)
         for key, path in zip(keys, paths, strict=True)
     }
+
+
+def _is_present(directory: Path) -> bool:
+    """Return whether a path exists, refusing any failure but its absence.
+
+    `Path.exists` answers false for some failures other than absence, so a
+    directory that could not be checked would read as holding no actions.
+
+    Returns
+    -------
+    bool
+        False only when nothing is at the path.
+
+    Raises
+    ------
+    WorkflowReadingError
+        If the path cannot be checked for a reason other than its absence.
+
+    """
+    try:
+        directory.stat()
+    except FileNotFoundError:
+        return False
+    except OSError as error:
+        message = f"{directory} could not be checked: {error}"
+        raise WorkflowReadingError(message) from error
+    return True
 
 
 def _action_files(directory: Path) -> list[Path]:

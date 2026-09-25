@@ -174,7 +174,25 @@ def read_workflows(directory: Path) -> dict[str, Document]:
 
 
 def entries(directory: Path) -> list[Path]:
-    """List one directory in name order, naming it in any I/O failure."""
+    """List one directory in name order, naming it in any I/O failure.
+
+    Parameters
+    ----------
+    directory : Path
+        The directory to list.
+
+    Returns
+    -------
+    list[Path]
+        The directory's entries, sorted by path.
+
+    Raises
+    ------
+    WorkflowReadingError
+        If the directory cannot be listed, naming it, with the I/O error as
+        the cause.
+
+    """
     try:
         return sorted(directory.iterdir())
     except OSError as error:
