@@ -2,17 +2,39 @@ version: 2
 updates:
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
-    directory: "/"
+    # Batch every minor and patch action bump into one pull request. Separate
+    # bumps all edit the same workflow files, so the first to merge leaves the
+    # remaining pull requests out of date and they stall awaiting manual
+    # rebases. Majors stay ungrouped so each can be reviewed on its own.
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+    # `/` only reaches `.github/workflows` and the root action manifest, so the
+    # composite actions under `.github/actions` need their own glob.
+    directories:
+      - "/"
+      - "/.github/actions/*"
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "github-actions"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # Enable version updates for Python (pip / requirements*.txt)
   - package-ecosystem: "pip"
     directory: "/"
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
