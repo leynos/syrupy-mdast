@@ -240,6 +240,9 @@ waiting on a check that can never be produced.
   manual re-run of an older run keeps its SHA and its run id: it republishes
   that commit's coverage to CodeScene, but replaces no ratchet baseline unless
   the original run saved none.
+- With no `CS_ACCESS_TOKEN` secret, as on a fork or before the owner provisions
+  one, the check step answers `false` and the upload is skipped; the run shows
+  the upload step as skipped rather than failing `main`.
 - Merges made by the Dependabot automerge workflow with `GITHUB_TOKEN` fire no
   push, so they reach the publisher only through a later push or a dispatch.
 - A dispatch that replaces a pending push uploads the same or a newer commit.
