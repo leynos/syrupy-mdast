@@ -34,17 +34,16 @@ WITH_ACT ?= 0
 ACT_TEST_ENV = $(if $(filter 1 true yes on,$(WITH_ACT)),RUN_ACT_VALIDATION=1,)
 PYTEST_XDIST_WORKERS ?= auto
 PYTHON_TARGETS ?= syrupy_mdast tests
-PYLINT_PYTHON ?= pypy
+PYLINT_PYTHON ?= pypy@3.12
+PYLINT_VERSION ?= 4.0.9
 PYLINT_TARGETS ?= $(PYTHON_TARGETS)
-PYLINT_PYPY_SHIM_REF ?= 726d09f968b4d729ee4b29c71fc732e744854f3b
-PYLINT_PYPY_SHIM = git+https://github.com/leynos/pylint-pypy-shim.git@$(PYLINT_PYPY_SHIM_REF)
 # The PyPy-backed pass runs the classic Pylint messages only; plugins are
 # disabled because df12-python-lints requires CPython semantics.
-PYLINT = $(UV_ENV) $(UV) tool run --python $(PYLINT_PYTHON) --from '$(PYLINT_PYPY_SHIM)' pylint-pypy --load-plugins=
+PYLINT = $(UV_ENV) $(UV) tool run --managed-python --python $(PYLINT_PYTHON) --from 'pylint==$(PYLINT_VERSION)' pylint --load-plugins=
 DF12_PYTHON_LINTS_REF ?= v0.3.0
 DF12_PYTHON_LINTS = git+https://github.com/leynos/df12-python-lints.git@$(DF12_PYTHON_LINTS_REF)
 # df12-python-lints runs under CPython so the plugin sees full CPython AST
-# semantics; the PyPy shim above covers only the classic messages.
+# semantics; the PyPy pass above covers only the classic messages.
 DF12_PYTHON ?= 3.14
 # C9112 (redundant-future-annotations) is omitted deliberately: it targets a
 # 3.14+ baseline, while this project keeps `from __future__ import

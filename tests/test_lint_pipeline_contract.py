@@ -76,11 +76,12 @@ _PYLINT_TOKENS: typ.Final = (
     "$(UV)",
     "tool",
     "run",
+    "--managed-python",
     "--python",
     "$(PYLINT_PYTHON)",
     "--from",
-    "$(PYLINT_PYPY_SHIM)",
-    "pylint-pypy",
+    "pylint==$(PYLINT_VERSION)",
+    "pylint",
     "--load-plugins=",
 )
 
@@ -117,7 +118,34 @@ def test_df12_pylint_pass_loads_the_plugin_with_its_message_set() -> None:
 def test_pypy_pylint_pass_runs_without_plugins() -> None:
     """The PyPy-backed pass must disable plugins, which need CPython."""
     assert variable_tokens("PYLINT") == _PYLINT_TOKENS, (
-        "PyPy Pylint contract must run the shim with plugins disabled"
+        "PyPy Pylint contract must run the pinned Pylint with plugins disabled"
+    )
+
+
+def test_pypy_pylint_pass_pins_the_interpreter_minor_version() -> None:
+    """The PyPy pass must name the PyPy minor version it parses with.
+
+    A bare `pypy` follows whatever uv resolves next, which changed the parsed
+    grammar underneath the gate with no commit in this repository.
+    """
+    assert variable_tokens("PYLINT_PYTHON") == ("pypy@3.12",), (
+        "PYLINT_PYTHON must pin PyPy to its minor version"
+    )
+
+
+def test_pylint_reports_unparseable_modules() -> None:
+    """The Pylint pass must fail on a module its interpreter cannot parse.
+
+    Disabling `syntax-error` let every module the managed PyPy could not parse
+    pass with no messages at all, so those modules were never linted.
+    """
+    pyproject = tomllib.loads(
+        (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    )
+    disabled = pyproject["tool"]["pylint"]["messages control"]["disable"]
+    assert "syntax-error" not in disabled, (
+        "pyproject.toml must not disable syntax-error: a module PyPy cannot "
+        f"parse would then be skipped silently; disable={disabled!r}"
     )
 
 

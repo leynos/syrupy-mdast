@@ -220,9 +220,6 @@ max-positional-arguments = 4
 # Keep this Pylint pass focused on the explicitly selected messages.
 disable = [
     "all",
-    # Managed PyPy can lag the requested CPython syntax; keep the
-    # PyPy-backed pass useful on files it can parse.
-    "syntax-error",
 ]
 enable = [
     # Catch invalid %-style specifiers before log calls reach production.
