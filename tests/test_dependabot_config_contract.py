@@ -80,16 +80,18 @@ def _directory_pattern_matches(pattern: str, directory: str) -> bool:
 
     ``*`` matches within one path segment and ``**`` spans segments, so
     ``/.github/actions/*`` covers ``/.github/actions/lint`` but not
-    ``/.github/actions/release/sign``.
+    ``/.github/actions/release/sign``. ``**/`` also matches zero levels, as
+    Dependabot's does, so ``/.github/actions/**/*`` covers both.
 
     Returns
     -------
     bool
         Whether ``pattern`` covers ``directory``.
     """
+    tokens = {"**/": "(?:.*/)?", "**": ".*", "*": "[^/]*"}
     regex = "".join(
-        ".*" if part == "**" else "[^/]*" if part == "*" else re.escape(part)
-        for part in re.split(r"(\*\*|\*)", pattern)
+        tokens.get(part, re.escape(part))
+        for part in re.split(r"(\*\*/|\*\*|\*)", pattern)
     )
     return re.fullmatch(regex, directory) is not None
 
@@ -172,6 +174,8 @@ def test_every_update_block_batches_minor_and_patch_updates_only(
         ("/.github/actions/*", "/.github/actions/lint", True),
         ("/.github/actions/*", "/.github/actions/release/sign", False),
         ("/.github/actions/**", "/.github/actions/release/sign", True),
+        ("/.github/actions/**/*", "/.github/actions/lint", True),
+        ("/.github/actions/**/*", "/.github/actions/release/sign", True),
         ("/.github/actions/lint", "/.github/actions/lint", True),
         ("/.github/actions/lint", "/.github/actions/lints", False),
     ],
