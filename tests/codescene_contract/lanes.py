@@ -9,6 +9,7 @@ commit difference, and a number comes out either way.
 
 from __future__ import annotations
 
+import re
 import typing as typ
 
 from .closure import reachable
@@ -177,10 +178,19 @@ def _selection(step: dict[str, object]) -> dict[str, object]:
     return {"with": inputs, "env": step.get("env")}
 
 
+#: An explicit interpreter version, such as `3.13` or `3.13.5`. uv also
+#: accepts `3` or `>=3.12`, but those still take the newest match on the
+#: runner, which is the drift this pin exists to stop.
+_BOUNDED_PYTHON: typ.Final[re.Pattern[str]] = re.compile(r"\d+\.\d+(?:\.\d+)?")
+
+
 def _pins_interpreter(step: dict[str, object]) -> bool:
-    """Return whether a coverage step's `env` names its Python interpreter."""
-    env = step.get("env")
-    return isinstance(env, dict) and bool(str(env.get("UV_PYTHON", "")).strip())
+    """Return whether a coverage step's `env` pins one Python version."""
+    match step.get("env"):
+        case {"UV_PYTHON": str() as version}:
+            return _BOUNDED_PYTHON.fullmatch(version) is not None
+        case _:
+            return False
 
 
 def publisher_lane_violations(

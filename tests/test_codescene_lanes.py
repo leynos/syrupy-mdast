@@ -177,3 +177,22 @@ def test_the_publisher_pins_its_interpreter() -> None:
     found = publisher_lane_violations(documents["coverage-main.yml"], closure)
     assert len(found) == 1, found
     assert "UV_PYTHON" in found[0], found
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["null", "'3'", "'>=3.12'", "3.13", "''"],
+)
+def test_an_unbounded_or_missing_interpreter_pin_is_refused(value: str) -> None:
+    """Only an explicit version stops the venv taking the newest Python."""
+    texts = {
+        name: text.replace("UV_PYTHON: '3.13'", f"UV_PYTHON: {value}")
+        for name, text in mutate(
+            "ci.yml", "UV_PYTHON: '3.13'", f"UV_PYTHON: {value}"
+        ).items()
+    }
+    documents = _documents(texts)
+    closure = {"ci.yml": documents["ci.yml"]}
+    found = publisher_lane_violations(documents["coverage-main.yml"], closure)
+    assert len(found) == 1, found
+    assert "UV_PYTHON" in found[0], found
