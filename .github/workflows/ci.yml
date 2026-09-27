@@ -11,9 +11,13 @@ permissions:
 jobs:
   lint-test:
     runs-on: ubuntu-latest
+    # Read-only: every tool this job runs (checkout, mbake, makeutil, uv, the
+    # linters) either needs no repository write or authenticates with its own
+    # token. Pinning the token stops a compromised step from
+    # inheriting write access it never uses.
+    permissions:
+      contents: read
     env:
-      CS_ACCESS_TOKEN: ${{ secrets.CS_ACCESS_TOKEN }}
-      CODESCENE_CLI_SHA256: ${{ vars.CODESCENE_CLI_SHA256 }}
       # Pin ruff and ty to the versions declared in the Makefile
       # (RUFF_VERSION/TY_VERSION) and pyproject.toml. Make reads these
       # environment variables, so CI and local runs invoke identical tool
@@ -91,37 +95,23 @@ jobs:
       - name: Audit dependencies
         run: make audit
 
+      # The only test execution on this lane: measuring and testing in one
+      # instrumented run costs one compile instead of two. `with-ratchet` fails
+      # the run when total line coverage falls below the baseline
+      # coverage-main.yml saves on main, so the pull-request coverage decision
+      # is that local ratchet rather than a CodeScene check. On a push to main
+      # this step is skipped: coverage-main.yml measures main and is the one
+      # baseline writer and the one CodeScene publisher. Pull requests never
+      # contact CodeScene. tests/test_codescene_repository.py holds the shape.
       - name: Test and Measure Coverage
-        uses: leynos/shared-actions/.github/actions/generate-coverage@296dc4aa07acf3a7f60a54fb6bccb5672a597479
+        if: github.event_name == 'pull_request'
+        uses: leynos/shared-actions/.github/actions/generate-coverage@dbe2e22ceaf498d85512679ccded38be9dbe7777
         with:
           output-path: coverage.xml
           format: cobertura
           artefact-name-suffix: syrupy-mdast
-          
-
-      - name: Install CodeScene Coverage CLI
-        if: env.CS_ACCESS_TOKEN != ''
-        run: |
-          curl -fsSL --output install-cs-coverage-tool.sh \
-            https://downloads.codescene.io/enterprise/cli/install-cs-coverage-tool.sh
-          if [ -n "${CODESCENE_CLI_SHA256:-}" ]; then
-            echo "${CODESCENE_CLI_SHA256}  install-cs-coverage-tool.sh" | sha256sum -c -
-          else
-            echo "::notice::CODESCENE_CLI_SHA256 is not set; skipping installer checksum verification"
-          fi
-          bash install-cs-coverage-tool.sh -y
-
-      - name: Upload coverage to CodeScene
-        if: env.CS_ACCESS_TOKEN != ''
-        run: |
-          if [ ! -f coverage.xml ]; then
-            echo "coverage.xml not found!"
-            exit 1
-          fi
-          cs-coverage upload \
-            --format "cobertura" \
-            --metric "line-coverage" \
-            coverage.xml
+          with-ratchet: 'true'
+          publish-artefact: 'false'
 
   compatibility-matrix:
     name: py${{ matrix.python-version }} / syrupy ${{ matrix.syrupy-version }}
