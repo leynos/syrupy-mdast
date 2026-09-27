@@ -157,12 +157,30 @@ def second_writer_violations(
 
 
 def _selection(step: dict[str, object]) -> dict[str, object]:
-    """Return the inputs that decide what a coverage run measures."""
-    return {
+    """Return the inputs and environment that decide what a run measures.
+
+    The step's `env` counts as well as its inputs: the action builds its
+    venv with whatever interpreter the environment selects, and two
+    interpreters count lines differently.
+
+    Returns
+    -------
+    dict[str, object]
+        The step's measuring inputs, under `with`, and its `env`.
+
+    """
+    inputs = {
         key: value
         for key, value in _inputs(step).items()
         if key not in LANE_LOCAL_INPUTS
     }
+    return {"with": inputs, "env": step.get("env")}
+
+
+def _pins_interpreter(step: dict[str, object]) -> bool:
+    """Return whether a coverage step's `env` names its Python interpreter."""
+    env = step.get("env")
+    return isinstance(env, dict) and bool(str(env.get("UV_PYTHON", "")).strip())
 
 
 def publisher_lane_violations(
@@ -172,7 +190,10 @@ def publisher_lane_violations(
 
     The publisher's generator, its uploader and every pull-request
     generator share one commit pin, so the lanes measure with the same
-    action that writes their baseline.
+    action that writes their baseline. Each generator also carries the same
+    `env`, which must pin the interpreter through `UV_PYTHON`: a baseline
+    measured under one Python and a lane measured under another differ by
+    the lines each counts, not by the tests.
 
     Parameters
     ----------
@@ -196,6 +217,12 @@ def publisher_lane_violations(
         if _is_true(_inputs(baseline).get("with-ratchet"))
         else ["the publisher's generate-coverage must set with-ratchet: 'true'"]
     )
+    if not _pins_interpreter(baseline):
+        found.append(
+            "the publisher's generate-coverage must pin its interpreter with "
+            "env UV_PYTHON; the action's venv otherwise takes the newest Python "
+            "on the runner"
+        )
     pins = {pin_of(baseline), pin_of(upload_step(publisher))}
     for name, document in sorted(closure.items()):
         for step in action_steps(document, COVERAGE_ACTION):

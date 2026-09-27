@@ -144,3 +144,36 @@ def test_the_publisher_measures_what_each_lane_measures(
     closure = {"ci.yml": documents["ci.yml"]}
     found = publisher_lane_violations(documents["coverage-main.yml"], closure)
     assert found, found
+
+
+#: The interpreter pin both coverage steps carry in the fixture tree.
+PIN_ENV = "        env:\n          UV_PYTHON: '3.13'\n"
+
+
+@pytest.mark.parametrize(
+    ("old", "new"),
+    [
+        (PIN_ENV, ""),
+        ("UV_PYTHON: '3.13'", "UV_PYTHON: '3.14'"),
+        ("UV_PYTHON: '3.13'", "UV_PYTHON: '3.13'\n          EXTRA: 'x'"),
+    ],
+)
+def test_a_lane_measures_under_the_publishers_interpreter(old: str, new: str) -> None:
+    """A lane measuring under another Python counts lines differently."""
+    documents = _documents(mutate("ci.yml", old, new))
+    closure = {"ci.yml": documents["ci.yml"]}
+    found = publisher_lane_violations(documents["coverage-main.yml"], closure)
+    assert found == ["ci.yml: coverage selection differs from the publisher's"], found
+
+
+def test_the_publisher_pins_its_interpreter() -> None:
+    """Unpinned on both sides, the venv takes the newest Python on the runner."""
+    texts = {
+        name: text.replace(PIN_ENV, "")
+        for name, text in mutate("ci.yml", PIN_ENV, "").items()
+    }
+    documents = _documents(texts)
+    closure = {"ci.yml": documents["ci.yml"]}
+    found = publisher_lane_violations(documents["coverage-main.yml"], closure)
+    assert len(found) == 1, found
+    assert "UV_PYTHON" in found[0], found

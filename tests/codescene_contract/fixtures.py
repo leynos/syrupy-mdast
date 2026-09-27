@@ -47,6 +47,8 @@ PULL_REQUEST_LANE: typ.Final[str] = textwrap.dedent(f"""\
           - uses: actions/checkout@v4
           - name: Test and Measure Coverage
             if: github.event_name == 'pull_request'
+            env:
+              UV_PYTHON: '3.13'
             uses: {SHARED}/generate-coverage@{PIN}
             with:
               output-path: coverage.xml
@@ -71,6 +73,8 @@ PUBLISHER: typ.Final[str] = textwrap.dedent(f"""\
         steps:
           - uses: actions/checkout@v4
           - name: Generate coverage
+            env:
+              UV_PYTHON: '3.13'
             uses: {SHARED}/generate-coverage@{PIN}
             with:
               output-path: coverage.xml
