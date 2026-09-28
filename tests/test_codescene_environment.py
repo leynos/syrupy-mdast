@@ -17,10 +17,11 @@ from tests.codescene_contract.environment import (
     MISSING,
     REACHABLE,
     STRAY,
-    UPLOAD_ACTION,
+    UNRESOLVED,
     environment_violations,
 )
 from tests.codescene_contract.loading import Document, read_workflows
+from tests.codescene_contract.publisher import UPLOAD_ACTION
 from tests.codescene_contract.reading import jobs
 
 REPOSITORY: typ.Final[str] = "leynos/syrupy-mdast"
@@ -91,19 +92,43 @@ def test_mapping_form_is_accepted(documents: dict[str, Document]) -> None:
     assert not found, f"the mapping form must be accepted, got {found}"
 
 
-def test_no_other_job_may_declare_it(documents: dict[str, Document]) -> None:
-    """A second holder of the token widens what can read it."""
+@pytest.mark.parametrize("name", ["codescene", "CodeScene"])
+def test_no_other_job_may_declare_it(documents: dict[str, Document], name: str) -> None:
+    """A second holder of the token widens what can read it, in any case."""
+    jobs(documents[PUBLISHER])["other"] = {
+        "runs-on": "ubuntu-latest",
+        "environment": name,
+        "steps": [{"run": "true"}],
+    }
+    _reports(documents, f"{PUBLISHER}:other {STRAY}")
+
+
+def test_a_look_alike_action_is_not_the_uploader(
+    documents: dict[str, Document],
+) -> None:
+    """Only the shared uploader's exact path earns the environment."""
     jobs(documents[PUBLISHER])["other"] = {
         "runs-on": "ubuntu-latest",
         "environment": "codescene",
-        "steps": [{"run": "true"}],
+        "steps": [{"uses": f"{UPLOAD_ACTION}-check@v1"}],
     }
-    _reports(documents, STRAY)
+    _reports(documents, f"{PUBLISHER}:other {STRAY}")
 
 
-def test_no_pull_request_job_may_declare_it(documents: dict[str, Document]) -> None:
+def test_an_expression_named_environment_is_refused(
+    documents: dict[str, Document],
+) -> None:
+    """A computed name may resolve to `codescene`, so it cannot be placed."""
+    _first_job(documents, LANE)["environment"] = {"name": "${{ 'codescene' }}"}
+    _reports(documents, f"{LANE}:{next(iter(jobs(documents[LANE])))} {UNRESOLVED}")
+
+
+@pytest.mark.parametrize("name", ["codescene", "CodeScene"])
+def test_no_pull_request_job_may_declare_it(
+    documents: dict[str, Document], name: str
+) -> None:
     """A pull request's own code must never be able to request the token."""
-    _first_job(documents, LANE)["environment"] = {"name": "codescene"}
+    _first_job(documents, LANE)["environment"] = {"name": name}
     _reports(documents, REACHABLE)
 
 

@@ -35,9 +35,12 @@ token is also a lane that a pull request's workflow edit could try to reach.
 - Drop CodeScene coverage altogether. Rejected: the trunk figure is still
   wanted, and the ratchet needs a baseline written on `main` anyway.
 - Protect the publisher with a deployment environment restricted to `main`.
-  Deferred to the repository owner, because it is a settings change. The ref
-  guard on the upload stops a dispatch of the unedited publisher from a branch;
-  it cannot stop a writer who edits and dispatches a branch's copy.
+  Deferred to the repository owner at first, because it is a settings change.
+  The ref guard on the upload stops a dispatch of the unedited publisher from a
+  branch; it cannot stop a writer who edits and dispatches a branch's copy.
+  Since adopted as an addition to this decision: the owner created the
+  `codescene` environment with a `main`-only deployment policy, the publisher's
+  job declares it, and the token moves into it. See the developers' guide.
 
 ## Decision
 
