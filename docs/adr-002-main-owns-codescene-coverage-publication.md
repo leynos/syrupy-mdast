@@ -40,7 +40,9 @@ token is also a lane that a pull request's workflow edit could try to reach.
   branch; it cannot stop a writer who edits and dispatches a branch's copy.
   Since adopted as an addition to this decision: the owner created the
   `codescene` environment with a `main`-only deployment policy, the publisher's
-  job declares it, and the token moves into it. See the developers' guide.
+  job declares it, and the token is to move into it. That move is pending:
+  until it happens the token remains a repository secret, and the environment
+  protects nothing. See the developers' guide.
 
 ## Decision
 
