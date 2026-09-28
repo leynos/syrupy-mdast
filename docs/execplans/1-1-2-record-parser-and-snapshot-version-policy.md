@@ -157,9 +157,9 @@ escalate when any of these is reached.
 3. Risk: the ratified behaviour includes a Wenmode divergence from the GFM
    specification (Surprise 5, NF-7). A future Wenmode fix changes payloads.
    Severity: medium. Likelihood: medium. Mitigation: NF-7 freezes the observed
-   behaviour and classifies an upstream fix as a payload change. A draft
-   upstream report is prepared; filing it publishes to an external service and
-   needs maintainer authorization (DEC-19, question 3).
+   behaviour and classifies an upstream fix as a payload change. No upstream
+   report is filed: the maintainer judged the divergence irrelevant to the
+   implementation (DEC-19, answer 3).
 4. Risk: formatter ping-pong. `.mdast.json` invites JSON formatters (Prettier,
    Biome, the `pretty-format-json` pre-commit hook, which sorts keys) to
    rewrite snapshots, after which every assertion fails and every update is
@@ -213,7 +213,9 @@ escalate when any of these is reached.
 - [x] (2026-09-27) ExecPlan drafted (commit `6ad7108`).
 - [x] (2026-09-27) Expert-panel design review (four agents, six lenses); plan
   revised (DEC-18).
-- [ ] Maintainer approval of this ExecPlan, with answers to DEC-19.
+- [x] (2026-09-28) Maintainer answered DEC-19: merge plain text nodes (yes),
+  no payload version marker (yes), no upstream report (no).
+- [ ] Maintainer approval of this ExecPlan.
 - [ ] EP-M1: ADR-003 drafted as `Proposed` and indexed (pull request A).
 - [ ] EP-M2: ADR-003 accepted; pull request A merged.
 - [ ] EP-M3: guard tests red, then design, roadmap, and guides reconciled
@@ -353,10 +355,9 @@ escalate when any of these is reached.
   1. `remove-position` — delete every member named `position`;
   2. `remove-empty-data` — delete a `data` member whose value is an empty
      mapping;
-  3. `merge-plain-text` — only if DEC-19 question 1 adopts DEC-7's
-     recommendation: replace each run of adjacent sibling nodes whose members
-     are exactly `type` (equal to `"text"`) and `value` with one such node
-     whose `value` is the concatenation;
+  3. `merge-plain-text` — replace each run of adjacent sibling nodes whose
+     members are exactly `type` (equal to `"text"`) and `value` with one such
+     node whose `value` is the concatenation (DEC-7);
   4. `normalize-line-endings` — replace CRLF, then bare CR, with LF in every
      string value (not in member names);
   5. `order-members` — emit members in the manifest's `key-order`, then the
@@ -370,7 +371,7 @@ escalate when any of these is reached.
   probe shows these 17 names cover every member Wenmode emits across all 22
   GitHub-profile node types (NF-12); rule 3 must precede rule 4 (Surprise 12).
   Date/Author: 2026-09-27, planning agent, revised after panel review.
-- DEC-7. Decision (recommended; maintainer decides, DEC-19 question 1): adopt
+- DEC-7. Decision (accepted by the maintainer on 2026-09-28, DEC-19): adopt
   `merge-plain-text`, so `a & b` and `a &amp; b`, and `a*b` and `a\*b`, compare
   equal. Rationale: `mdast-util-from-markdown` merges adjacent text data, so
   splitting is a Wenmode tokenization artefact rather than mdast structure;
@@ -380,9 +381,10 @@ escalate when any of these is reached.
   cannot equate nodes that render differently; and adding the rule later would
   be a contract change touching every snapshot with an entity or escape. The
   alternative (retain segmentation) is the more literal reading of design §8's
-  "only these transformations" and is recorded as ADR option F. Date/Author:
-  2026-09-27, planning agent, reversed after panel review.
-- DEC-8. Decision (recommended; maintainer decides, DEC-19 question 2): the
+  "only these transformations" and is recorded as rejected ADR option F.
+  Date/Author: 2026-09-27, planning agent, reversed after panel review;
+  confirmed by the maintainer 2026-09-28.
+- DEC-8. Decision (accepted by the maintainer on 2026-09-28, DEC-19): the
   payload carries no version marker and the suffix stays `.mdast.json`. Payload
   changes surface as ordinary Syrupy diffs of the affected snapshots, explained
   by release notes; the users' guide maps package versions to contract
@@ -393,7 +395,8 @@ escalate when any of these is reached.
   itself a payload change. Rationale: design §8's payload is the canonical tree
   alone, and B to D force every snapshot to change at every bump, which is the
   broad-update noise design §1 exists to remove. Date/Author: 2026-09-27,
-  planning agent, option E added after panel review.
+  planning agent, option E added after panel review; confirmed by the
+  maintainer 2026-09-28.
 - DEC-9. Decision: the snapshot-version policy is keyed on **any change to any
   payload**, whatever its cause: contract change, canonicalizer conformance
   fix, or non-neutral Wenmode move.
@@ -514,16 +517,18 @@ escalate when any of these is reached.
   version file (Syrupy's snapshot-directory walk may report it as unused;
   unverified and unnecessary under DEC-8); escaping C1 and bidirectional
   controls (DEC-17). Date/Author: 2026-09-27, planning agent.
-- DEC-19. Decision: questions the maintainer answers when approving this plan,
-  so that the ADR is drafted with its direction settled:
-  1. Adopt `merge-plain-text` (DEC-7, recommended), or retain Wenmode's text
-     segmentation?
-  2. No payload version marker (DEC-8 option A, recommended), or one of B to E?
-  3. May the draft upstream report on the GFM tag-filter divergence
-     (`Artefacts and notes`) be filed on `lepture/wenmode`, and by whom?
-  If question 1 is answered "retain", drop `merge-plain-text` from the
-  manifest, invert NF-11, and record option F as chosen. Date/Author:
-  2026-09-27, planning agent.
+- DEC-19. Decision: the maintainer settled the three questions put at plan
+  review, so the ADR is drafted with its direction fixed and no outstanding
+  decisions:
+  1. Adopt `merge-plain-text` (DEC-7)? Answer: yes.
+  2. No payload version marker (DEC-8 option A)? Answer: yes.
+  3. File an upstream report on the GFM tag-filter divergence (Surprise 5)?
+     Answer: no; not a relevant concern to the implementation. NF-7 still
+     records the divergence as ratified behaviour, and an upstream change to
+     it remains a payload change under DEC-9, but no report is drafted or
+     filed.
+  Date/Author: questions 2026-09-27, planning agent; answers 2026-09-28,
+  maintainer (pull request #58 conversation).
 
 ## Outcomes & retrospective
 
@@ -640,7 +645,7 @@ design at EP-M3:
 1. DEC-5: preset factory call in place of design §7's uncalled preset.
 2. DEC-6: exact rule order and key order fixed in the ADR rather than left to
    an implementation constant.
-3. DEC-7 (if adopted): a fifth normalization rule, `merge-plain-text`, beyond
+3. DEC-7: a fifth normalization rule, `merge-plain-text`, beyond
    design §8's "only these transformations".
 4. DEC-9: design §13's "Major releases may change the Wenmode version" is
    replaced by the payload-change rule (a payload-neutral pin move may ship in
@@ -758,9 +763,9 @@ start of EP-M3 for the design links; green after.
 **DOC-6: the design's JSON examples obey the contract.** Statement: every fenced
 `json` block in design §8 and in the ADR's normative fixture decisions, when
 parsed, re-serialized with the manifest's `json-writer` settings, equals its
-own text (a fixed point); every mapping in it follows `key-order`; and, if
-`merge-plain-text` is adopted, no list in it holds two adjacent plain text
-nodes. Method: explicit test with the standard library. Artefact:
+own text (a fixed point); every mapping in it follows `key-order`; and no list
+in it holds two adjacent plain text nodes (`merge-plain-text`). Method:
+explicit test with the standard library. Artefact:
 `test_design_json_examples_are_writer_fixed_points`. Rationale: the design's
 examples are the first thing an implementer copies; this is the only place in
 this task where the contract can be executed. Non-vacuity: assert at least one
@@ -866,10 +871,9 @@ complete the retrospective, set this plan to `COMPLETE`.
      compatibility and on-disk line terminators.
   9. `## Migration plan`: numbered phases mapping to roadmap 1.1.3, 1.2.1,
      1.2.2, 1.2.3, 2.1.2, 2.2.1, 2.3.1, and 3.2.1, as in DEC-3.
-  10. `## Known risks and limitations`: Risks 1 to 8, text-segmentation or
-      merge consequences, and DEC-17.
-  11. `## Outstanding decisions`: only DEC-19 question 3 if still open;
-      otherwise "None."
+  10. `## Known risks and limitations`: Risks 1 to 8, the consequences of
+      `merge-plain-text`, and DEC-17.
+  11. `## Outstanding decisions`: "None." (DEC-19 settled every question.)
 - Acceptance evidence: Constraint 10's full gate sequence passes; each heading
   is checked against the template by eye; EV-1 re-run matches.
 - Conformance check: design sections cited; only the ADR, `docs/contents.md`,
@@ -911,13 +915,17 @@ complete the retrospective, set this plan to `COMPLETE`.
   pass against the accepted ADR and the current design; that is expected, and
   their negative controls are the UNIT examples.
 - Green: implement the helpers; then edit:
-  1. `docs/syrupy-mdast-design.md`: §7's code block and prose use `github()`;
-     §§4, 7, 8, 11, and 13 cite ADR-003; §8 refers to the ADR for the rule
-     order and key order and adds the `null`-element rule and (if adopted) the
-     merge rule; §11 names ADR-003 as the required record; §13 adopts DEC-9;
-     §15 adds the GFM divergence, formatter, and Windows risks; the references
-     gain Wenmode's node-model and changelog pages and the GFM specification;
-     "Last updated" moves to the reconciliation date.
+  1. `docs/syrupy-mdast-design.md`:
+     - design section 7's code block and prose use `github()`;
+     - sections 4, 7, 8, 11, and 13 cite ADR-003;
+     - section 8 refers to the ADR for the rule order and key order, and adds
+       the `null`-element rule and the merge rule;
+     - section 11 names ADR-003 as the required record;
+     - section 13 adopts DEC-9;
+     - section 15 adds the GFM divergence, formatter, and Windows risks;
+     - the references gain Wenmode's node-model and changelog pages and the GFM
+       specification; and
+     - "Last updated" moves to the reconciliation date.
   2. `docs/roadmap.md`: exactly DEC-3's edits 2 to 7.
   3. `docs/users-guide.md`: a short section, `## Snapshot contract and
      upgrades`, of at most two paragraphs plus one recipe, written in the
@@ -1209,8 +1217,8 @@ print("version", version("wenmode"))
 ```
 
 The probe records Wenmode's raw output. NF-11 therefore checks that Wenmode
-splits text (Surprise 4) whichever way DEC-19 question 1 is answered; the merge
-rule, if adopted, acts in the canonicalizer, not in Wenmode.
+splits text (Surprise 4); `merge-plain-text` acts later, in the canonicalizer,
+not in Wenmode.
 
 Rule-order evidence for Surprise 12:
 
@@ -1218,14 +1226,6 @@ Rule-order evidence for Surprise 12:
 'a&#13;\nb\n' => [{"type": "paragraph", "children": [{"type": "text", "value": "a"},
                   {"type": "text", "value": "\r"}, {"type": "text", "value": "\nb"}]}]
 ```
-
-Draft upstream report (file only with maintainer authorization, DEC-19 question
-3): "With the `github` preset in 0.15.1, HTML blocks beginning `<script`,
-`<style`, or `<textarea` are emitted as `html` nodes without the disallowed-tag
-rewrite, while `<iframe>` and `<title>` blocks and inline `<script>` are
-rewritten and marked `data.escaped`. GFM 0.29-gfm §6.11 applies the tag filter
-to raw HTML blocks as well. Reproduction:
-`Parser(github()).parse('<script>x</script>\n').to_ast()`."
 
 Sources consulted (2026-09-27): Wenmode on PyPI
 (<https://pypi.org/project/wenmode/>); Wenmode's presets, security,
@@ -1242,8 +1242,7 @@ No production interface changes. No dependency changes.
 ### ADR-003 contract manifest (normative content for EP-M1)
 
 The ADR's `### Contract manifest` contains exactly this block (values fixed by
-DEC-4, DEC-5, DEC-6, and DEC-10; drop `"merge-plain-text"` if DEC-19 question 1
-is answered "retain"):
+DEC-4, DEC-5, DEC-6, DEC-7, and DEC-10):
 
 ```toml
 [snapshot-contract]
@@ -1314,9 +1313,9 @@ the same number.
   `checked`, and item order; table cell content and alignment; raw HTML
   spelling.
 - NF-11. Text segmentation: Wenmode splits text at entity references and
-  backslash escapes. Under DEC-7 (recommended), `merge-plain-text` makes
-  `a & b` equal to `a &amp; b`, and `a*b` equal to `a\*b`. If segmentation is
-  retained instead, both pairs are distinct.
+  backslash escapes; `merge-plain-text` rejoins adjacent plain text nodes, so
+  `a & b` equals `a &amp; b`, and `a*b` equals `a\*b`. A text node carrying any
+  member besides `type` and `value` is never merged.
 - NF-12. Key order and coverage: every emitted mapping's members follow the
   manifest's `key-order`, then remaining members by code point; every member
   name Wenmode emits across the 22 GitHub-profile node types is in `key-order`;
@@ -1383,3 +1382,9 @@ UNIT-3.
   Effect on remaining work: the maintainer answers DEC-19 at plan approval;
   EP-M1 drafts the ADR on pull request A; EP-M3 starts on a new branch after
   pull request A merges.
+- 2026-09-28: recorded the maintainer's DEC-19 answers. `merge-plain-text` is
+  now unconditional in DEC-6, DEC-7, the manifest, DOC-6, NF-11, and the
+  milestones; DEC-8's option A is confirmed; no upstream report is filed, so
+  the draft report text is removed and Risk 3 and EP-M1's outstanding decisions
+  are updated. Effect on remaining work: EP-M1 starts once the plan itself is
+  explicitly approved.
