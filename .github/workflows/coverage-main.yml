@@ -77,6 +77,13 @@ jobs:
         run: make build
 
       - name: Generate coverage
+        # generate-coverage builds its own venv with `uv venv`, which takes the
+        # newest Python uv can find. `make lint` downloads CPython 3.14 for its
+        # tools, so without this pin the pull-request lane measured under 3.14
+        # while the publisher measured under 3.13, and the two count lines
+        # differently. Both lanes pin one interpreter; the contract holds it.
+        env:
+          UV_PYTHON: '3.13'
         uses: leynos/shared-actions/.github/actions/generate-coverage@dbe2e22ceaf498d85512679ccded38be9dbe7777
         with:
           output-path: coverage.xml

@@ -319,5 +319,3 @@ the v1 contract. See design §§2, 8, 12, and 15.
     isolation, teardown, and denial-of-service tests.
   - Success: in-process parsing remains the default unless an ADR demonstrates
     that hostile-input containment is a product requirement.
-
-[issue-23]: https://github.com/leynos/syrupy-mdast/issues/23

@@ -243,6 +243,13 @@ waiting on a check that can never be produced.
   holds no CodeScene step, client, host, or credential. The rule covers every
   workflow a pull request can start, including local reusable workflows and
   local composite actions those workflows run.
+- Both coverage steps set `UV_PYTHON: '3.13'` in their `env`, and the contract
+  requires the two `env` mappings to match. `generate-coverage` builds its own
+  venv with `uv venv`, which takes the newest Python uv can find. The lint step
+  downloads CPython 3.14 for its tools, so an unpinned pull-request lane
+  measured under 3.14 while the publisher measured under 3.13. The two count
+  lines differently, which put every pull request about three points below the
+  baseline with no code change.
 - The publisher's check step runs one exact command,
   `echo "available=${{ secrets.CS_ACCESS_TOKEN != '' }}" >> "$GITHUB_OUTPUT"`.
   The upload step runs only when that output is `true` and the ref is

@@ -9,6 +9,7 @@ commit difference, and a number comes out either way.
 
 from __future__ import annotations
 
+import re
 import typing as typ
 
 from .closure import reachable
@@ -157,12 +158,39 @@ def second_writer_violations(
 
 
 def _selection(step: dict[str, object]) -> dict[str, object]:
-    """Return the inputs that decide what a coverage run measures."""
-    return {
+    """Return the inputs and environment that decide what a run measures.
+
+    The step's `env` counts as well as its inputs: the action builds its
+    venv with whatever interpreter the environment selects, and two
+    interpreters count lines differently.
+
+    Returns
+    -------
+    dict[str, object]
+        The step's measuring inputs, under `with`, and its `env`.
+
+    """
+    inputs = {
         key: value
         for key, value in _inputs(step).items()
         if key not in LANE_LOCAL_INPUTS
     }
+    return {"with": inputs, "env": step.get("env")}
+
+
+#: An explicit interpreter version, such as `3.13` or `3.13.5`. uv also
+#: accepts `3` or `>=3.12`, but those still take the newest match on the
+#: runner, which is the drift this pin exists to stop.
+_BOUNDED_PYTHON: typ.Final[re.Pattern[str]] = re.compile(r"\d+\.\d+(?:\.\d+)?")
+
+
+def _pins_interpreter(step: dict[str, object]) -> bool:
+    """Return whether a coverage step's `env` pins one Python version."""
+    match step.get("env"):
+        case {"UV_PYTHON": str() as version}:
+            return _BOUNDED_PYTHON.fullmatch(version) is not None
+        case _:
+            return False
 
 
 def publisher_lane_violations(
@@ -172,7 +200,10 @@ def publisher_lane_violations(
 
     The publisher's generator, its uploader and every pull-request
     generator share one commit pin, so the lanes measure with the same
-    action that writes their baseline.
+    action that writes their baseline. Each generator also carries the same
+    `env`, which must pin the interpreter through `UV_PYTHON`: a baseline
+    measured under one Python and a lane measured under another differ by
+    the lines each counts, not by the tests.
 
     Parameters
     ----------
@@ -196,6 +227,12 @@ def publisher_lane_violations(
         if _is_true(_inputs(baseline).get("with-ratchet"))
         else ["the publisher's generate-coverage must set with-ratchet: 'true'"]
     )
+    if not _pins_interpreter(baseline):
+        found.append(
+            "the publisher's generate-coverage must pin its interpreter with "
+            "env UV_PYTHON; the action's venv otherwise takes the newest Python "
+            "on the runner"
+        )
     pins = {pin_of(baseline), pin_of(upload_step(publisher))}
     for name, document in sorted(closure.items()):
         for step in action_steps(document, COVERAGE_ACTION):
