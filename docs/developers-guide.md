@@ -267,6 +267,18 @@ waiting on a check that can never be produced.
   manual re-run of an older run keeps its SHA and its run id: it republishes
   that commit's coverage to CodeScene, but replaces no ratchet baseline unless
   the original run saved none.
+- The publisher's job declares `environment: codescene`, whose deployment
+  policy admits `main` alone. A `workflow_dispatch` aimed at a branch is
+  therefore refused for the whole job rather than running and skipping the
+  upload; dispatch the publisher on `main`. The token belongs in that
+  environment, but moving it there is a pending owner step. Until it moves,
+  `CS_ACCESS_TOKEN` is a repository secret that any workflow could read, and
+  the contracts above, not the environment, keep it out of what a pull request
+  can start. Once it moves, branch code cannot be given the token whatever a
+  workflow says. `tests/codescene_contract/environment.py` holds the placement:
+  every job invoking the uploader declares the environment, no other job does,
+  nothing a pull request can start does, names are compared without case, and a
+  name computed by an expression is refused.
 - With no `CS_ACCESS_TOKEN` secret, as on a fork or before the owner provisions
   one, the check step answers `false` and the upload is skipped; the run shows
   the upload step as skipped rather than failing `main`.
