@@ -1,1 +1,5 @@
 repository = "leynos/syrupy-mdast"
+
+# What the ratchet baseline measures: the package, not its tests.
+[selection]
+python-source = "./syrupy_mdast"

@@ -118,6 +118,7 @@ jobs:
           UV_PYTHON: '3.13'
         uses: leynos/shared-actions/.github/actions/generate-coverage@dbe2e22ceaf498d85512679ccded38be9dbe7777
         with:
+          python-source: ./syrupy_mdast
           output-path: coverage.xml
           format: cobertura
           artefact-name-suffix: syrupy-mdast
