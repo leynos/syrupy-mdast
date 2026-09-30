@@ -67,8 +67,8 @@ matching source text.
 
 - The full lint target is slower than Ruff alone, and first runs download
   PyPy, CPython 3.14, and the pinned tool environments.
-- The `makeutil` parser is a Rust toolchain dependency for the test suite,
-  pinned per workflow and installed locally with a nightly toolchain.
+- The `makeutil` parser is a binary dependency for the test suite, installed in
+  CI by the shared `install-makeutil` action and locally from its release.
 - Skylos, Ruff, ty, and the PyPy-backed Pylint pass are separate version pins
   that must be maintained (contract tests enforce the cross-site agreements).
 

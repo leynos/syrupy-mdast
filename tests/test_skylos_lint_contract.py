@@ -11,10 +11,10 @@ source text.
 
 from __future__ import annotations
 
-import shlex
 import tomllib
 import typing as typ
 
+from tests.support import makeutil_contract
 from tests.support.make_contract import (
     REPO_ROOT,
     mapping,
@@ -27,26 +27,6 @@ from tests.support.make_contract import (
     workflow_job,
 )
 
-_MAKEUTIL_ENVIRONMENT_KEYS: typ.Final = ("MAKEUTIL_REVISION", "MAKEUTIL_TOOLCHAIN")
-_MAKEUTIL_INSTALL_TOKENS: typ.Final = (
-    "rustup",
-    "toolchain",
-    "install",
-    "${MAKEUTIL_TOOLCHAIN}",
-    "--profile",
-    "minimal",
-    "RUSTFLAGS=-Zpolonius=next",
-    "cargo",
-    "+${MAKEUTIL_TOOLCHAIN}",
-    "install",
-    "--git",
-    "https://github.com/leynos/makeutil",
-    "--rev",
-    "${MAKEUTIL_REVISION}",
-    "--locked",
-    "--force",
-    "makeutil",
-)
 # The current Skylos scan reports no production false positives, so both the
 # documented whitelist and the typed entry-point rules are deliberately empty.
 # Recording a new exception must extend these sets alongside the
@@ -95,22 +75,6 @@ _SKYLOS_WHITELIST_COMMAND: typ.Final = (
     "--reason",
     "$${SKYLOS_REASON}",
 )
-
-
-def _assert_makeutil_installation(command: object, *, contract: str) -> None:
-    """Assert ``command`` installs Makeutil through the shared command shape.
-
-    The expected tokens reference ``${MAKEUTIL_TOOLCHAIN}`` and
-    ``${MAKEUTIL_REVISION}`` rather than literal values, so this asserts how
-    the parser is installed while leaving the pinned values to the job
-    environment.
-    """
-    assert isinstance(command, str), (
-        f"{contract} must provide a Makeutil installation shell command"
-    )
-    assert (
-        tuple(shlex.split(command.replace("\\\n", ""))) == _MAKEUTIL_INSTALL_TOKENS
-    ), f"{contract} must install Makeutil through the shared command shape"
 
 
 def test_lint_recipe_runs_the_production_dead_code_gate() -> None:
@@ -240,37 +204,28 @@ def test_ci_runs_the_lint_target_with_skylos() -> None:
 def test_full_suite_workflows_provision_the_makefile_parser_identically() -> None:
     """Every job running the full pytest suite must install Makeutil alike.
 
-    The contract is agreement, not a particular revision: each full-suite job
-    must declare both Makeutil pins, install through the same command shape,
-    and resolve to the same values as its sibling jobs. Bumping the parser
-    then requires updating every job together, while leaving the choice of
-    revision and toolchain free.
+    Each full-suite job installs the pinned prebuilt release through the shared
+    action, takes its default version, carries no from-source pin, and smoke-tests
+    the binary straight after installing it.
     """
-    declared: dict[str, dict[str, str]] = {}
     for workflow_path, job_name in _FULL_SUITE_WORKFLOW_JOBS:
         job = workflow_job(workflow_path, job_name)
         environment = mapping(
-            job.get("env"), subject=f"{workflow_path} Makeutil environment"
+            job.get("env", {}), subject=f"{workflow_path} {job_name} environment"
         )
-        for key in _MAKEUTIL_ENVIRONMENT_KEYS:
-            value = environment.get(key)
-            assert isinstance(value, str), (
-                f"{workflow_path} {job_name} must declare {key} as a string so "
-                "the parser install is reproducible"
+        for key in ("MAKEUTIL_REVISION", "MAKEUTIL_TOOLCHAIN"):
+            assert key not in environment, (
+                f"{workflow_path} {job_name} must not carry the from-source {key}"
             )
-            assert value, f"{workflow_path} {job_name} must declare a non-empty {key}"
-            declared.setdefault(key, {})[f"{workflow_path}:{job_name}"] = value
-
-        parser_step = sole_workflow_step(
-            workflow_path, job_name, "Install Makefile parser"
+        contract = f"{workflow_path} {job_name} Makeutil"
+        install_step = sole_workflow_step(workflow_path, job_name, "Install makeutil")
+        makeutil_contract.assert_installation(install_step, contract=contract)
+        makeutil_contract.assert_verification(
+            install_step,
+            sole_workflow_step(workflow_path, job_name, "Verify makeutil"),
+            contract=contract,
         )
-        _assert_makeutil_installation(
-            parser_step.get("run"),
-            contract=f"{workflow_path} {job_name} Makeutil-install contract",
-        )
-
-    for key, values_by_job in declared.items():
-        assert len(set(values_by_job.values())) == 1, (
-            f"every full-suite job must provision the same {key}; found "
-            f"{values_by_job!r}"
+        makeutil_contract.assert_verification_follows_install(
+            objects(job.get("steps"), subject=f"{contract} steps"),
+            contract=contract,
         )
