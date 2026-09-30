@@ -88,6 +88,8 @@ Every CI job that runs the full pytest suite installs Makeutil independently
 through that action and smoke-tests the binary in a `Verify makeutil` step;
 `tests/test_skylos_lint_contract.py` asserts the pinned action reference, the
 absence of a from-source pin, and the smoke step in each applicable workflow.
+The assertions themselves live in `tests/support/makeutil_contract.py`; bump
+the pinned action reference there and in the workflows together.
 
 Run `make audit` as the dependency vulnerability gate. It runs `pip-audit` for
 Python dependencies, and Rust-enabled projects also run `cargo audit` from the
