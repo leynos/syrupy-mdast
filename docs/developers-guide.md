@@ -273,10 +273,10 @@ waiting on a check that can never be produced.
   `CS_ACCESS_TOKEN` is a repository secret that any workflow could read, and
   the contracts above, not the environment, keep it out of what a pull request
   can start. Once it moves, branch code cannot be given the token whatever a
-  workflow says. `tests/codescene_contract/environment.py` holds the placement:
-  every job invoking the uploader declares the environment, no other job does,
-  nothing a pull request can start does, names are compared without case, and a
-  name computed by an expression is refused.
+  workflow says. The shared contract's `environment.placement` clause holds the
+  placement: every job invoking the uploader declares the environment, no other
+  job does, nothing a pull request can start does, names are compared without
+  case, and a name computed by an expression is refused.
 - With no `CS_ACCESS_TOKEN` secret, as on a fork or before the owner provisions
   one, the check step answers `false` and the upload is skipped; the run shows
   the upload step as skipped rather than failing `main`.
@@ -286,13 +286,18 @@ waiting on a check that can never be produced.
   `generate-coverage` saves the baseline only on a push, so the baseline can
   lag by more than one commit until a later push saves it.
 
-`tests/test_codescene_repository.py` holds this shape over the repository's own
-workflows and local actions, using the readers and rules in
-`tests/codescene_contract/`. The other `tests/test_codescene_*.py` files prove
-that each rule refuses the shape it exists to refuse. Each case starts from a
-compliant fixture tree and changes one thing. Workflows are read strictly: a
-duplicate key, or a workflow declaring both a quoted and an unquoted `on` key,
-is refused rather than silently resolved.
+`make test-workflow-contracts` holds this shape by running
+`cv005-contracts check`, the shared contract library in `leynos/shared-actions`
+(`packages/cv005-contracts`), from a full commit named by `CV005_CONTRACTS_REF`
+in the Makefile, and CI runs it as its own step. A fix to the rules is
+therefore a pin bump. The target needs `uv`, which fetches the Python 3.13 the
+library runs under. The repository's one parameter is its `repository` name in
+`.github/cv005.toml`. The library reads every workflow and local action a pull
+request can reach, and its own suite proves each rule refuses the shape it
+exists to refuse, so this repository keeps no copy of the readers or the
+refusal cases. Workflows are read strictly: a duplicate key, or a workflow
+declaring both a quoted and an unquoted `on` key, is refused rather than
+silently resolved.
 
 ### Why an immutable pin still needs maintenance
 

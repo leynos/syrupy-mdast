@@ -82,3 +82,13 @@ against breaching fixtures.
 
 The [developers' guide](developers-guide.md) records the publisher's shape and
 its operational exceptions.
+
+## Addendum, 2026-09-30: the contract moved to a shared library
+
+The contract that enforces this decision no longer lives in this repository.
+`make test-workflow-contracts` runs `cv005-contracts check`, the shared
+contract library in `leynos/shared-actions` (`packages/cv005-contracts`), from
+a full commit pinned in the Makefile, and `.github/cv005.toml` holds this
+repository's parameters. The clauses are unchanged, and the library's own suite
+proves each one. The paragraphs above name the repository-local copy this
+replaces.

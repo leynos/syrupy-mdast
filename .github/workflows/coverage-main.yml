@@ -7,7 +7,7 @@ name: Coverage (main)
 # baseline: caches saved on main are readable by every pull-request run,
 # so the baseline written here is the one each pull request is compared
 # against, and ci.yml's generate-coverage selection has to match the one
-# below field for field. tests/test_codescene_repository.py holds that
+# below field for field. `make test-workflow-contracts` holds that
 # shape.
 #
 # Known exceptions. Merges the Dependabot automerge workflow makes with
