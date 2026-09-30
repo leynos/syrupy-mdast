@@ -80,9 +80,9 @@ tests use it to assert Make interfaces structurally instead of matching source
 text. CI installs it with the shared `install-makeutil` action, which downloads
 a prebuilt release and checks it against a pinned digest and the release's own
 `.sha256` file. Locally, download `makeutil-x86_64-unknown-linux-musl` (or the
-`aarch64` build) from the `v0.1.1` release at
-<https://github.com/leynos/makeutil/releases>, verify it against the matching
-`.sha256` file, and put it on `PATH` as `makeutil`.
+`aarch64` build) from the release the `install-makeutil` action defaults to,
+listed at <https://github.com/leynos/makeutil/releases>, verify it against the
+matching `.sha256` file, and put it on `PATH` as `makeutil`.
 
 Every CI job that runs the full pytest suite installs Makeutil independently
 through that action and smoke-tests the binary in a `Verify makeutil` step;

@@ -7,6 +7,7 @@ place so the workflow contract that calls them stays small.
 
 from __future__ import annotations
 
+import re
 import typing as typ
 
 INSTALL_ACTION: typ.Final = (
@@ -61,6 +62,9 @@ def assert_verification(
     )
     assert '["parse"]["status"] == "complete"' in script, (
         f"{contract} must require a complete parse"
+    )
+    assert not re.search(r"\d+\.\d+\.\d+", script), (
+        f"{contract} must compare versions, never name one"
     )
 
 
