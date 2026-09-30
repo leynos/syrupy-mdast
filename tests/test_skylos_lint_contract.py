@@ -39,6 +39,7 @@ _RUNTIME_ENTRY_POINT_NAMES: typ.Final[frozenset[str]] = frozenset()
 _FULL_SUITE_WORKFLOW_JOBS: typ.Final = (
     (".github/workflows/ci.yml", "lint-test"),
     (".github/workflows/act-validation.yml", "act-validation"),
+    (".github/workflows/coverage-main.yml", "coverage-upload"),
 )
 _SKYLOS_LINT_COMMAND: typ.Final = (
     "$(SKYLOS)",
