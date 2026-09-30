@@ -20,6 +20,43 @@ _VERSION_CHECK: typ.Final = (
 )
 
 
+_EXPECTED_SCRIPT: typ.Final = (
+    "set -euo pipefail",
+    'test "$(makeutil --version)" = "makeutil ${INSTALLED_VERSION}"',
+    (
+        "makeutil parse Makefile | python3 -c "
+        "'import json, sys; "
+        'assert json.load(sys.stdin)["parse"]["status"] == "complete"\''
+    ),
+)
+
+
+def _executable_lines(script: str) -> tuple[str, ...]:
+    r"""Return the script's commands, joining continuations, dropping comments.
+
+    A check that is commented out, or sits inside a conditional, must not count
+    as a check, so the script is reduced to the lines the shell would run.
+
+    Parameters
+    ----------
+    script
+        The step's `run` text.
+
+    Returns
+    -------
+    tuple[str, ...]
+        One whitespace-normalised string per command line.
+
+    Examples
+    --------
+    >>> _executable_lines("# note\nset -e\n\nfoo \\\n  bar")
+    ('set -e', 'foo bar')
+    """
+    joined = script.replace("\\\n", " ")
+    lines = (" ".join(line.split()) for line in joined.splitlines())
+    return tuple(line for line in lines if line and not line.startswith("#"))
+
+
 def assert_installation(step: dict[str, object], *, contract: str) -> None:
     """Assert that ``step`` runs the pinned prebuilt install action, defaults only.
 
@@ -110,6 +147,10 @@ def assert_verification(
     )
     assert '["parse"]["status"] == "complete"' in script, (
         f"{contract} must require a complete parse"
+    )
+    assert _executable_lines(script) == _EXPECTED_SCRIPT, (
+        f"{contract} must run exactly the checks it names, "
+        "uncommented and unconditional"
     )
     assert not re.search(r"\d+\.\d+\.\d+", script), (
         f"{contract} must compare versions, never name one"
