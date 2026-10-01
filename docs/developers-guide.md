@@ -77,21 +77,19 @@ recipe, and the execution test guards the behaviour.
 
 `make test` requires the `makeutil` Makefile parser on `PATH`; the contract
 tests use it to assert Make interfaces structurally instead of matching source
-text. Bootstrap it locally with the same pins CI uses:
+text. CI installs it with the shared `install-makeutil` action, which downloads
+a prebuilt release and checks it against a pinned digest and the release's own
+`.sha256` file. Locally, download `makeutil-x86_64-unknown-linux-musl` (or the
+`aarch64` build) from the release the `install-makeutil` action defaults to,
+listed at <https://github.com/leynos/makeutil/releases>, verify it against the
+matching `.sha256` file, and put it on `PATH` as `makeutil`.
 
-```bash
-rustup toolchain install nightly-2026-05-28 --profile minimal
-RUSTFLAGS="-Zpolonius=next" cargo +nightly-2026-05-28 install \
-  --git https://github.com/leynos/makeutil \
-  --rev 29fc5a1634ffbaa18a773eed9dff1b2838a45d9c \
-  --locked \
-  --force \
-  makeutil
-```
-
-Every CI job that runs the full pytest suite provisions Makeutil independently
-with these pins; `tests/test_skylos_lint_contract.py` asserts the environment
-pins and installation command in each applicable workflow.
+Every CI job that runs the full pytest suite installs Makeutil independently
+through that action and smoke-tests the binary in a `Verify makeutil` step;
+`tests/test_skylos_lint_contract.py` asserts the pinned action reference, the
+absence of a from-source pin, and the smoke step in each applicable workflow.
+The assertions themselves live in `tests/support/makeutil_contract.py`; bump
+the pinned action reference there and in the workflows together.
 
 Run `make audit` as the dependency vulnerability gate. It runs `pip-audit` for
 Python dependencies, and Rust-enabled projects also run `cargo audit` from the

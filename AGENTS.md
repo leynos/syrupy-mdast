@@ -99,9 +99,8 @@
       names do not model them. Use `make skylos-allow SYMBOL=<symbol>
       REASON="<evidence>"`; `SYMBOL` and `REASON` must contain non-whitespace
       text. Never silence a finding without recording the reason.
-    - `make test` requires the pinned `makeutil` Makefile parser on `PATH`
-      for the contract tests (see the developers' guide for the bootstrap
-      command).
+    - `make test` requires the `makeutil` Makefile parser on `PATH` for the
+      contract tests (see the developers' guide for how to install it).
     - Makefile workflow changes need cover in both layers: the structural
       contracts (`tests/test_lint_pipeline_contract.py`,
       `tests/test_skylos_lint_contract.py`) assert the declared recipe, and
