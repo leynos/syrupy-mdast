@@ -2,7 +2,8 @@
 
 - Status: accepted
 - Date: 2026-08-27
-- Amendments: [2026-09-25](#amendment-2026-09-25-plain-pylint-on-pypy-312)
+- Amendments: [2026-09-25](#amendment-2026-09-25-plain-pylint-on-pypy-312),
+  [2026-09-30](#amendment-2026-09-30-prebuilt-makeutil)
 
 ## Context
 
@@ -67,8 +68,8 @@ matching source text.
 
 - The full lint target is slower than Ruff alone, and first runs download
   PyPy, CPython 3.14, and the pinned tool environments.
-- The `makeutil` parser is a binary dependency for the test suite, installed in
-  CI by the shared `install-makeutil` action and locally from its release.
+- The `makeutil` parser is a Rust toolchain dependency for the test suite,
+  pinned per workflow and installed locally with a nightly toolchain.
 - Skylos, Ruff, ty, and the PyPy-backed Pylint pass are separate version pins
   that must be maintained (contract tests enforce the cross-site agreements).
 
@@ -95,3 +96,21 @@ lint.
 
 The df12 tier (CPython `$(DF12_PYTHON)`, `df12-python-lints` plugin) is
 unchanged.
+
+## Amendment (2026-09-30): prebuilt makeutil
+
+The Negative consequence above, that `makeutil` is a Rust toolchain dependency
+pinned per workflow and built with a nightly toolchain, no longer holds. The
+source build pinned a commit that no `makeutil` branch carried, so it could be
+garbage-collected and break CI, and it cost a nightly compile on every cold run.
+
+CI now installs a prebuilt release through the shared `install-makeutil`
+action, pinned by commit and taking its default version. The action checks a
+pinned digest and the release's own `.sha256` file and owns its cache. A
+`Verify makeutil` step follows it: the binary's version must equal the version
+the action reports, and `makeutil parse Makefile` must be a complete parse.
+`tests/support/makeutil_contract.py` holds the assertions.
+
+Locally, a contributor downloads the release binary for their architecture,
+verifies it against the matching `.sha256` file and puts it on `PATH` as
+`makeutil`; no Rust toolchain is needed.
