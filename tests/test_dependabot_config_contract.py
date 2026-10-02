@@ -76,18 +76,11 @@ def _configured_directories(update: dict[str, object]) -> frozenset[str]:
 
 
 def _directory_pattern_matches(pattern: str, directory: str) -> bool:
-    """Return whether a Dependabot directory pattern covers ``directory``.
-
-    ``*`` matches within one path segment and ``**`` spans segments, so
-    ``/.github/actions/*`` covers ``/.github/actions/lint`` but not
-    ``/.github/actions/release/sign``. ``**/`` also matches zero levels, as
-    Dependabot's does, so ``/.github/actions/**/*`` covers both.
-
-    Returns
-    -------
-    bool
-        Whether ``pattern`` covers ``directory``.
-    """
+    """Return whether a Dependabot directory pattern covers ``directory``."""
+    # ``*`` matches within one path segment and ``**`` spans segments, so
+    # ``/.github/actions/*`` covers ``/.github/actions/lint`` but not
+    # ``/.github/actions/release/sign``. ``**/`` also matches zero levels, as
+    # Dependabot's does, so ``/.github/actions/**/*`` covers both.
     tokens = {"**/": "(?:.*/)?", "**": ".*", "*": "[^/]*"}
     regex = "".join(
         tokens.get(part, re.escape(part))
