@@ -291,13 +291,17 @@ waiting on a check that can never be produced.
 (`packages/cv005-contracts`), from a full commit named by `CV005_CONTRACTS_REF`
 in the Makefile, and CI runs it as its own step. A fix to the rules is
 therefore a pin bump. The target needs `uv`, which fetches the Python 3.13 the
-library runs under. The repository's one parameter is its `repository` name in
-`.github/cv005.toml`. The library reads every workflow and local action a pull
-request can reach, and its own suite proves each rule refuses the shape it
-exists to refuse, so this repository keeps no copy of the readers or the
-refusal cases. Workflows are read strictly: a duplicate key, or a workflow
-declaring both a quoted and an unquoted `on` key, is refused rather than
-silently resolved.
+library runs under. The repository's parameters are in `.github/cv005.toml`: its
+`repository` name and a `[selection]` table whose
+`python-source = "./syrupy_mdast"` is the scope both coverage lanes measure, so
+coverage covers the package and not its tests. The publisher's generator must
+carry it and every pull-request lane must match it; the ratchet baseline
+re-saves at that scope on the next push to `main`. The library reads every
+workflow and local action a pull request can reach, and its own suite proves
+each rule refuses the shape it exists to refuse, so this repository keeps no
+copy of the readers or the refusal cases. Workflows are read strictly: a
+duplicate key, or a workflow declaring both a quoted and an unquoted `on` key,
+is refused rather than silently resolved.
 
 ### Why an immutable pin still needs maintenance
 
