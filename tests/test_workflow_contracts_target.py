@@ -13,13 +13,19 @@ import re
 import subprocess  # ruff: ignore[suspicious-subprocess-import] - reads Make's rule database.
 import typing as typ
 
-from tests.support.make_contract import REPO_ROOT, make_executable, variable_tokens
+from tests.support.make_contract import (
+    REPO_ROOT,
+    make_executable,
+    sole_workflow_step,
+    variable_tokens,
+)
 from tests.support.make_recorder import invocations, run_make
 
 if typ.TYPE_CHECKING:
     from pathlib import Path
 
 _TARGET: typ.Final = "test-workflow-contracts"
+_CI_STEP: typ.Final = "Check the CV-005 contracts"
 _ENTRY_POINT: typ.Final = "cv005-contracts"
 _PIN: typ.Final = re.compile(r"^[0-9a-f]{40}$")
 
@@ -72,3 +78,14 @@ def test_make_all_includes_the_target() -> None:
     assert _TARGET in rule.removeprefix("all:").split(), (
         f"`all` must depend on {_TARGET}"
     )
+
+
+def test_ci_runs_the_target_unconditionally() -> None:
+    """The `lint-test` job must run the target as a plain, enforcing step."""
+    step = sole_workflow_step(".github/workflows/ci.yml", "lint-test", _CI_STEP)
+
+    assert step.get("run") == f"make {_TARGET}", (
+        "the CI step must run exactly `make test-workflow-contracts`"
+    )
+    for key in ("if", "continue-on-error", "shell"):
+        assert key not in step, f"the CI step must not carry `{key}`"
