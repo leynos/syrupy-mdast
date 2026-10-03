@@ -7,7 +7,7 @@ name: Coverage (main)
 # baseline: caches saved on main are readable by every pull-request run,
 # so the baseline written here is the one each pull request is compared
 # against, and ci.yml's generate-coverage selection has to match the one
-# below field for field. tests/test_codescene_repository.py holds that
+# below field for field. `make test-workflow-contracts` holds that
 # shape.
 #
 # Known exceptions. Merges the Dependabot automerge workflow makes with
@@ -94,6 +94,7 @@ jobs:
           UV_PYTHON: '3.13'
         uses: leynos/shared-actions/.github/actions/generate-coverage@dbe2e22ceaf498d85512679ccded38be9dbe7777
         with:
+          python-source: ./syrupy_mdast
           output-path: coverage.xml
           format: cobertura
           artefact-name-suffix: syrupy-mdast
