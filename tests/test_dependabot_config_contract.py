@@ -23,6 +23,8 @@ import typing as typ
 
 import pytest
 import yaml
+from hypothesis import given
+from hypothesis import strategies as st
 
 from tests.support.make_contract import REPO_ROOT, mapping, objects, text_sequence
 
@@ -179,6 +181,29 @@ def test_directory_patterns_match_like_dependabot(
     """``*`` stays within one path segment; ``**`` spans segments."""
     assert _directory_pattern_matches(pattern, directory) is expected, (
         f"{pattern!r} should {'cover' if expected else 'not cover'} {directory!r}"
+    )
+
+
+_SEGMENT = st.from_regex(r"[a-z][a-z0-9-]{0,7}", fullmatch=True)
+
+
+@given(segments=st.lists(_SEGMENT, min_size=0, max_size=8), leaf=_SEGMENT)
+def test_double_star_glob_covers_every_depth(segments: list[str], leaf: str) -> None:
+    """``/.github/actions/**/*`` covers a leaf at any depth, zero levels included."""
+    directory = "/".join(["/.github/actions", *segments, leaf])
+    assert _directory_pattern_matches("/.github/actions/**/*", directory), (
+        f"{directory!r} should be covered at depth {len(segments)}"
+    )
+
+
+@given(segments=st.lists(_SEGMENT, min_size=1, max_size=8), leaf=_SEGMENT)
+def test_single_star_glob_never_crosses_a_segment(
+    segments: list[str], leaf: str
+) -> None:
+    """``/.github/actions/*`` covers only a direct child, whatever the depth below."""
+    directory = "/".join(["/.github/actions", *segments, leaf])
+    assert not _directory_pattern_matches("/.github/actions/*", directory), (
+        f"{directory!r} is nested {len(segments)} level(s) deeper than a direct child"
     )
 
 
