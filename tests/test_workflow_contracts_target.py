@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import re
 import subprocess  # ruff: ignore[suspicious-subprocess-import] - reads Make's rule database.
+import tomllib
 import typing as typ
 
 from tests.support.make_contract import (
@@ -18,6 +19,8 @@ from tests.support.make_contract import (
     make_executable,
     sole_workflow_step,
     variable_tokens,
+    workflow_jobs,
+    workflow_steps,
 )
 from tests.support.make_recorder import invocations, run_make
 
@@ -89,3 +92,35 @@ def test_ci_runs_the_target_unconditionally() -> None:
     )
     for key in ("if", "continue-on-error", "shell"):
         assert key not in step, f"the CI step must not carry `{key}`"
+
+
+def _coverage_scopes() -> dict[str, str]:
+    """Return the `python-source` each workflow's generate-coverage step carries."""
+    scopes: dict[str, str] = {}
+    for workflow in (".github/workflows/ci.yml", ".github/workflows/coverage-main.yml"):
+        for job_name in workflow_jobs(workflow):
+            for step in workflow_steps(workflow, job_name):
+                uses = step.get("uses")
+                if isinstance(uses, str) and "/generate-coverage@" in uses:
+                    inputs = step.get("with")
+                    assert isinstance(inputs, dict), (
+                        "generate-coverage needs a with block"
+                    )
+                    scopes[f"{workflow}:{job_name}"] = str(inputs.get("python-source"))
+    return scopes
+
+
+def test_both_coverage_lanes_measure_the_package_not_its_tests() -> None:
+    """Both lanes must scope coverage to the package that `cv005.toml` names."""
+    selection = tomllib.loads(
+        (REPO_ROOT / ".github" / "cv005.toml").read_text(encoding="utf-8")
+    )["selection"]
+    package = selection["python-source"]
+    scopes = _coverage_scopes()
+
+    assert len(scopes) == 2, "the pull-request lane and the publisher each run it"
+    assert set(scopes.values()) == {package}, (
+        f"every generate-coverage step must carry python-source {package!r}: {scopes}"
+    )
+    assert (REPO_ROOT / package).is_dir(), "the scope must name a real package"
+    assert "tests" not in package, "the scope must not measure the test files"
