@@ -23,6 +23,8 @@ import typing as typ
 
 import pytest
 import yaml
+from hypothesis import given
+from hypothesis import strategies as st
 
 from tests.support.make_contract import REPO_ROOT, mapping, objects, text_sequence
 
@@ -76,20 +78,15 @@ def _configured_directories(update: dict[str, object]) -> frozenset[str]:
 
 
 def _directory_pattern_matches(pattern: str, directory: str) -> bool:
-    """Return whether a Dependabot directory pattern covers ``directory``.
-
-    ``*`` matches within one path segment and ``**`` spans segments, so
-    ``/.github/actions/*`` covers ``/.github/actions/lint`` but not
-    ``/.github/actions/release/sign``.
-
-    Returns
-    -------
-    bool
-        Whether ``pattern`` covers ``directory``.
-    """
+    """Return whether a Dependabot directory pattern covers ``directory``."""
+    # ``*`` matches within one path segment and ``**`` spans segments, so
+    # ``/.github/actions/*`` covers ``/.github/actions/lint`` but not
+    # ``/.github/actions/release/sign``. ``**/`` also matches zero levels, as
+    # Dependabot's does, so ``/.github/actions/**/*`` covers both.
+    tokens = {"**/": "(?:.*/)?", "**": ".*", "*": "[^/]*"}
     regex = "".join(
-        ".*" if part == "**" else "[^/]*" if part == "*" else re.escape(part)
-        for part in re.split(r"(\*\*|\*)", pattern)
+        tokens.get(part, re.escape(part))
+        for part in re.split(r"(\*\*/|\*\*|\*)", pattern)
     )
     return re.fullmatch(regex, directory) is not None
 
@@ -172,6 +169,8 @@ def test_every_update_block_batches_minor_and_patch_updates_only(
         ("/.github/actions/*", "/.github/actions/lint", True),
         ("/.github/actions/*", "/.github/actions/release/sign", False),
         ("/.github/actions/**", "/.github/actions/release/sign", True),
+        ("/.github/actions/**/*", "/.github/actions/lint", True),
+        ("/.github/actions/**/*", "/.github/actions/release/sign", True),
         ("/.github/actions/lint", "/.github/actions/lint", True),
         ("/.github/actions/lint", "/.github/actions/lints", False),
     ],
@@ -182,6 +181,29 @@ def test_directory_patterns_match_like_dependabot(
     """``*`` stays within one path segment; ``**`` spans segments."""
     assert _directory_pattern_matches(pattern, directory) is expected, (
         f"{pattern!r} should {'cover' if expected else 'not cover'} {directory!r}"
+    )
+
+
+_SEGMENT = st.from_regex(r"[a-z][a-z0-9-]{0,7}", fullmatch=True)
+
+
+@given(segments=st.lists(_SEGMENT, min_size=0, max_size=8), leaf=_SEGMENT)
+def test_double_star_glob_covers_every_depth(segments: list[str], leaf: str) -> None:
+    """``/.github/actions/**/*`` covers a leaf at any depth, zero levels included."""
+    directory = "/".join(["/.github/actions", *segments, leaf])
+    assert _directory_pattern_matches("/.github/actions/**/*", directory), (
+        f"{directory!r} should be covered at depth {len(segments)}"
+    )
+
+
+@given(segments=st.lists(_SEGMENT, min_size=1, max_size=8), leaf=_SEGMENT)
+def test_single_star_glob_never_crosses_a_segment(
+    segments: list[str], leaf: str
+) -> None:
+    """``/.github/actions/*`` covers only a direct child, whatever the depth below."""
+    directory = "/".join(["/.github/actions", *segments, leaf])
+    assert not _directory_pattern_matches("/.github/actions/*", directory), (
+        f"{directory!r} is nested {len(segments)} level(s) deeper than a direct child"
     )
 
 
