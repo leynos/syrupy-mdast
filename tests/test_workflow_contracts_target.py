@@ -25,6 +25,7 @@ from tests.support.make_contract import (
 from tests.support.make_recorder import invocations, run_make
 
 if typ.TYPE_CHECKING:
+    import collections.abc as cabc
     from pathlib import Path
 
 _TARGET: typ.Final = "test-workflow-contracts"
@@ -94,33 +95,54 @@ def test_ci_runs_the_target_unconditionally() -> None:
         assert key not in step, f"the CI step must not carry `{key}`"
 
 
-def _coverage_scopes() -> dict[str, str]:
+_WORKFLOWS: typ.Final = (
+    ".github/workflows/ci.yml",
+    ".github/workflows/coverage-main.yml",
+)
+_PACKAGE: typ.Final = "syrupy_mdast"
+
+
+def _coverage_steps(workflow: str) -> cabc.Iterator[tuple[str, dict[str, object]]]:
+    """Yield `(job name, step)` for each generate-coverage step of a workflow."""
+    for job_name in workflow_jobs(workflow):
+        for step in workflow_steps(workflow, job_name):
+            uses = step.get("uses")
+            if isinstance(uses, str) and "/generate-coverage@" in uses:
+                yield job_name, step
+
+
+def _coverage_scopes() -> dict[str, object]:
     """Return the `python-source` each workflow's generate-coverage step carries."""
-    scopes: dict[str, str] = {}
-    for workflow in (".github/workflows/ci.yml", ".github/workflows/coverage-main.yml"):
-        for job_name in workflow_jobs(workflow):
-            for step in workflow_steps(workflow, job_name):
-                uses = step.get("uses")
-                if isinstance(uses, str) and "/generate-coverage@" in uses:
-                    inputs = step.get("with")
-                    assert isinstance(inputs, dict), (
-                        "generate-coverage needs a with block"
-                    )
-                    scopes[f"{workflow}:{job_name}"] = str(inputs.get("python-source"))
+    scopes: dict[str, object] = {}
+    for workflow in _WORKFLOWS:
+        for job_name, step in _coverage_steps(workflow):
+            inputs = step.get("with")
+            scopes[f"{workflow}:{job_name}"] = (
+                inputs.get("python-source") if isinstance(inputs, dict) else None
+            )
     return scopes
 
 
 def test_both_coverage_lanes_measure_the_package_not_its_tests() -> None:
-    """Both lanes must scope coverage to the package that `cv005.toml` names."""
+    """Both lanes and `cv005.toml` must scope coverage to exactly the package.
+
+    The scope is compared with the package directory itself, not merely with
+    each other, so `.` (the whole repository, tests included), `./tests` and a
+    missing scope all fail.
+    """
+    expected = f"./{_PACKAGE}"
     selection = tomllib.loads(
         (REPO_ROOT / ".github" / "cv005.toml").read_text(encoding="utf-8")
     )["selection"]
-    package = selection["python-source"]
     scopes = _coverage_scopes()
 
-    assert len(scopes) == 2, "the pull-request lane and the publisher each run it"
-    assert set(scopes.values()) == {package}, (
-        f"every generate-coverage step must carry python-source {package!r}: {scopes}"
+    assert selection["python-source"] == expected, (
+        f"cv005.toml must select the package {expected!r}"
     )
-    assert (REPO_ROOT / package).is_dir(), "the scope must name a real package"
-    assert "tests" not in package, "the scope must not measure the test files"
+    assert len(scopes) == 2, "the pull-request lane and the publisher each run it"
+    assert set(scopes.values()) == {expected}, (
+        f"every generate-coverage step must carry python-source {expected!r}: {scopes}"
+    )
+    assert (REPO_ROOT / _PACKAGE / "__init__.py").is_file(), (
+        "the scope must name an importable package, not a directory of tests"
+    )
