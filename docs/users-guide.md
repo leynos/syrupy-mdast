@@ -53,7 +53,12 @@ these targets in order:
 - `lint`: run `lint-python` and, when Rust is enabled, `lint-rust`.
 - `typecheck`: run `ty check`.
 - `test`: run pytest and, when Rust is enabled, Rust tests.
-- `audit`: run `pip-audit` and, when Rust is enabled, `cargo audit`.
+- `test-workflow-contracts`: run the shared CV-005 contract checker
+  (`cv005-contracts check --repository .`) against this repository's workflows.
+  It needs `uv`, which fetches the Python 3.13 the checker runs under.
+
+`audit` (`pip-audit` and, when Rust is enabled, `cargo audit`) is not part of
+`make all`; CI runs it as its own step.
 
 The `lint-python` target runs Ruff (pinned to `$(RUFF_VERSION)`), then
 Interrogate with `interrogate --fail-under 100 $(PYTHON_TARGETS)` to enforce
