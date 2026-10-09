@@ -7,6 +7,9 @@ updates:
     # remaining pull requests out of date and they stall awaiting manual
     # rebases. Majors stay ungrouped so each can be reviewed on its own.
     groups:
+      shared-actions:
+        patterns:
+          - 'leynos/shared-actions*'
       github-actions:
         patterns:
           - '*'
