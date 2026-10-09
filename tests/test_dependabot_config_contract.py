@@ -7,7 +7,9 @@ invisible to a YAML syntax check:
 * every ecosystem runs daily, and its minor and patch bumps are grouped into a
   single pull request, because ungrouped bumps all edit the same files and the
   first to merge leaves its siblings out of date, while each major stays
-  ungrouped so it can be reviewed on its own; and
+  ungrouped so it can be reviewed on its own. The github-actions entry also
+  lists a narrow ``shared-actions`` group first, for SHA bumps that have no
+  semver level; and
 * the configured directories cover both ``.github/workflows`` and every local
   composite action manifest, because ``/`` reaches only the workflows and the
   root action manifest.
@@ -40,6 +42,13 @@ _GROUP_PATTERN_MATCH_ALL: typ.Final = "*"
 _ECOSYSTEMS: typ.Final = ("github-actions", "pip")
 _INTERVAL: typ.Final = "daily"
 _GROUPED_UPDATE_TYPES: typ.Final = frozenset(("minor", "patch"))
+# A bump of a ``leynos/shared-actions`` pin moves one commit SHA to another and
+# has no semver level, so the typed catch-all never takes it; a narrow group
+# listed ahead of the catch-all does. Dependabot uses the first group that
+# matches.
+_NARROW_GROUPS: typ.Final = {
+    "github-actions": {"shared-actions": ["leynos/shared-actions*"]}
+}
 _VERSION_UPDATES: typ.Final = "version-updates"
 
 
@@ -134,10 +143,22 @@ def test_every_update_block_batches_minor_and_patch_updates_only(
     groups = mapping(
         _update_for(ecosystem).get("groups"), subject=f"{ecosystem} groups"
     )
-    assert len(groups) == 1, (
-        f"{ecosystem} updates should define exactly one group; got {sorted(groups)}"
+    narrow = _NARROW_GROUPS.get(ecosystem, {})
+    for narrow_name, narrow_patterns in narrow.items():
+        assert groups.get(narrow_name) == {"patterns": narrow_patterns}, (
+            f"the {ecosystem} {narrow_name} group should be exactly patterns "
+            f"{narrow_patterns}; got {groups.get(narrow_name)}"
+        )
+    assert list(groups)[: len(narrow)] == list(narrow), (
+        f"the {ecosystem} narrow groups should precede the catch-all; "
+        f"got {list(groups)}"
     )
-    [(name, raw_group)] = groups.items()
+    catch_alls = {name: raw for name, raw in groups.items() if name not in narrow}
+    assert len(catch_alls) == 1, (
+        f"{ecosystem} updates should define exactly one catch-all group; "
+        f"got {sorted(catch_alls)}"
+    )
+    [(name, raw_group)] = catch_alls.items()
     group = mapping(raw_group, subject=f"{ecosystem} group {name}")
     patterns = text_sequence(group.get("patterns"), subject="group patterns")
     assert tuple(patterns) == (_GROUP_PATTERN_MATCH_ALL,), (

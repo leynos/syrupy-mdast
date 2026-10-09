@@ -212,6 +212,10 @@ whichever merges first leaves the remaining pull requests out of date, which
 disables their auto-merge and strands them until someone rebases them by hand.
 One group removes the same-file collision. Major updates stay ungrouped: each
 arrives in its own pull request, where it can be reviewed and built on its own.
+The `github-actions` entry also lists a `shared-actions` group
+(`leynos/shared-actions*`, no `update-types`) ahead of the wildcard group. A
+bump of a shared-actions pin moves one commit SHA to another and has no semver
+level, so the typed wildcard group never takes it.
 
 The `github-actions` entry uses `directories` rather than `directory`, because
 `/` covers only `.github/workflows` and the root action manifest. Dependabot
