@@ -11,10 +11,10 @@ Status: BLOCKED
 
 `syrupy-mdast` will compare Markdown by its parsed structure rather than its
 source text. What counts as "the same document" is therefore a persisted
-contract: every `.mdast.json` snapshot a user commits encodes one parser
-release, one parser profile, one normalization policy, one key order, and one
-JSON spelling. If any of those drifts silently, users' snapshots churn with no
-explanation, or, worse, a real change stops being detected.
+contract: every `.mdast.json` snapshot a user commits encodes one installed
+parser release, one parser profile, one normalization policy, one key order,
+and one JSON spelling. If any of those drifts silently, users' snapshots churn
+with no explanation, or, worse, a real change stops being detected.
 
 The technical design names that contract but leaves its load-bearing values
 open. No Wenmode release is chosen; the snapshot-format version is described
@@ -29,7 +29,8 @@ After this work a maintainer or contributor can open one document,
 
 1. the snapshot contract version (`1`) and the rules that decide when it, and
    the package version, must change;
-2. the exact Wenmode release (`0.15.1`), the exact parser construction
+2. the Wenmode requirement (`>=0.15.2,<0.16.0`), the observed evidence
+   release (`0.15.2`), the exact parser construction
    `Parser(github(), positions=False)`, and why;
 3. the normalization policy, including the rule order and the exact key-order
    sequence, and the exact JSON writer settings;
@@ -82,7 +83,7 @@ These are hard invariants. Violating one requires escalation, not a workaround.
    `syrupy_mdast.MarkdownAstSnapshotExtension` read-only.
 2. `wenmode` is not added to `pyproject.toml`, `uv.lock`, or any dependency
    group; that is roadmap task 1.2.1. Wenmode probes run only in a throwaway
-   environment under `/tmp` via `uv run --no-project --with wenmode==0.15.1`.
+   environment under `/tmp` via `uv run --no-project --with wenmode==0.15.2`.
 3. No corpus fixture, `.mdast.json` file, or `__snapshots__` directory is
    created; that is roadmap task 1.1.3.
 4. No new runtime or development dependency. The guard test uses only the
@@ -116,14 +117,15 @@ escalate when any of these is reached.
 
 1. Scope: more than 12 files touched across both pull requests, or any file
    under `syrupy_mdast/`.
-2. Wenmode release drift: PyPI publishes a Wenmode release newer than 0.15.1
-   before ADR-003 is accepted. Re-run the probe against the new release, record
-   the differences, and ask the maintainer which release to pin. Do not
-   silently switch. Re-check at EP-M1, at every acceptance re-ping, and
-   immediately before the acceptance commit.
+2. Wenmode release drift: check PyPI at EP-M1, every acceptance re-ping,
+   and immediately before the acceptance commit. For a newer release within
+   `>=0.15.2,<0.16.0`, rerun the probe and record differences; Tolerance 3
+   applies to any failed verdict. A release outside the approved range does not
+   change the requirement; ask before widening it. The fixed evidence baseline
+   for this ADR remains 0.15.2 unless explicitly revised.
 3. Evidence drift: the self-checking probe (see `Artefacts and notes`) prints
-   anything other than the thirteen `ok` lines and `version 0.15.1` shown in
-   `Concrete steps` when run against 0.15.1 with `-W error`.
+   anything other than the thirteen `ok` lines and `version 0.15.2` shown in
+   `Concrete steps` when run against 0.15.2 with `-W error`.
 4. Acceptance: the maintainer requests a change to any decision in
    `Decision log`. Revise this plan first, then the ADR.
 5. Roadmap: this plan authorizes exactly the roadmap edits listed in DEC-3. Any
@@ -139,15 +141,18 @@ escalate when any of these is reached.
 
 ## Risks
 
-Current blocker (2026-10-10): Wenmode 0.15.2 is published. Tolerance 2 requires
-an explicit pin choice before ADR drafting. The existing probes pass on both
-releases but do not cover every parsing change in 0.15.2 (DEC-20).
+Current dependency policy (2026-10-10): the maintainer selected
+`>=0.15.2,<0.16.0` (DEC-21). An unlocked installation can select a later 0.15.x
+parser without a syrupy-mdast release. The ADR must name that risk, recommend
+locked test dependencies, and avoid promising identical payloads across parser
+versions. The existing finite probe does not establish payload neutrality
+outside its examples.
 
 1. Risk: Wenmode is beta software; a later release changes AST output for
-   inputs outside the corpus, so an apparently payload-neutral pin move changes
-   users' payloads. Severity: high. Likelihood: medium, since 0.15.1, a patch
-   release, changed list tightness and autolink boundaries. Mitigation: DEC-9
-   requires changelog-entry classification as well as the corpus diff, a
+   inputs outside the corpus, so an apparently payload-neutral parser move
+   changes users' payloads. Severity: high. Likelihood: medium, since 0.15.1, a
+   patch release, changed list tightness and autolink boundaries. Mitigation:
+   DEC-9 requires changelog-entry classification as well as the corpus diff, a
    fixture for every behaviour-changing entry, and a dedicated pull request.
 2. Risk: Dependabot silently upgrades Wenmode. Its pip group batches every
    minor and patch update, the repository's Dependabot automerge workflow
@@ -184,11 +189,12 @@ releases but do not cover every parsing change in 0.15.2 (DEC-20).
    input. Severity: low. Likelihood: low. Mitigation: axiom A6 and an ADR
    known-risk entry; adding a supported Python minor version triggers the DEC-9
    upgrade report.
-7. Risk: the exact Wenmode pin conflicts with downstream projects that also
-   depend on Wenmode, and a Wenmode security fix can then only reach users
-   through a syrupy-mdast release. Severity: medium. Likelihood: low.
-   Mitigation: DEC-9's security path; the users' guide recommends installing
-   syrupy-mdast in a test-only dependency group.
+7. Risk: the bounded Wenmode range conflicts with downstream projects that also
+   depend on Wenmode, and a security fix outside that range requires a
+   syrupy-mdast release. Fixes within the range can reach consumers through a
+   lockfile refresh. Severity: medium. Likelihood: low. Mitigation: DEC-9's
+   security path; the users' guide recommends installing syrupy-mdast in a
+   test-only dependency group.
 8. Risk: a future Wenmode warning (it signals API changes with
    `DeprecationWarning`) becomes an error in user suites that run with
    `filterwarnings = error`. Severity: low. Likelihood: medium. Mitigation: the
@@ -223,9 +229,14 @@ releases but do not cover every parsing change in 0.15.2 (DEC-20).
   `sdlc-implementation` skill invocation. This approves the plan, not ADR-003.
 - [x] (2026-10-10) Stage A release check and EV-1 rerun: all thirteen checks
   pass under `-W error` on both Wenmode 0.15.1 and 0.15.2.
-- [ ] Tolerance 2: maintainer chooses the Wenmode pin after release drift;
-  implementation is blocked before EP-M1.
-- [ ] EP-M1: ADR-003 drafted as `Proposed` and indexed (pull request A).
+- [x] (2026-10-10) Tolerance 2 resolved: the maintainer requested
+  `>=0.15.2,<0.16.0`; DEC-21 revises the release and reproducibility policy.
+- [x] (2026-10-10) Stage A full gate sequence passed at `6171b79`: formatting,
+  typecheck, lint, 271 tests, Markdown lint, and Mermaid validation.
+- [x] (2026-10-10) EP-M1 document drafting: ADR-003 is `Proposed`, indexed,
+  and uses the approved range. Manifest, heading order, NF entries, and the
+  embedded probe were checked against the plan. Final gate and CLI review
+  evidence is recorded in the shared delivery ledger before publication.
 - [ ] EP-M2: ADR-003 accepted; pull request A merged.
 - [ ] EP-M3: guard tests red, then design, roadmap, and guides reconciled
   (pull request B).
@@ -308,7 +319,7 @@ releases but do not cover every parsing change in 0.15.2 (DEC-20).
     final version line changed. The upstream changelog includes inline
     recursion-budget and emphasis work beyond these examples. This is
     evidence for the checked cases, not a payload-neutrality claim. Impact:
-    Tolerance 2 blocks EP-M1 pending the maintainer's pin choice.
+    Tolerance 2 initially blocked EP-M1; the maintainer resolved it in DEC-21.
 
 ## Decision log
 
@@ -324,10 +335,10 @@ releases but do not cover every parsing change in 0.15.2 (DEC-20).
   dated entries under `### Amendments` (a subsection of
   `## Decision outcome / proposed direction`, so the template is kept), because
   no user holds a v1 snapshot yet. After that release, changes that cannot
-  alter any payload (editorial clarifications, a Wenmode pin move classified as
-  payload-neutral under DEC-9) are dated amendments, with `## Date` meaning
-  "last updated"; any change to the definition of the payload is a new contract
-  version in a new ADR, and the old ADR's status becomes
+  alter any payload (editorial clarifications, a Wenmode requirement change
+  classified as payload-neutral under DEC-9) are dated amendments, with
+  `## Date` meaning "last updated"; any change to the definition of the payload
+  is a new contract version in a new ADR, and the old ADR's status becomes
   `Superseded (YYYY-MM-DD) by ADR-NNN.` Rationale: accepted ADRs are records;
   superseding keeps each contract version citable, while the pre-release window
   lets roadmap 1.1.3 and 1.2.3 correct v1 without ceremony. Date/Author:
@@ -336,7 +347,7 @@ releases but do not cover every parsing change in 0.15.2 (DEC-20).
   1. 1.1.2 ticked done;
   2. 1.2.1 gains two success sub-bullets: a Dependabot `ignore` entry for
      `wenmode`, required by `tests/test_dependabot_config_contract.py`; and the
-     `pyproject.toml` pin equals the ADR manifest's `wenmode`, enforced by
+     `pyproject.toml` requirement matches manifest `wenmode`, enforced by
      `tests/test_snapshot_contract_adr.py` (which then rejects an absent
      declaration);
   3. 1.2.2 constructs `Parser(github(), positions=False)`, and the adapter's
@@ -351,13 +362,14 @@ releases but do not cover every parsing change in 0.15.2 (DEC-20).
   Rationale: the old wording prescribes a deprecated call (Surprise 1), and
   developers'-guide prose alone does not hold later tasks to the manifest.
   Date/Author: 2026-09-27, planning agent, widened after panel review.
-- DEC-4. Decision: pin Wenmode 0.15.1. Rationale: latest release (2026-09-11).
-  0.15.0 introduced the preset factories the ADR relies on, and 0.15.1 fixes
-  list tightness and extended-autolink boundaries, so pinning 0.15.0 would
-  schedule a known payload migration. Waiting for Wenmode 1.0 would block the
-  roadmap on an undated upstream release; 1.0 is instead a DEC-9 upgrade
-  trigger and a likely contract v2. Licence BSD-3-Clause; pure-Python
-  `py3-none-any` wheel; requires Python 3.10 or later. Wheel SHA-256
+- DEC-4. Original decision (superseded by DEC-21): pin Wenmode 0.15.1.
+  Rationale: latest release (2026-09-11). 0.15.0 introduced the preset
+  factories the ADR relies on, and 0.15.1 fixes list tightness and
+  extended-autolink boundaries, so pinning 0.15.0 would schedule a known
+  payload migration. Waiting for Wenmode 1.0 would block the roadmap on an
+  undated upstream release; 1.0 is instead a DEC-9 upgrade trigger and a likely
+  contract v2. Licence BSD-3-Clause; pure-Python `py3-none-any` wheel; requires
+  Python 3.10 or later. Wheel SHA-256
   `d25b2adc75ff897640c1e28178f647631da0e03084e498a765f007844a3c340d`.
   Date/Author: 2026-09-27, planning agent.
 - DEC-5. Decision: the v1 parser construction is exactly
@@ -417,14 +429,19 @@ releases but do not cover every parsing change in 0.15.2 (DEC-20).
 - DEC-9. Decision: the snapshot-version policy is keyed on **any change to any
   payload**, whatever its cause: contract change, canonicalizer conformance
   fix, or non-neutral Wenmode move.
-  1. Patch releases never knowingly change a payload.
-  2. A payload change needs, before 1.0.0, a minor release (`0.y.z` to
+  1. Deliberate syrupy-mdast patch-release changes, evaluated with the same
+     installed parser, never knowingly change a payload. A downstream parser
+     update within the range can change payloads without a package release
+     (DEC-21); this policy cannot freeze unlocked consumer installations.
+  2. A knowingly adopted payload change needs, before 1.0.0, a minor release
+     (`0.y.z` to
      `0.(y+1).0`); from 1.0.0, a major release. Its release notes list the
      affected constructs and the review-then-`pytest --snapshot-update` step.
   3. The contract version increments when the *definition* of the payload
      changes (parser profile, normalization rules, key order, writer); it is a
      migration signal, not the equivalence key (DEC-14).
-  4. Every Wenmode pin change lands alone in a dedicated pull request carrying
+  4. Every change to the Wenmode requirement or repository-resolved release
+     lands alone in a dedicated pull request carrying
      the roadmap 3.2.1 upgrade report. That report classifies the corpus diff
      and every Wenmode changelog entry between the two releases as an
      addition, parser fix, intentional migration, or regression (the 3.2.1
@@ -441,8 +458,9 @@ releases but do not cover every parsing change in 0.15.2 (DEC-20).
      advisory in the release notes.
   Rationale: design §13, with the pre-1.0 case explicit (the package is
   `0.1.0`), the Dependabot automerge path closed (Risk 2), and Risk 1 bounded.
-  This overrides two clauses of design §13 (see `Conformance basis`).
-  Date/Author: 2026-09-27, planning agent, rewritten after panel review.
+  This overrides design §13; DEC-21 further qualifies the guarantee for a
+  bounded requirement (see `Conformance basis`). Date/Author: 2026-09-27,
+  planning agent, rewritten after panel review.
 - DEC-10. Decision: the canonical JSON writer for contract v1 is specified as
   settings, not as a code string: UTF-8, no byte-order mark,
   `ensure_ascii = false`, `indent = 2`, separators `","` and `": "`,
@@ -476,14 +494,14 @@ releases but do not cover every parsing change in 0.15.2 (DEC-20).
   only executable logic is Markdown extraction over a finite, enumerable input
   shape, for which named examples are exhaustive enough; a Rust extension would
   breach the Python-only wheel (Constraint 8). The Wenmode-declaration check
-  (exact `==` pin, PEP 440 variants such as `==0.15.10`, `==0.15.*`,
-  `==0.15.1.0`, `==0.15.1+local`) moves to roadmap 1.2.1, where it can first
-  fail for a real reason. The first obligations that merit property testing and
-  symbolic execution are roadmap 2.1.2's canonicalizer invariants (idempotence,
-  position and line-ending invariance, and the merge-before-normalize lemma of
-  Surprise 12), where Hypothesis plus CrossHair over the pure canonicalizer is
-  the proportionate tool. Date/Author: 2026-09-27, planning agent, revised
-  after panel review.
+  (the explicit `>=0.15.2,<0.16.0` requirement, rejecting an absent
+  declaration, an exact `==` pin, a widened upper bound, and a lower minimum)
+  moves to roadmap 1.2.1, where it can first fail for a real reason. The first
+  obligations that merit property testing and symbolic execution are roadmap
+  2.1.2's canonicalizer invariants (idempotence, position and line-ending
+  invariance, and the merge-before-normalize lemma of Surprise 12), where
+  Hypothesis plus CrossHair over the pure canonicalizer is the proportionate
+  tool. Date/Author: 2026-09-27, planning agent, revised after panel review.
 - DEC-13. Decision: two pull requests. Pull request A (this branch, titled
   "Plan: … (1.1.2)") carries this ExecPlan, then ADR-003 and its
   `docs/contents.md` entry; it merges after acceptance. Pull request B,
@@ -492,14 +510,15 @@ releases but do not cover every parsing change in 0.15.2 (DEC-20).
   `main` make the acceptance-before-implementation order verifiable for ever.
   Pull request A's merge commit SHA is recorded here when known. Date/Author:
   2026-09-27, planning agent, added after panel review.
-- DEC-14. Decision: the comparison contract keeps design §4's key: two inputs
-  are equivalent precisely when the same installed package version (and hence
-  the same Wenmode pin and contract) produces byte-identical payloads for both.
-  The contract version is a migration signal, not the equivalence key.
-  Rationale: under DEC-2 and DEC-9 one contract version can span several
-  Wenmode pins and conformance fixes, and Risk 6 shows interpreters can differ,
-  so "same contract version" would over-promise. Date/Author: 2026-09-27,
-  planning agent, reversed after panel review.
+- DEC-14. Decision (revised by DEC-21): two inputs are equivalent precisely
+  when the same installed syrupy-mdast version, Wenmode version, and parser
+  profile produce byte-identical payloads in the same interpreter environment.
+  The contract version is a migration signal, not the equivalence key. A
+  bounded requirement permits several parser versions; it does not prove their
+  output identical. Risk 6 limits cross-interpreter promises. Rationale: the
+  original package-only key relied on exact pinning and no longer holds.
+  Date/Author: 2026-09-27, planning agent; revised 2026-10-10, maintainer
+  direction and implementation agent.
 - DEC-15. Decision: no component architecture document is created. The
   technical design is the architecture record for the snapshot contract, and
   the one new internal interface (`tests/support/adr_contract.py`) is
@@ -555,27 +574,53 @@ releases but do not cover every parsing change in 0.15.2 (DEC-20).
   DEC-4, the manifest, axioms, probe output, and release evidence before
   drafting ADR-003. All thirteen approved probe checks pass on both releases,
   but this does not classify every upstream change or establish payload
-  neutrality outside those inputs. No pin or normative decision has changed.
-  The maintainer's direction is pending. Date/Author: 2026-10-10,
-  implementation agent.
+  neutrality outside those inputs. No pin or normative decision changed during
+  this escalation. The maintainer's subsequent direction is recorded in DEC-21.
+  Date/Author: 2026-10-10, implementation agent.
+
+- DEC-21. Decision: use `>=0.15.2,<0.16.0`, as explicitly requested by
+  the maintainer on 2026-10-10. This resolves DEC-20 and supersedes DEC-4's
+  exact pin. Wenmode 0.15.2 is the reproducible evidence baseline, released
+  2026-10-01; BSD-3-Clause, pure-Python `py3-none-any` wheel, Python >=3.10.
+  Its wheel SHA-256 is
+  `1bbf9d1cac3d01daeca1bd9de99f139174cbbf68cc0a0ebd443f5465903ba922`, verified
+  through PyPI on 2026-10-10. The approved NF-1 to NF-13 probes pass under
+  `-W error` on 0.15.1 and 0.15.2; future releases in the range are not claimed
+  to be empirically verified by that result. Consequences: DOC-2 treats
+  `wenmode` as the explicit bounded requirement; the 1.2.1 declaration guard
+  compares that requirement with the manifest; DEC-9's upgrade report covers
+  requirement and repository lockfile changes; DEC-14 names the installed
+  parser and interpreter environment; and EP-M3 reconciles design §§2.3, 4, 7,
+  11, 13, 15, and 16 and the associated roadmap/developer wording. Consumers
+  should lock test dependencies to reproduce parser output. Keeping
+  Dependabot's Wenmode ignore protects the repository's reviewed updates, not
+  consumers' unlocked resolution. Patch-release policy governs deliberate
+  syrupy-mdast changes evaluated with the same parser; consumer parser updates
+  can change payloads without a package release and produce ordinary Syrupy
+  diffs. No runtime version enforcement or extra dependency is introduced.
+  Date/Author: 2026-10-10, maintainer instruction in this session.
 
 ## Outcomes & retrospective
 
-Execution is authorized, but EP-M1 has not started: Tolerance 2 requires a
-maintainer pin choice (DEC-20). PR #58 remains open and draft at the observed
-head `e018c153e0a250e668ea306524eb0351d2893d13`; no ADR exists and no
-acceptance or merge is claimed. The release checks and both probe logs are in
-`/tmp/syrupy-mdast-1-1-2-release-check/`; the shared delivery ledger is
-`/tmp/syrupy-mdast-1-1-2-release-check/delivery-ledger.md`. The Stage A full
-gate sweep is pending; probe success is not repository-gate success.
+The maintainer authorized execution and resolved the release-drift exception
+with DEC-21. EP-M1 has drafted ADR-003 with the approved range and evidence
+baseline. The ADR remains `Proposed`; EP-M2 is blocked until the maintainer
+explicitly accepts its written text on pull request A. EP-M3 and EP-M4 require
+that acceptance and pull request A's merge. The roadmap task is still
+unchecked. The release checks, probe logs, and shared delivery ledger are under
+`/tmp/syrupy-mdast-1-1-2-release-check/`. Stage A passed all six gates at
+`6171b79` on 2026-10-10, including 271 tests; logs use the `baseline-` prefix
+in that directory.
 
-At completion, record what was achieved against the purpose, pull request A's
-and B's merge SHAs, and these handoffs: Surprise 7 to roadmap 2.2.2; the
-on-disk line ending to 2.3.1; the Dependabot `ignore` and the
-Wenmode-declaration check (with its PEP 440 cases) to 1.2.1; the adapter
-construction check to 1.2.2; the canonicalizer invariants and the
-merge-before-normalize lemma to 2.1.2; and the writer-settings check and strict
-UTF-8 pre-check to 2.2.1.
+At completion, record both pull requests' merge SHAs and these handoffs:
+Surprise 7 to roadmap 2.2.2; on-disk line endings to 2.3.1; the Dependabot
+ignore and bounded-requirement guard to 1.2.1; adapter construction to 1.2.2;
+canonicalizer invariants and merge-before-normalize to 2.1.2; writer settings
+and strict UTF-8 pre-check to 2.2.1; and range/lockfile upgrade reporting to
+3.2.1. No formal proof artefact is introduced or changed (DEC-12).
+Final-candidate quality gates and local CLI review use the shared delivery
+ledger; those results do not establish hosted assessment, maintainer
+acceptance, or merge.
 
 ## Context and orientation
 
@@ -664,6 +709,19 @@ change).
 
 ## Conformance basis
 
+Current revision authorization: the 2026-10-10 maintainer instruction
+`>=0.15.2,<0.16.0` approves DEC-21's deviation from exact-pin requirements. A
+six-lens design check proceeds with conditions: preserve domain boundaries
+(Pandalump), record exact pinning as the stronger reproducibility alternative
+(Wafflecat), bound upgrade verification cost to release reports (Buzzy Bee),
+name actual installed parser versions in comparisons (Telefono), recommend
+locks and diagnose parser changes before snapshot updates (Doggylump), and keep
+the manifest and future declaration guard aligned (Dinolump). Pre-mortem: an
+unlocked refresh can churn snapshots; a repository Dependabot ignore can be
+mistaken for a downstream freeze; and a passing small probe can be mistaken for
+all-input neutrality. The ADR must state each limitation and its mitigation; no
+runtime restriction is added.
+
 There is no Terms of Reference document for this project. Upstream artefacts:
 
 1. `docs/syrupy-mdast-design.md`, revision dated 2026-07-28, status "Proposed
@@ -690,10 +748,15 @@ design at EP-M3:
    syntax" clause is retained only for inputs rejected by the byte limit or
    encoding checks, since Markdown parsing itself never rejects input.
 5. DEC-10: exact writer settings, value domain, and on-disk boundary.
-6. DEC-14: equivalence stays keyed on the installed package version (design
-   §4 unchanged); only the contract-version terminology is added.
+6. DEC-14 and DEC-21: equivalence names the installed package and parser
+   versions in the same interpreter environment.
+7. DEC-21: the maintainer-approved bounded requirement replaces exact
+   pinning throughout the design and roadmap. Its lockfile recommendation and
+   unverified-future-patch risk supersede the exact-pin rationale.
 
-None changes the public API, the dependency set, or the trust boundary.
+None changes the public API, the current dependency set, or the trust boundary.
+DEC-21 changes the future dependency policy and reproducibility guarantee; the
+explicit maintainer direction authorizes that deviation.
 
 Trace links (all guard tests are written in EP-M3):
 
@@ -716,14 +779,18 @@ This task introduces documents and a guard test. It introduces no production
 invariant. The obligations below are over documents and over small test-support
 functions; each states how it can fail.
 
-Current evidence (2026-10-10): EV-1 passes under `-W error` for 0.15.1 and
-0.15.2. The thirteen NF verdicts agree; each run prints its installed version.
-These finite probes do not prove payload neutrality for the newer release.
-DOC-1 to DOC-6 and UNIT-1 to UNIT-3 remain pending on pull request B.
+Current evidence (2026-10-10): EP-M1 reran EV-1 against 0.15.2 with `-W error`
+successfully. Removing `meta` from the key-order tuple is a negative control:
+the probe exits 1 with `NF-12 key coverage FAILED`. Logs are
+`ep-m1-probe-0.15.2.log` and `ep-m1-probe-negative.log` in the shared evidence
+directory. EV-1 also passes under `-W error` for 0.15.1 and 0.15.2. The
+thirteen NF verdicts agree; each run prints its installed version. These finite
+probes do not prove payload neutrality for the newer release. DOC-1 to DOC-6
+and UNIT-1 to UNIT-3 remain pending on pull request B.
 
 ### Axioms
 
-1. A1. Wenmode 0.15.1's documented shape contract: every node has a string
+1. A1. Wenmode 0.15.2's documented shape contract: every node has a string
    `type`; `None`-valued fields are omitted by `to_ast()`; `False`, empty
    lists, and empty strings are preserved; the per-type field table in
    Wenmode's "Node model" reference. Cross-checked by EV-1; roadmap 1.2.3 owns
@@ -735,8 +802,8 @@ DOC-1 to DOC-6 and UNIT-1 to UNIT-3 remain pending on pull request B.
    declared value domain and preserves mapping insertion order, on CPython and
    PyPy for the supported Python versions (separators and escapes unchanged
    since Python 3.4; no floats in the domain).
-4. A4. PyPI's recorded SHA-256 for `wenmode-0.15.1-py3-none-any.whl` is as
-   quoted in DEC-4 (retrieved 2026-09-27; re-check at EP-M1).
+4. A4. PyPI's recorded SHA-256 for `wenmode-0.15.2-py3-none-any.whl` is as
+   quoted in DEC-21 (retrieved 2026-10-10; re-check at EP-M1).
 5. A5. `tomllib` (standard library) parses the manifest block.
 6. A6. Wenmode's label case folding and emphasis punctuation classification may
    depend on the interpreter's Unicode database version (Risk 6); v1 does not
@@ -758,9 +825,10 @@ non-empty and contains ADR-003. Negative controls: UNIT-1.
 **DOC-2: manifest schema.** Statement: the current contract ADR contains
 exactly one fenced `toml` block under `### Contract manifest`. It parses to a
 `[snapshot-contract]` table whose keys are exactly `contract-version` (positive
-integer), `wenmode` (a bare `MAJOR.MINOR.PATCH` string), `parser`,
-`file-extension`, `normalization` (list of rule identifiers drawn from DEC-6),
-`key-order`, and the sub-table `json-writer`, whose keys are exactly those in
+integer), `wenmode` (a bounded `>=MAJOR.MINOR.PATCH,<MAJOR.MINOR.PATCH`
+requirement string, currently `>=0.15.2,<0.16.0`), `parser`, `file-extension`,
+`normalization` (list of rule identifiers drawn from DEC-6), `key-order`, and
+the sub-table `json-writer`, whose keys are exactly those in
 `Interfaces and dependencies`. `file-extension` equals
 `syrupy_mdast.MarkdownAstSnapshotExtension.file_extension`. Method: explicit
 assertions; the extension comparison is a read-only import. Artefacts:
@@ -835,7 +903,7 @@ returning a neutral value (for example, `[]` or a fixed string) and the tests
 precede their bodies.
 
 **EV-1: empirical grounding of NF-1 to NF-13.** Statement: each normative
-fixture decision matches the output of Wenmode 0.15.1's GitHub profile, the v1
+fixture decision matches the output of Wenmode 0.15.2's GitHub profile, the v1
 construction emits no warning, and every member name emitted across all 22
 GitHub-profile node types is in `key-order`. Method: the self-checking probe in
 `Artefacts and notes`, run under `-W error` in a throwaway environment at Stage
@@ -854,7 +922,8 @@ checker, or a formal prover (DEC-12).
 
 Stage A: orientation (no edits). Read the signposted material. Run the full
 gate set on the untouched tree and keep the logs. Run the probe and compare its
-output. Check PyPI for a Wenmode release newer than 0.15.1.
+output. Check PyPI for releases newer than the 0.15.2 evidence baseline and
+apply the revised Tolerance 2.
 
 Stage B: ADR drafting (EP-M1, pull request A). Write ADR-003 as `Proposed`,
 following the template headings verbatim and the DEC-19 answers. Index it in
@@ -901,7 +970,8 @@ complete the retrospective, set this plan to `COMPLETE`.
      "*Table 2: Text segmentation options.*".
   7. `## Decision outcome / proposed direction`, containing, in order:
      `### Contract manifest` (the single fenced `toml` block); `### Parser
-     profile` (DEC-5); `### Wenmode release` (DEC-4, licence, wheel hash);
+     profile` (DEC-5); `### Wenmode release` (DEC-21, baseline and range,
+     licence, wheel hash);
      `### Normalization policy` (DEC-6, DEC-7, referring to the manifest rather
      than restating `key-order`); `### Canonical JSON writer` (DEC-10, the
      escape set, DEC-17); `### Comparison contract` (DEC-14);
@@ -960,21 +1030,27 @@ complete the retrospective, set this plan to `COMPLETE`.
   1. `docs/syrupy-mdast-design.md`:
      - design section 7's code block and prose use `github()`;
      - sections 4, 7, 8, 11, and 13 cite ADR-003;
+     - sections 2.3, 7, 11, 13, 15, and 16 replace exact-pin assumptions with
+       the bounded requirement and locked-environment qualification (DEC-21);
      - section 8 refers to the ADR for the rule order and key order, and adds
        the `null`-element rule and the merge rule;
      - section 11 names ADR-003 as the required record;
-     - section 13 adopts DEC-9;
+     - section 13 adopts DEC-9 and DEC-21;
      - section 15 adds the GFM divergence, formatter, and Windows risks;
      - the references gain Wenmode's node-model and changelog pages and the GFM
        specification; and
      - "Last updated" moves to the reconciliation date.
-  2. `docs/roadmap.md`: exactly DEC-3's edits 2 to 7.
+  2. `docs/roadmap.md`: DEC-3's edits 2 to 7, plus DEC-21's replacement
+     of exact-pin wording in 1.1.2, 1.2.1, 2.4.1, 2.4.2, 3.2.1, and 3.2.2.
+     The 1.2 step keeps the fixed contract but permits the approved range.
   3. `docs/users-guide.md`: a short section, `## Snapshot contract and
      upgrades`, of at most two paragraphs plus one recipe, written in the
      future tense that the existing "after serialization is implemented"
      wording uses. It says that snapshots follow contract v1, defined by
      ADR-003 (linked, not restated), and is provisional until syrupy-mdast
-     1.0. It says that patch releases never knowingly change payloads, and that
+     1.0. It says that deliberate patch-release changes, tested with the same parser,
+     never knowingly change payloads; recommends a locked test environment
+     because parser updates within the range can change snapshots; and that
      a payload change arrives in a minor release (before 1.0) with release
      notes and a review-then-`pytest --snapshot-update` step. It recommends
      installing syrupy-mdast in a test-only dependency group and gives a recipe
@@ -986,14 +1062,15 @@ complete the retrospective, set this plan to `COMPLETE`.
      no Dependabot, warnings blocker, triggers, contract-version decision,
      amendment or superseding ADR); a new `### Snapshot contract ADR` paragraph
      describing the manifest and the guard test, and the rule that each later
-     code constant (pin, parser construction, key order, rule order, writer
+     code constant (requirement, parser construction, key order, rule order, writer
      settings) is added to the guard test when it is introduced; and a new
      `### ADR manifest parser for contract tests` describing
      `tests/support/adr_contract.py` (DEC-15).
 - Acceptance evidence: focused test green; Constraint 10's full gate sequence
   green.
 - Conformance check: every deviation in `Conformance basis` is now in the
-  design text; no production file touched; roadmap edits equal DEC-3's list.
+  design text; no production file touched; roadmap edits equal DEC-3 and
+  DEC-21's approved scope.
 - Recovery: tests and documents are independent files; revert per file.
 - Remaining gaps: roadmap tick and retrospective.
 - Compatibility decision: none.
@@ -1033,7 +1110,7 @@ script from `Artefacts and notes` as `/tmp/wenmode-probe/probe.py`, then:
 
 ```bash
 mkdir -p /tmp/wenmode-probe
-cd /tmp/wenmode-probe && uv run --no-project --with wenmode==0.15.1 python -W error probe.py
+cd /tmp/wenmode-probe && uv run --no-project --with wenmode==0.15.2 python -W error probe.py
 ```
 
 Expected output, exactly:
@@ -1052,7 +1129,7 @@ NF-10 preserved distinctions ok
 NF-11 text segmentation ok
 NF-12 key coverage ok
 NF-13 numeric references ok
-version 0.15.1
+version 0.15.2
 ```
 
 (`uv` may print an `Installed 1 package` line first.) Then check for newer
@@ -1065,8 +1142,8 @@ Focused test loop during EP-M3:
 uv run pytest -v tests/test_snapshot_contract_adr.py 2>&1 | tee /tmp/adr-contract-syrupy-mdast-$BR.out
 ```
 
-Commits (subject lines; bodies explain why, Markdown allowed, with the
-session's attribution trailer):
+Commits (subject lines; bodies explain why, Markdown allowed, without an
+attribution trailer):
 
 1. Pull request A: `Draft ADR-003 snapshot contract v1` (EP-M1), then
    `Accept ADR-003 snapshot contract v1` (EP-M2).
@@ -1284,12 +1361,12 @@ No production interface changes. No dependency changes.
 ### ADR-003 contract manifest (normative content for EP-M1)
 
 The ADR's `### Contract manifest` contains exactly this block (values fixed by
-DEC-4, DEC-5, DEC-6, DEC-7, and DEC-10):
+DEC-21, DEC-5, DEC-6, DEC-7, and DEC-10):
 
 ```toml
 [snapshot-contract]
 contract-version = 1
-wenmode = "0.15.1"
+wenmode = ">=0.15.2,<0.16.0"
 parser = "Parser(github(), positions=False)"
 file-extension = "mdast.json"
 normalization = [
@@ -1341,7 +1418,7 @@ the same number.
   filtered and unfiltered HTML are distinct.
 - NF-7. Known divergence: CommonMark type-1 HTML blocks whose tag is on the
   disallowed list (`<script`, `<style`, `<textarea`) are not tag-filtered in
-  0.15.1 and are ratified as observed; other disallowed tags (`<title>`,
+  0.15.2 and are ratified as observed; other disallowed tags (`<title>`,
   `<iframe>`, `<xmp>`, `<plaintext>`, and so on) are filtered. An upstream fix
   is a payload change under DEC-9.
 - NF-8. Line endings: LF, CRLF, and CR inputs produce equal payloads after
@@ -1436,3 +1513,14 @@ UNIT-3.
   normative pin or decision changed. Effect on remaining work: the maintainer
   must choose the pin before EP-M1; ADR acceptance and the two-PR order remain
   required.
+- 2026-10-10: revised the plan before ADR drafting to use the maintainer's
+  `>=0.15.2,<0.16.0` requirement (DEC-21), with 0.15.2 as the fixed probe
+  baseline. Updated the manifest schema, equivalence key, upgrade scope,
+  evidence, risks, and EP-M3 reconciliation. Effect on remaining work: EP-M1
+  resumes; explicit ADR acceptance and the two-PR order remain required.
+- 2026-10-10: drafted and indexed ADR-003 as Proposed, checked template
+  headings and manifest agreement, and reran the 0.15.2 probe and its seeded
+  key-coverage fault. Fixed one MD013 line-length error found by formatting.
+  Effect on remaining work: EP-M2 awaits explicit acceptance of the written
+  ADR; final gate/review evidence and publication are tracked in the shared
+  delivery ledger, and dependent tests and reconciliation remain on PR B.
