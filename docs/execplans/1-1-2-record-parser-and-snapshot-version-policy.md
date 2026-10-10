@@ -5,7 +5,7 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Outcomes & retrospective`, `Conformance basis`, and `Verification plan` must
 be kept up to date as work proceeds.
 
-Status: DRAFT
+Status: BLOCKED
 
 ## Purpose / big picture
 
@@ -139,6 +139,10 @@ escalate when any of these is reached.
 
 ## Risks
 
+Current blocker (2026-10-10): Wenmode 0.15.2 is published. Tolerance 2 requires
+an explicit pin choice before ADR drafting. The existing probes pass on both
+releases but do not cover every parsing change in 0.15.2 (DEC-20).
+
 1. Risk: Wenmode is beta software; a later release changes AST output for
    inputs outside the corpus, so an apparently payload-neutral pin move changes
    users' payloads. Severity: high. Likelihood: medium, since 0.15.1, a patch
@@ -215,7 +219,12 @@ escalate when any of these is reached.
   revised (DEC-18).
 - [x] (2026-09-28) Maintainer answered DEC-19: merge plain text nodes (yes),
   no payload version marker (yes), no upstream report (no).
-- [ ] Maintainer approval of this ExecPlan.
+- [x] (2026-10-10) Maintainer authorized execution through the
+  `sdlc-implementation` skill invocation. This approves the plan, not ADR-003.
+- [x] (2026-10-10) Stage A release check and EV-1 rerun: all thirteen checks
+  pass under `-W error` on both Wenmode 0.15.1 and 0.15.2.
+- [ ] Tolerance 2: maintainer chooses the Wenmode pin after release drift;
+  implementation is blocked before EP-M1.
 - [ ] EP-M1: ADR-003 drafted as `Proposed` and indexed (pull request A).
 - [ ] EP-M2: ADR-003 accepted; pull request A merged.
 - [ ] EP-M3: guard tests red, then design, roadmap, and guides reconciled
@@ -292,6 +301,14 @@ escalate when any of these is reached.
 15. Observation: this repository squash-merges pull requests (every `main`
     subject ends `(#NN)`; no merge commits). Impact: branch-local commit order
     cannot prove "accepted before" on `main`; DEC-13.
+
+16. Observation (2026-10-10): PyPI lists Wenmode 0.15.2, released on
+    2026-10-01. The approved probe exits zero for both 0.15.1 and 0.15.2
+    under `-W error`, with identical NF-1 to NF-13 verdicts and only the
+    final version line changed. The upstream changelog includes inline
+    recursion-budget and emphasis work beyond these examples. This is
+    evidence for the checked cases, not a payload-neutrality claim. Impact:
+    Tolerance 2 blocks EP-M1 pending the maintainer's pin choice.
 
 ## Decision log
 
@@ -530,11 +547,31 @@ escalate when any of these is reached.
   Date/Author: questions 2026-09-27, planning agent; answers 2026-09-28,
   maintainer (pull request #58 conversation).
 
+- DEC-20. Escalation: Wenmode release drift triggers Tolerance 2 before
+  EP-M1. Sources checked on 2026-10-10:
+  [PyPI](https://pypi.org/project/wenmode/) and the
+  [upstream changelog](https://wenmode.lepture.com/changelog/). Options: retain
+  0.15.1 with an explicit release-drift exception, or select 0.15.2 and revise
+  DEC-4, the manifest, axioms, probe output, and release evidence before
+  drafting ADR-003. All thirteen approved probe checks pass on both releases,
+  but this does not classify every upstream change or establish payload
+  neutrality outside those inputs. No pin or normative decision has changed.
+  The maintainer's direction is pending. Date/Author: 2026-10-10,
+  implementation agent.
+
 ## Outcomes & retrospective
 
-Not started. At completion, record what was achieved against the purpose, pull
-request A's and B's merge SHAs, and these handoffs: Surprise 7 to roadmap
-2.2.2; the on-disk line ending to 2.3.1; the Dependabot `ignore` and the
+Execution is authorized, but EP-M1 has not started: Tolerance 2 requires a
+maintainer pin choice (DEC-20). PR #58 remains open and draft at the observed
+head `e018c153e0a250e668ea306524eb0351d2893d13`; no ADR exists and no
+acceptance or merge is claimed. The release checks and both probe logs are in
+`/tmp/syrupy-mdast-1-1-2-release-check/`; the shared delivery ledger is
+`/tmp/syrupy-mdast-1-1-2-release-check/delivery-ledger.md`. The Stage A full
+gate sweep is pending; probe success is not repository-gate success.
+
+At completion, record what was achieved against the purpose, pull request A's
+and B's merge SHAs, and these handoffs: Surprise 7 to roadmap 2.2.2; the
+on-disk line ending to 2.3.1; the Dependabot `ignore` and the
 Wenmode-declaration check (with its PEP 440 cases) to 1.2.1; the adapter
 construction check to 1.2.2; the canonicalizer invariants and the
 merge-before-normalize lemma to 2.1.2; and the writer-settings check and strict
@@ -678,6 +715,11 @@ TDD-§13 -> RM-1.2.1 -> handoff -> Wenmode declaration check (DEC-12)
 This task introduces documents and a guard test. It introduces no production
 invariant. The obligations below are over documents and over small test-support
 functions; each states how it can fail.
+
+Current evidence (2026-10-10): EV-1 passes under `-W error` for 0.15.1 and
+0.15.2. The thirteen NF verdicts agree; each run prints its installed version.
+These finite probes do not prove payload neutrality for the newer release.
+DOC-1 to DOC-6 and UNIT-1 to UNIT-3 remain pending on pull request B.
 
 ### Axioms
 
@@ -1388,3 +1430,9 @@ UNIT-3.
   the draft report text is removed and Risk 3 and EP-M1's outstanding decisions
   are updated. Effect on remaining work: EP-M1 starts once the plan itself is
   explicitly approved.
+- 2026-10-10: recorded execution authorization and the Tolerance 2 blocker
+  after verifying Wenmode 0.15.2 on PyPI and in the upstream changelog, and
+  rerunning the approved probe under `-W error` against both releases. No
+  normative pin or decision changed. Effect on remaining work: the maintainer
+  must choose the pin before EP-M1; ADR acceptance and the two-PR order remain
+  required.
