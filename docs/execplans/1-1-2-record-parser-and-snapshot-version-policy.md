@@ -59,6 +59,7 @@ every dependent change.
 Observable success, after pull request B:
 
 ```bash
+set -e -o pipefail
 uv run pytest -v tests/test_snapshot_contract_adr.py
 ```
 
@@ -320,6 +321,12 @@ outside its examples.
     recursion-budget and emphasis work beyond these examples. This is
     evidence for the checked cases, not a payload-neutrality claim. Impact:
     Tolerance 2 initially blocked EP-M1; the maintainer resolved it in DEC-21.
+
+17. Observation (2026-10-10): local CodeRabbit CLI review of `0464e5b`
+    found one minor issue: `tee` could hide failed Make or pytest commands
+    in the plan's validation examples. Resolution: DEC-22 adds
+    `set -e -o pipefail` to both blocks. A shell negative witness with
+    exit status 9 is preserved through `tee` and stops the following command.
 
 ## Decision log
 
@@ -599,6 +606,14 @@ outside its examples.
   can change payloads without a package release and produce ordinary Syrupy
   diffs. No runtime version enforcement or extra dependency is introduced.
   Date/Author: 2026-10-10, maintainer instruction in this session.
+
+- DEC-22. Decision: preserve failures in both validation command blocks
+  with `set -e -o pipefail`. The first local CLI review completed against
+  `0464e5b` and the main comparison base, covered all four branch paths, and
+  reported this one minor finding. The finding is valid: without `pipefail`,
+  the successful `tee` determines pipeline status; without `-e`, subsequent
+  gates can run after a failure. The repair changes execution instructions, not
+  the snapshot contract. Date/Author: 2026-10-10, implementation agent.
 
 ## Outcomes & retrospective
 
@@ -1096,6 +1111,7 @@ Run everything from the repository root of a checkout of the relevant branch.
 Run gates sequentially, never in parallel, each through `tee`:
 
 ```bash
+set -e -o pipefail
 BR=$(git branch --show-current)
 make check-fmt 2>&1 | tee /tmp/check-fmt-syrupy-mdast-$BR.out
 make typecheck 2>&1 | tee /tmp/typecheck-syrupy-mdast-$BR.out
@@ -1524,3 +1540,8 @@ UNIT-3.
   Effect on remaining work: EP-M2 awaits explicit acceptance of the written
   ADR; final gate/review evidence and publication are tracked in the shared
   delivery ledger, and dependent tests and reconciliation remain on PR B.
+- 2026-10-10: addressed the first local CodeRabbit review's sole finding
+  (DEC-22) by preserving failures in both validation command blocks. A failing
+  shell witness confirms status propagation and early termination. Effect on
+  remaining work: repeat the applicable gates and local assessment before
+  publication; explicit ADR acceptance and PR B remain pending.
