@@ -39,9 +39,11 @@ After this work a maintainer or contributor can open one document,
    what users see, and how Wenmode upgrades are reviewed and kept out of
    automatic dependency updates; and
 6. the normative fixture decisions (NF-1 to NF-13) that roadmap task 1.1.3 turns
-   into a corpus and task 1.2.3 turns into committed Wenmode probes, each
-   backed by a self-checking probe script that anyone can re-run with one
-   command.
+   into a corpus and task 1.2.3 turns into committed Wenmode probes, each whose
+   raw parser observations are backed by a self-checking probe script that
+   anyone can rerun with one command. Canonicalization outcomes are
+   requirements for the later corpus and canonicalizer tests, not results
+   established by this probe.
 
 A machine-readable manifest inside the ADR is guarded by a documentation
 contract test, so the ADR, the technical design, the existing extension's
@@ -328,6 +330,12 @@ outside its examples.
     `set -e -o pipefail` to both blocks. A shell negative witness with
     exit status 9 is preserved through `tee` and stops the following command.
 
+18. Observation (2026-10-10): the second local CLI review found two minor
+    issues. The recorded hash was PyPI's core-metadata SHA-256, not the wheel
+    archive digest, and EV-1 wording over-claimed canonicalization evidence.
+    Resolution: DEC-23 reads the wheel's `urls[].digests.sha256` directly
+    from raw PyPI JSON and limits probe claims to what its assertions execute.
+
 ## Decision log
 
 - DEC-1. Decision: the ADR is
@@ -404,9 +412,9 @@ outside its examples.
   `checked`, `align`, `lang`, `meta`, `url`, `title`, `alt`, `identifier`,
   `label`, `value`, `data`, `children`. Rationale: design §8's grouping (type,
   structural scalars, link and footnote fields, value, data, children); the
-  probe shows these 17 names cover every member Wenmode emits across all 22
-  GitHub-profile node types (NF-12); rule 3 must precede rule 4 (Surprise 12).
-  Date/Author: 2026-09-27, planning agent, revised after panel review.
+  probe shows these 17 names cover direct node-member names observed across its
+  22 GitHub-profile node types (NF-12); rule 3 must precede rule 4 (Surprise
+  12). Date/Author: 2026-09-27, planning agent, revised after panel review.
 - DEC-7. Decision (accepted by the maintainer on 2026-09-28, DEC-19): adopt
   `merge-plain-text`, so `a & b` and `a &amp; b`, and `a*b` and `a\*b`, compare
   equal. Rationale: `mdast-util-from-markdown` merges adjacent text data, so
@@ -489,8 +497,10 @@ outside its examples.
   `Interfaces and dependencies`. The roadmap 1.1.3 contract corpus is the
   lasting oracle; every fixture cites the NF identifier it discharges; an
   optional `mdast-util-from-markdown` differential run stays unshipped and
-  outside CI. Rationale: design §11; each NF is checked by the self-checking
-  probe. Date/Author: 2026-09-27, planning agent.
+  outside CI. Rationale: design §11; the self-checking probe grounds raw parser
+  observations for each NF. It does not execute the canonicalizer; those
+  payload outcomes remain obligations for the corpus and phase 2. Date/Author:
+  2026-09-27, planning agent.
 - DEC-12. Decision: verification scope. The executable evidence is the guard
   test (DOC-1 to DOC-6), its helper unit tests (UNIT-1 to UNIT-3), and the
   self-checking probe (EV-1). There are no pytest-bdd scenarios, Syrupy
@@ -590,7 +600,7 @@ outside its examples.
   exact pin. Wenmode 0.15.2 is the reproducible evidence baseline, released
   2026-10-01; BSD-3-Clause, pure-Python `py3-none-any` wheel, Python >=3.10.
   Its wheel SHA-256 is
-  `1bbf9d1cac3d01daeca1bd9de99f139174cbbf68cc0a0ebd443f5465903ba922`, verified
+  `a1be9a2d91ef7f5020148daf615edca0c9a4a6d54d074a808e6d5e9de95726f6`, verified
   through PyPI on 2026-10-10. The approved NF-1 to NF-13 probes pass under
   `-W error` on 0.15.1 and 0.15.2; future releases in the range are not claimed
   to be empirically verified by that result. Consequences: DOC-2 treats
@@ -614,6 +624,17 @@ outside its examples.
   the successful `tee` determines pipeline status; without `-e`, subsequent
   gates can run after a failure. The repair changes execution instructions, not
   the snapshot contract. Date/Author: 2026-10-10, implementation agent.
+
+- DEC-23. Decision: correct the 0.15.2 wheel hash using PyPI's raw JSON
+  field `urls[].digests.sha256` for `wenmode-0.15.2-py3-none-any.whl`, rather
+  than `core-metadata.sha256`. The earlier structured extraction selected the
+  metadata hash; the byte-for-byte field selection is now recorded. Also narrow
+  EV-1 and the ADR's fixture/evidence introduction to raw parser observations,
+  warning-free construction, and observed direct node-key coverage. Text
+  merging, line-ending normalization, canonical ordering, and writer outcomes
+  remain mandatory later implementation obligations. The contract is unchanged;
+  evidence claims now match the executed probe. Date/Author: 2026-10-10,
+  implementation agent, verified local findings.
 
 ## Outcomes & retrospective
 
@@ -861,8 +882,8 @@ duplicates, and if it contains `merge-plain-text`, that rule precedes
 `test_key_order_is_framed_and_duplicate_free`. Rationale: these are design §8's
 grouping rules and Surprise 12's lemma; exact membership is fixed by the ADR
 and is not restated in the test. Negative controls: UNIT-3. Residual gap:
-coverage of every emitted key is shown by EV-1 now and by roadmap 1.2.3's
-committed probe later.
+coverage of direct node keys observed in the EV-1 fixture is shown now; roadmap
+1.2.3 owns the committed probe and published node-model checks.
 
 **DOC-4: parser construction agrees across normative documents.** Statement:
 the manifest's `parser` string appears verbatim inside a fenced `python` block
@@ -917,18 +938,27 @@ exhaustively. Evidence: red first, because the helpers are written as stubs
 returning a neutral value (for example, `[]` or a fixed string) and the tests
 precede their bodies.
 
-**EV-1: empirical grounding of NF-1 to NF-13.** Statement: each normative
-fixture decision matches the output of Wenmode 0.15.2's GitHub profile, the v1
-construction emits no warning, and every member name emitted across all 22
-GitHub-profile node types is in `key-order`. Method: the self-checking probe in
-`Artefacts and notes`, run under `-W error` in a throwaway environment at Stage
-A, at EP-M1, and immediately before the acceptance commit; reproduced in the
-ADR's `### Evidence`. Rationale: committed probes need the Wenmode dependency
-and belong to roadmap 1.2.3. Non-vacuity: every equivalence check is paired
-with a negative witness (unresolved reference, undefined footnote, unfiltered
-versus filtered HTML, hard versus soft break), and NF-12 asserts that 22 node
-types were reached. Discharge: the expected output in `Artefacts and notes`,
-exactly.
+**EV-1: raw parser grounding for NF-1 to NF-13.** Statement: the named raw
+Wenmode 0.15.2 GitHub-profile observations match the probe's assertions, the v1
+construction emits no warning, the probe reaches all 22 listed node types, and
+their encountered direct node-member names belong to `key-order`. Method: the
+self-checking probe in `Artefacts and notes`, run under `-W error` in a
+throwaway environment at Stage A, EP-M1, and immediately before the acceptance
+commit; reproduced in the ADR's `### Evidence`. Rationale: committed parser
+probes need the Wenmode dependency and belong to roadmap 1.2.3. Non-vacuity:
+the script includes positive witnesses and contrasting unresolved references,
+undefined footnotes, filtered/unfiltered HTML, and hard/soft breaks. NF-12
+asserts that 22 types are reached; removing `meta` from the allowed keys makes
+that check fail. Discharge: the expected output in `Artefacts and notes`,
+exactly, for these raw observations.
+
+Residual gap: the probe does not merge text nodes, normalize string line
+endings, verify canonical member ordering, or generate canonical JSON. NF-8,
+NF-11, and NF-12's canonical payload requirements await the roadmap 1.1.3
+corpus and phase 2 canonicalizer/writer verification. Their parser premises are
+observed here; their canonicalization outcomes are not claimed proven. Nested
+metadata members such as `data.escaped` are not collected by NF-12; unknown
+members remain governed by the ordering rule in the future tests.
 
 No introduced invariant warrants a property test, CrossHair, a bounded model
 checker, or a formal prover (DEC-12).
@@ -1408,8 +1438,10 @@ trailing-newline = true
 ### ADR-003 normative fixture decisions (for EP-M1; consumed by 1.1.3 and 1.2.3)
 
 "Equal" means the two inputs must produce byte-identical payloads; "distinct"
-means they must not. Each item is checked against Wenmode by the probe line of
-the same number.
+means they must not. The probe line of the same number checks raw parser
+observations only. The canonical payload obligations, including merging,
+normalized line endings, and member order, are implemented and tested in later
+roadmap tasks.
 
 - NF-1. Emphasis delimiter spelling: `*a*`/`_a_` and `**b**`/`__b__` equal.
 - NF-2. Ordinary references: direct, full, collapsed, and shortcut forms equal
@@ -1453,8 +1485,8 @@ the same number.
   member besides `type` and `value` is never merged.
 - NF-12. Key order and coverage: every emitted mapping's members follow the
   manifest's `key-order`, then remaining members by code point; every member
-  name Wenmode emits across the 22 GitHub-profile node types is in `key-order`;
-  a contract fixture pins one node of every type.
+  name observed directly on the 22 node types in the probe is in `key-order`; a
+  contract fixture pins one node of every type.
 - NF-13. Numeric character references: `&#0;` becomes U+FFFD; `&#xD800;` and
   `&#x110000;` stay literal text; no lone surrogate reaches a payload.
 
@@ -1545,3 +1577,8 @@ UNIT-3.
   shell witness confirms status propagation and early termination. Effect on
   remaining work: repeat the applicable gates and local assessment before
   publication; explicit ADR acceptance and PR B remain pending.
+- 2026-10-10: addressed the second CLI assessment's two findings (DEC-23):
+  selected the wheel archive digest from raw PyPI JSON, and qualified probe
+  evidence as raw parser observations rather than canonical payload results.
+  Effect on remaining work: rerun gates and assessment; the later corpus and
+  canonicalizer/writer tests still own their full payload obligations.

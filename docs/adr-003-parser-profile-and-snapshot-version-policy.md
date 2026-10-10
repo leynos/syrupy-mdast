@@ -198,7 +198,7 @@ The proposed requirement is `>=0.15.2,<0.16.0`, as directed by the maintainer
 on 2026-10-10. Wenmode 0.15.2 is the empirical evidence baseline: it was
 released on 2026-10-01, is licensed under BSD-3-Clause, and provides a pure
 Python `py3-none-any` wheel for Python 3.10 and later. The wheel's SHA-256 is
-`1bbf9d1cac3d01daeca1bd9de99f139174cbbf68cc0a0ebd443f5465903ba922`. The
+`a1be9a2d91ef7f5020148daf615edca0c9a4a6d54d074a808e6d5e9de95726f6`. The
 evidence baseline does not claim that later 0.15.x releases allowed by the
 requirement have identical output. An exact pin would constrain this
 repository's resolution more tightly, but the maintainer explicitly selected
@@ -222,11 +222,11 @@ inside `data`, in this order:
    JavaScript's UTF-16 ordering).
 
 The key order groups node type, structural scalars, link and footnote fields,
-value, data, and children. The probe confirms that it covers every member
-Wenmode emits across the 22 node types in the GitHub profile. This version
-preserves `False`, `0`, empty arrays, empty strings, non-empty `data`, unknown
-fields, and `null` array elements. It does not synthesize `null` members for
-fields Wenmode omits.
+value, data, and children. The probe confirms coverage of direct node-member
+names observed in its 22-type GitHub-profile input. This version preserves
+`False`, `0`, empty arrays, empty strings, non-empty `data`, unknown fields, and
+`null` array elements. It does not synthesize `null` members for fields
+Wenmode omits.
 
 ### Canonical JSON writer
 
@@ -324,8 +324,11 @@ dependency is introduced.
 ### Normative fixture decisions
 
 "Equal" means the two inputs must produce byte-identical payloads; "distinct"
-means they must not. Each item is checked against Wenmode by the probe in
-`### Evidence`.
+means they must not. The probe in `### Evidence` grounds the raw parser
+observations for each item. It does not run canonicalization or establish the
+canonical payload outcomes: merging text, normalizing line endings, and
+ordering members remain obligations for the later corpus and canonicalizer
+verification.
 
 - NF-1. Emphasis delimiter spelling: `*a*` and `_a_`, and `**b**` and `__b__`,
   are equal.
@@ -371,8 +374,8 @@ means they must not. Each item is checked against Wenmode by the probe in
   with any member besides `type` and `value` is never merged.
 - NF-12. Key order and coverage: every emitted mapping's members follow the
   manifest's `key-order`, then remaining members by code point. Every member
-  name Wenmode emits across the 22 GitHub-profile node types is in `key-order`;
-  a contract fixture pins one node of every type.
+  name observed directly on the 22 node types in the probe is in `key-order`; a
+  contract fixture pins one node of every type.
 - NF-13. Numeric character references: `&#0;` becomes U+FFFD;
   `&#xD800;` and `&#x110000;` stay literal text; no lone surrogate reaches a
   payload.
@@ -381,7 +384,11 @@ means they must not. Each item is checked against Wenmode by the probe in
 
 The following self-checking probe records Wenmode's raw output. The normative
 fixture policy above also includes canonicalization rules applied after this
-output, notably `merge-plain-text`.
+output. The probe does not execute text merging, line-ending normalization,
+member ordering, or the JSON writer. Its key check collects direct node-member
+names from its 22-type input, not nested metadata names such as `data.escaped`.
+Those remaining outcomes are verified by later corpus, canonicalizer, and
+writer tests.
 
 ```python
 """Self-checking probe of Wenmode's GitHub profile for ADR-003 (contract v1)."""
@@ -561,8 +568,10 @@ The probe was run on 2026-10-10 against Wenmode 0.15.1 and 0.15.2 under
 as expected. This verifies the named cases only; it does not classify all
 upstream changes or prove payload neutrality outside those examples. The 0.15.2
 wheel hash and release details above were checked against
-[Wenmode on PyPI](https://pypi.org/project/wenmode/) on that date. The policy
-is informed by Wenmode's
+[PyPI release metadata](https://pypi.org/pypi/wenmode/0.15.2/json) on that
+date, selecting `urls[].digests.sha256` for the wheel archive; the distinct
+`core-metadata.sha256` describes the metadata file, not that archive. The
+policy is informed by Wenmode's
 [compatibility documentation](https://wenmode.lepture.com/compatibility/) and
 [changelog](https://wenmode.lepture.com/changelog/), and the
 [GFM specification](https://github.github.com/gfm/).
