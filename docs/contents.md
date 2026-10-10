@@ -29,6 +29,9 @@ documentation set.
 - [ADR-002: `main` owns CodeScene coverage publication](adr-002-main-owns-codescene-coverage-publication.md)
   records why only the push-to-`main` publisher contacts CodeScene, and how
   pull requests ratchet coverage without it.
+- [ADR-003: Snapshot contract v1](adr-003-parser-profile-and-snapshot-version-policy.md)
+  proposes the parser profile, normalization, comparison, and snapshot-version
+  policy for `.mdast.json` payloads.
 
 ## Engineering practice
 
