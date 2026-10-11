@@ -11,18 +11,19 @@ Status: BLOCKED
 
 `syrupy-mdast` will compare Markdown by its parsed structure rather than its
 source text. What counts as "the same document" is therefore a persisted
-contract: every `.mdast.json` snapshot a user commits encodes one installed
-parser release, one parser profile, one normalization policy, one key order,
-and one JSON spelling. If any of those drifts silently, users' snapshots churn
-with no explanation, or, worse, a real change stops being detected.
+contract: every `.mdast.json` snapshot a user commits is produced using one
+installed parser release, one parser profile, one normalization policy, one key
+order, and one JSON spelling. If any of those drifts silently, users' snapshots
+churn with no explanation, or, worse, a real change stops being detected.
 
-The technical design names that contract but leaves its load-bearing values
-open. No Wenmode release is chosen; the snapshot-format version is described
-only as "follows semantic versioning"; the exact key order is deferred to "an
-immutable constant"; and several Wenmode behaviours the design ratifies were
-never observed against a real release. Design §11 requires "an explicitly
-versioned ADR" recording the complete contract, "accepted before committing any
-related implementation or fixture change".
+At the start of this task, the technical design named that contract but left
+its load-bearing values open. No Wenmode release was chosen; the
+snapshot-format version was described only as "follows semantic versioning";
+the exact key order was deferred to "an immutable constant"; and several
+Wenmode behaviours the design ratified were never observed against a real
+release. Design §11 requires "an explicitly versioned ADR" recording the
+complete contract, "accepted before committing any related implementation or
+fixture change".
 
 After this work a maintainer or contributor can read two linked records:
 `docs/adr-003-snapshot-version-policy.md` governs versioning, and
@@ -365,6 +366,13 @@ outside its examples.
     1.2.1 work, and corrected that timeline and the security-advisory sentence.
     The accepted A/G outcomes, manifest, and evidence remain unchanged. Fresh
     gates and committed reassessment precede publication.
+
+21. Observation (2026-10-11): committed reassessment of `7b76e3a` found four
+    minor issues. Corrected the focused test pipeline to preserve failures in
+    a fresh shell, clarified that parser metadata is not encoded in payloads,
+    marked the initial design gaps as historical, and corrected two ADR-004
+    punctuation points. These editorial repairs preserve A/G and the manifest
+    and probe; full gates and reassessment remain publication prerequisites.
 
 ## Decision log
 
@@ -1254,6 +1262,8 @@ releases with the `firecrawl-mcp` skill by scraping
 Focused test loop during EP-M3:
 
 ```bash
+set -e -o pipefail
+BR=$(git branch --show-current)
 uv run pytest -v tests/test_snapshot_contract_adr.py 2>&1 | tee /tmp/adr-contract-syrupy-mdast-$BR.out
 ```
 

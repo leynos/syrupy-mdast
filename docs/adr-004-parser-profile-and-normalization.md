@@ -195,7 +195,7 @@ json.dumps(tree, ensure_ascii=False, indent=2, separators=(",", ": "),
 The value domain is mappings with string keys, lists, strings of Unicode scalar
 values, integers, booleans, and `null`; validators check booleans before
 integers. Values outside that domain are an `ast-shape` failure. The payload
-must encode as strict UTF-8 before it is handed to Syrupy so a failure cannot
+must encode as strict UTF-8 before it is handed to Syrupy, so a failure cannot
 truncate a snapshot file. This record governs the string passed to Syrupy. Its
 on-disk line ending remains a decision for before the first release whose
 `serialize()` writes payloads; LF is recommended.
@@ -271,7 +271,7 @@ verification.
   spelling.
 - NF-11. Text segmentation: Wenmode splits text at entity references and
   backslash escapes; `merge-plain-text` rejoins adjacent plain text nodes.
-  Therefore `a & b` equals `a &amp; b`, and `a*b` equals `a\*b`. A text node
+  Therefore, `a & b` equals `a &amp; b`, and `a*b` equals `a\*b`. A text node
   with any member besides `type` and `value` is never merged.
 - NF-12. Key order and coverage: every emitted mapping's members follow the
   manifest's `key-order`, then remaining members by code point. Every member
