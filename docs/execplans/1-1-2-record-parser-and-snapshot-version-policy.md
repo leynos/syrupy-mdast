@@ -266,8 +266,12 @@ outside its examples.
 - [x] (2026-10-11) EP-M2 acceptance commit `8a88cd4` validated and published:
   six sequential gates, 271 tests, and the committed CLI review pass; hosted
   Actions and CodeScene pass for that candidate.
-- [ ] EP-M2 assessment repair: restore DEC-2 amendment details and explicit
-  probe setup in ADR-004 (DEC-26), then validate and obtain confirmation.
+- [x] (2026-10-11) EP-M2 assessment repair: restore DEC-2 amendment details
+  and explicit probe setup in ADR-004 (DEC-26). Six sequential gates, 271
+  tests, the committed CLI review, and hosted checks pass at `60a92e2`;
+  [the hosted assessment][repair-confirmation] confirms both fixes and no
+  remaining defect in EP-M1/EP-M2 pre-merge scope. Later candidate evidence
+  remains separately recorded in the shared delivery ledger.
 - [ ] EP-M2 delivery: PR A merged and its squash landing SHA recorded before
   PR B.
 - [ ] EP-M3: guard tests red, then design, roadmap, and guides reconciled
@@ -797,8 +801,14 @@ unchecked. The shared delivery ledger and evidence are under
 split on 2026-10-11, including 271 tests. Final gate, committed CLI review, and
 publication evidence are recorded there for their actual candidates. No
 formal/symbolic proof artefact changes. The acceptance candidate `8a88cd4`
-passes local and hosted gates; its hosted assessment requires the two
-documentation repairs recorded in DEC-26 before readiness.
+passes local and hosted gates; its assessment identified two documentation
+repairs recorded in DEC-26. At `60a92e2`, those repairs, reference links, and
+evidence-scope clarifications pass all six gates, 271 tests, the committed CLI
+review, and hosted checks. The
+[candidate-bound assessment][repair-confirmation] confirms no remaining
+in-scope defect. This is historical candidate evidence; the shared ledger
+retains later validation and review state. PR A remains unmerged, and PR B
+remains pending.
 
 At completion, record both pull requests' merge SHAs and these handoffs:
 Surprise 7 to roadmap 2.2.2; on-disk line endings to 2.3.1; the Dependabot
@@ -1774,3 +1784,6 @@ UNIT-3.
   coverage, and corrects the probe's ADR identifier without changing
   assertions. Candidate-specific validation and review evidence uses the shared
   ledger.
+
+[repair-confirmation]:
+  https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6114244769
