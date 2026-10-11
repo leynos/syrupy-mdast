@@ -774,14 +774,14 @@ outside its examples.
   local finding.
 
 - DEC-28. Decision: clarify three verified documentation issues from the
-  completed CLI review of `cf5524d`. The contents describes normative fixture
-  decisions rather than corpus files. Correct only the probe module's ADR
-  identifier from ADR-003 to ADR-004; the manifest and executable assertions
-  remain unchanged. Historical byte-identical split evidence applies to the
-  split candidate, before this annotation correction. Narrow ADR-004 and EV-1
-  coverage to the asserted representative cases, explicitly retaining untested
-  NF-10 distinctions as later corpus/implementation obligations. This changes
-  neither the accepted contract nor its required outcomes. Date/Author:
+  completed CLI review of `cf5524d`. `docs/contents.md` describes normative
+  fixture decisions rather than corpus files. Correct only the probe module's
+  ADR identifier from ADR-003 to ADR-004; the manifest and executable
+  assertions remain unchanged. Historical byte-identical split evidence applies
+  to the split candidate, before this annotation correction. Narrow ADR-004 and
+  EV-1 coverage to the asserted representative cases, explicitly retaining
+  untested NF-10 distinctions as later corpus/implementation obligations. This
+  changes neither the accepted contract nor its required outcomes. Date/Author:
   2026-10-11, implementation agent, verified local findings.
 
 ## Outcomes & retrospective
