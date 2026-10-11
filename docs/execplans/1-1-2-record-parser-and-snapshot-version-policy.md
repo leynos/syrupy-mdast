@@ -1743,7 +1743,11 @@ UNIT-3.
   confirmation precede PR A readiness and merge.
 
 - 2026-10-11: DEC-27 records reference-link wrapping after the local
-  review of the DEC-26 repair. Fresh validation and assessment remain pending.
+  review of the DEC-26 repair. All six required gates passed on the
+  formatter-compatible tree before commit `521907e`, including 271 tests. Its
+  completed CLI review identified this stale validation status, now corrected.
+  Subsequent candidate-specific gate, CLI, and hosted evidence is tracked
+  separately in the shared delivery ledger.
 
 [maintainer-acceptance]:
   https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258
