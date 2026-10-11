@@ -2,7 +2,10 @@
 
 ## Status
 
-Proposed.
+Accepted (2026-10-11): retain unmarked `.mdast.json` payloads and use the
+recorded contract/package release and Wenmode upgrade policy.
+
+[Maintainer acceptance](https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258).
 
 ## Date
 
@@ -67,8 +70,8 @@ Keep the payload as the canonical tree alone and retain the `.mdast.json`
 suffix. Ordinary Syrupy diffs show affected snapshots; release notes explain
 the migration, and the users' guide maps package releases to contract versions.
 This avoids changing every snapshot at a contract-version increment. The
-maintainer selected this direction on 2026-10-11. This ADR remains Proposed
-until the written record is explicitly accepted.
+maintainer selected this direction and accepted this written record on
+2026-10-11.
 
 ### Option B: In-payload version member
 
@@ -230,5 +233,5 @@ is introduced.
 ## Outstanding decisions
 
 None. The maintainer selected Option A on 2026-10-11. The bounded Wenmode
-requirement was directed on 2026-10-10. This ADR remains Proposed until its
-written text is explicitly accepted.
+requirement was directed on 2026-10-10. The maintainer accepted this written
+record on 2026-10-11.

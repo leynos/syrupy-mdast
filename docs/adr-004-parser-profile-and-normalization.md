@@ -2,7 +2,10 @@
 
 ## Status
 
-Proposed.
+Accepted (2026-10-11): use the recorded GitHub parser profile and snapshot
+contract v1, including exact-shape adjacent plain text merging.
+
+[Maintainer acceptance](https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258).
 
 ## Date
 
@@ -84,8 +87,7 @@ Merge a run of adjacent sibling nodes only when every node has exactly `type`
 and `value` members and `type` is `text`. This removes tokenizer boundary
 variation while preserving nodes with extra metadata and every non-text
 distinction. The rule runs before line-ending normalization. The maintainer
-selected this direction on 2026-10-11; this ADR remains Proposed until its
-written text is explicitly accepted.
+selected this direction and accepted this written record on 2026-10-11.
 
 | Factor                                          | Option F | Option G |
 | ----------------------------------------------- | -------- | -------- |
@@ -558,5 +560,5 @@ and do not by themselves supersede this record.
 
 ## Outstanding decisions
 
-None. The maintainer selected Option G on 2026-10-11. The written record
-remains Proposed until it is explicitly accepted.
+None. The maintainer selected Option G and accepted this written record on
+2026-10-11.

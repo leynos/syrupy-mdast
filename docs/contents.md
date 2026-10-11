@@ -30,11 +30,11 @@ documentation set.
   records why only the push-to-`main` publisher contacts CodeScene, and how
   pull requests ratchet coverage without it.
 - [ADR-003: Snapshot-version policy](adr-003-snapshot-version-policy.md)
-  records the selected absence of a payload marker, package and contract
+  records the accepted absence of a payload marker, package and contract
   versioning, and Wenmode upgrade policy.
 - [ADR-004: Parser profile and normalization](adr-004-parser-profile-and-normalization.md)
-  proposes the Wenmode parser profile, canonicalization rules, writer, and
-  normative snapshot fixtures.
+  records the accepted Wenmode parser profile, canonicalization rules, writer,
+  and normative snapshot fixtures.
 
 ## Engineering practice
 

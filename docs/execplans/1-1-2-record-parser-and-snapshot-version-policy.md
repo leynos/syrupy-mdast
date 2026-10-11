@@ -5,7 +5,7 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Outcomes & retrospective`, `Conformance basis`, and `Verification plan` must
 be kept up to date as work proceeds.
 
-Status: BLOCKED
+Status: IN PROGRESS
 
 ## Purpose / big picture
 
@@ -102,10 +102,12 @@ These are hard invariants. Violating one requires escalation, not a workaround.
    see DEC-16).
 6. The implementer never accepts a written ADR on the maintainer's behalf.
    Options A and G are accepted by the 2026-10-11 instruction (DEC-24); do not
-   reopen those choices. Acceptance of each rewritten record still requires an
-   explicit maintainer comment or review on pull request A naming it. A generic
-   pull-request approval or acceptance of an individual option does not
-   automatically accept every clause of either new record.
+   reopen those choices. Acceptance of each rewritten record requires explicit
+   maintainer authority naming it, recorded on pull request A. An explicit
+   instruction in the implementation conversation may be quoted there at the
+   maintainer's request (DEC-25); the implementer must retain that source and
+   date. A generic pull-request approval or acceptance of an individual option
+   does not automatically accept every clause of either new record.
 7. Pull request B is created only after pull request A has merged. No commit
    containing the guard test, design reconciliation, roadmap edits (other than
    the lint fix in commit `6cfb4f7`), or guide text is pushed to pull request A.
@@ -257,7 +259,14 @@ outside its examples.
   Final committed CLI review and publication evidence are recorded in the
   shared delivery ledger and PR before publication; these remain separate from
   written-record acceptance.
-- [ ] EP-M2: both written ADRs accepted; pull request A merged.
+- [x] (2026-10-11) EP-M2 record acceptance: the maintainer explicitly accepted
+  both complete written records and directed continuation (DEC-25). Acceptance
+  is
+  [recorded on PR A](https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258);
+  EV-1 rerun passes all thirteen checks on 0.15.2, and the fresh PyPI check
+  identifies no newer release.
+- [ ] EP-M2 delivery: acceptance commit validated/published, PR A merged, and
+  its squash landing SHA recorded before PR B.
 - [ ] EP-M3: guard tests red, then design, roadmap, and guides reconciled
   (pull request B).
 - [ ] EP-M4: full gate sweep, roadmap tick, retrospective.
@@ -688,7 +697,8 @@ outside its examples.
   G (merge adjacent exact-shape plain text siblings); preserve their original
   labels and record their acceptance date in the corresponding ADR. This is
   decision acceptance, not blanket acceptance of the rewritten texts. Both
-  complete records remain Proposed pending the written-record gate.
+  complete records remained Proposed at the split; DEC-25 subsequently records
+  explicit acceptance of both written texts.
 
   ADR-004 owns the single unchanged `[snapshot-contract]` manifest, including
   its contract version and Wenmode requirement, NF-1 to NF-13, and the raw
@@ -712,15 +722,35 @@ outside its examples.
   production behavior or byte contract changes. Date/Author: 2026-10-11,
   maintainer instruction in this conversation.
 
+- DEC-25. Decision: record the maintainer's explicit acceptance of both
+  complete rewritten records on 2026-10-11. Source: the instruction "Please
+  record acceptance and continue" in this conversation, following the published
+  ADR-003/ADR-004 split. The
+  [PR acceptance record](https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258)
+  quotes that instruction and names both reviewed texts at `747ebeb`. This is
+  explicit maintainer authority, not acceptance inferred from A/G choices or
+  generic review approval. Constraint 6 now permits this source to be recorded
+  on PR A at the maintainer's request.
+
+  Mark both ADRs Accepted with the date, decision summary, and acceptance link;
+  remove stale Proposed qualifications without changing their substantive text.
+  The fresh PyPI check reports latest Wenmode 0.15.2, and EV-1 rerun emits
+  thirteen `ok` lines plus `version 0.15.2` under `-W error`. The range,
+  manifest, evidence limits, and A/G remain unchanged. Continue EP-M2 gates,
+  committed review, publication, and PR delivery. The approved two-PR order is
+  retained: do not create PR B or dependent guard/reconciliation changes before
+  A merges; EP-M2 still asks the maintainer to merge A. Date/Author:
+  2026-10-11, maintainer instruction recorded by the implementation agent.
+
 ## Outcomes & retrospective
 
 The combined draft was published at `aa3ba1e` with six passing local gates, 271
 tests, a zero-finding local CLI review, and passing hosted Actions. That is
 historical evidence for the combined record, not validation of this split.
 DEC-24 now separates versioning and normalization and records the accepted A
-and G decisions. Both rewritten texts remain Proposed; acceptance of these
-complete records and PR A merge still gate PR B. The exact 1.1.2 roadmap item
-remains unchecked. The shared delivery ledger and evidence are under
+and G decisions. DEC-25 records explicit acceptance of both complete rewritten
+texts; PR A merge still gates PR B. The exact 1.1.2 roadmap item remains
+unchecked. The shared delivery ledger and evidence are under
 `/tmp/syrupy-mdast-1-1-2-release-check/`. All six sequential gates passed the
 split on 2026-10-11, including 271 tests. Final gate, committed CLI review, and
 publication evidence are recorded there for their actual candidates. No
@@ -1669,3 +1699,8 @@ UNIT-3.
   future reconciliation. Effect on remaining work: publish and validate the
   split, obtain acceptance of both complete rewritten texts, then merge A
   before PR B. A/G choice approval is already settled.
+
+- 2026-10-11: DEC-25 records the maintainer's explicit acceptance of both
+  complete ADR texts, with the instruction quoted on PR A. Status becomes
+  Accepted in both records; fresh release/probe evidence passes. Continue EP-M2
+  delivery while preserving the merge-before-PR-B boundary.
