@@ -5,7 +5,7 @@
 Accepted (2026-10-11): use the recorded GitHub parser profile and snapshot
 contract v1, including exact-shape adjacent plain text merging.
 
-[Maintainer acceptance](https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258).
+[Maintainer acceptance][maintainer-acceptance].
 
 ## Date
 
@@ -569,3 +569,6 @@ supersede this normalization record.
 
 None. The maintainer selected Option G and accepted this written record on
 2026-10-11.
+
+[maintainer-acceptance]:
+  https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258

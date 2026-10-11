@@ -5,7 +5,7 @@
 Accepted (2026-10-11): retain unmarked `.mdast.json` payloads and use the
 recorded contract/package release and Wenmode upgrade policy.
 
-[Maintainer acceptance](https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258).
+[Maintainer acceptance][maintainer-acceptance].
 
 ## Date
 
@@ -235,3 +235,6 @@ is introduced.
 None. The maintainer selected Option A on 2026-10-11. The bounded Wenmode
 requirement was directed on 2026-10-10. The maintainer accepted this written
 record on 2026-10-11.
+
+[maintainer-acceptance]:
+  https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258

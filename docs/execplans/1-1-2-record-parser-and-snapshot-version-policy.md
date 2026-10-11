@@ -261,10 +261,8 @@ outside its examples.
   written-record acceptance.
 - [x] (2026-10-11) EP-M2 record acceptance: the maintainer explicitly accepted
   both complete written records and directed continuation (DEC-25). Acceptance
-  is
-  [recorded on PR A](https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258);
-  EV-1 rerun passes all thirteen checks on 0.15.2, and the fresh PyPI check
-  identifies no newer release.
+  is [recorded on PR A][maintainer-acceptance]; EV-1 rerun passes all thirteen
+  checks on 0.15.2, and the fresh PyPI check identifies no newer release.
 - [x] (2026-10-11) EP-M2 acceptance commit `8a88cd4` validated and published:
   six sequential gates, 271 tests, and the committed CLI review pass; hosted
   Actions and CodeScene pass for that candidate.
@@ -736,8 +734,7 @@ outside its examples.
 - DEC-25. Decision: record the maintainer's explicit acceptance of both
   complete rewritten records on 2026-10-11. Source: the instruction "Please
   record acceptance and continue" in this conversation, following the published
-  ADR-003/ADR-004 split. The
-  [PR acceptance record](https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258)
+  ADR-003/ADR-004 split. The [PR acceptance record][maintainer-acceptance]
   quotes that instruction and names both reviewed texts at `747ebeb`. This is
   explicit maintainer authority, not acceptance inferred from A/G choices or
   generic review approval. Constraint 6 now permits this source to be recorded
@@ -754,10 +751,9 @@ outside its examples.
   2026-10-11, maintainer instruction recorded by the implementation agent.
 
 - DEC-26. Decision: restore two existing documentation requirements in
-  ADR-004 after the
-  [hosted assessment](https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113182172)
-  of `8a88cd4`. Read-only verification confirms both omissions. Define its
-  Date as last updated, and preserve DEC-2's post-release dated amendments for
+  ADR-004 after the [hosted assessment][hosted-assessment] of `8a88cd4`.
+  Read-only verification confirms both omissions. Define its Date as last
+  updated, and preserve DEC-2's post-release dated amendments for
   payload-neutral editorial clarifications and Wenmode requirement changes
   classified neutral under ADR-003. Preserve the existing pre-release
   correction and post-release payload supersession rules. Explicitly instruct
@@ -766,6 +762,16 @@ outside its examples.
   manifest, and probe assertions unchanged. Repeat gates, committed review,
   publication, and hosted confirmation before readiness. Date/Author:
   2026-10-11, implementation agent, verified hosted findings.
+
+- DEC-27. Decision: wrap five long acceptance and assessment links with
+  reference destinations, preserving every target. The completed CLI review of
+  `7792d51` identified their 80-column violations; read-only verification
+  confirms multiline inline syntax is valid Markdown, but the formatter
+  collapses it and `make fmt` fails MD013. A reference-link witness remains
+  wrapped under the formatter, so use that layout. This repair leaves
+  acceptance and contract content unchanged. Repeat gates and committed review
+  before publication. Date/Author: 2026-10-11, implementation agent, verified
+  local finding.
 
 ## Outcomes & retrospective
 
@@ -1735,3 +1741,11 @@ UNIT-3.
 - 2026-10-11: DEC-26 restores amendment and probe setup details omitted from
   ADR-004. Acceptance remains recorded; current-candidate validation and hosted
   confirmation precede PR A readiness and merge.
+
+- 2026-10-11: DEC-27 records reference-link wrapping after the local
+  review of the DEC-26 repair. Fresh validation and assessment remain pending.
+
+[maintainer-acceptance]:
+  https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258
+[hosted-assessment]:
+  https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113182172
