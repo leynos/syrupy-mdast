@@ -1,4 +1,4 @@
-# Record the parser-profile and snapshot-version policy in an ADR
+# Record parser normalization and snapshot versioning in two ADRs
 
 This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Tolerances`, `Risks`, `Progress`, `Surprises & discoveries`, `Decision log`,
@@ -24,8 +24,10 @@ never observed against a real release. Design §11 requires "an explicitly
 versioned ADR" recording the complete contract, "accepted before committing any
 related implementation or fixture change".
 
-After this work a maintainer or contributor can open one document,
-`docs/adr-003-parser-profile-and-snapshot-version-policy.md`, and read:
+After this work a maintainer or contributor can read two linked records:
+`docs/adr-003-snapshot-version-policy.md` governs versioning, and
+`docs/adr-004-parser-profile-and-normalization.md` defines the normalized
+payload. Together they record:
 
 1. the snapshot contract version (`1`) and the rules that decide when it, and
    the package version, must change;
@@ -45,18 +47,19 @@ After this work a maintainer or contributor can open one document,
    requirements for the later corpus and canonicalizer tests, not results
    established by this probe.
 
-A machine-readable manifest inside the ADR is guarded by a documentation
-contract test, so the ADR, the technical design, the existing extension's
-`file_extension`, and the JSON examples in the design cannot disagree without
-failing `make test`. Later roadmap tasks extend the same test to their code
-constants (the roadmap edits in DEC-3 make that a success criterion).
+A single machine-readable manifest inside normalization ADR-004 is guarded by a
+documentation contract test, so the ADR, the technical design, the existing
+extension's `file_extension`, and the JSON examples in the design cannot
+disagree without failing `make test`. Later roadmap tasks extend the same test
+to their code constants (the roadmap edits in DEC-3 make that a success
+criterion).
 
 The work lands in two pull requests because this repository squash-merges
-(DEC-13). Pull request A carries this ExecPlan and ADR-003, and merges only
-after the maintainer accepts the ADR. Pull request B, branched from `main`
-after A merges, carries the guard test and the reconciliation of the design,
-roadmap, and guides. On `main`, therefore, the accepted ADR provably precedes
-every dependent change.
+(DEC-13, revised by DEC-24). Pull request A carries this ExecPlan and both
+ADRs, and merges only after the maintainer accepts both written records. Pull
+request B, branched from `main` after A merges, carries the guard test and the
+reconciliation of the design, roadmap, and guides. On `main`, therefore, both
+accepted records provably precede every dependent change.
 
 Observable success, after pull request B:
 
@@ -66,7 +69,7 @@ uv run pytest -v tests/test_snapshot_contract_adr.py
 ```
 
 Expected: every test passes, including
-`test_exactly_one_contract_adr_is_accepted`,
+`test_exactly_one_normalization_contract_adr_is_accepted`,
 `test_design_parser_construction_matches_manifest`, and
 `test_design_json_examples_are_writer_fixed_points`. Temporarily editing the
 design's §7 code block back to the deprecated `Parser(github, positions=False)`
@@ -91,15 +94,17 @@ These are hard invariants. Violating one requires escalation, not a workaround.
    created; that is roadmap task 1.1.3.
 4. No new runtime or development dependency. The guard test uses only the
    standard library, `pytest`, and the package itself.
-5. ADR-003 follows the template in `docs/documentation-style-guide.md`
-   §"Architectural decision records (ADRs)" verbatim in heading names and
-   order, including the template's `## Decision Drivers` capitalization (the
-   1.1.1 ExecPlan's DEC-13 handoff; see DEC-16).
-6. The implementer never accepts the ADR on the maintainer's behalf. Acceptance
-   is an explicit maintainer comment or review on pull request A stating that
-   ADR-003 is accepted. A pull-request approval without that statement does not
-   count. Approval of this ExecPlan approves the plan and the answers to the
-   questions in DEC-19; it is not acceptance of the ADR text.
+5. Both ADR-003 and ADR-004 follow the template in
+   `docs/documentation-style-guide.md` §"Architectural decision records (ADRs)"
+   verbatim in heading names and order, including the template's
+   `## Decision Drivers` capitalization (the 1.1.1 ExecPlan's DEC-13 handoff;
+   see DEC-16).
+6. The implementer never accepts a written ADR on the maintainer's behalf.
+   Options A and G are accepted by the 2026-10-11 instruction (DEC-24); do not
+   reopen those choices. Acceptance of each rewritten record still requires an
+   explicit maintainer comment or review on pull request A naming it. A generic
+   pull-request approval or acceptance of an individual option does not
+   automatically accept every clause of either new record.
 7. Pull request B is created only after pull request A has merged. No commit
    containing the guard test, design reconciliation, roadmap edits (other than
    the lint fix in commit `6cfb4f7`), or guide text is pushed to pull request A.
@@ -131,8 +136,8 @@ escalate when any of these is reached.
    `Concrete steps` when run against 0.15.2 with `-W error`.
 4. Acceptance: the maintainer requests a change to any decision in
    `Decision log`. Revise this plan first, then the ADR.
-5. Roadmap: this plan authorizes exactly the roadmap edits listed in DEC-3. Any
-   further roadmap amendment triggers escalation.
+5. Roadmap: this plan authorizes the roadmap edits listed in DEC-3, DEC-21, and
+   DEC-24. Any further roadmap amendment triggers escalation.
 6. Dependencies: any need for a new package, including `pytest-bdd` or
    `packaging` as a declared dependency, triggers escalation.
 7. Iterations: a single gate still failing after three remediation attempts.
@@ -229,7 +234,8 @@ outside its examples.
 - [x] (2026-09-28) Maintainer answered DEC-19: merge plain text nodes (yes),
   no payload version marker (yes), no upstream report (no).
 - [x] (2026-10-10) Maintainer authorized execution through the
-  `sdlc-implementation` skill invocation. This approves the plan, not ADR-003.
+  `sdlc-implementation` skill invocation. This approves the plan, not the
+  written ADR texts.
 - [x] (2026-10-10) Stage A release check and EV-1 rerun: all thirteen checks
   pass under `-W error` on both Wenmode 0.15.1 and 0.15.2.
 - [x] (2026-10-10) Tolerance 2 resolved: the maintainer requested
@@ -240,7 +246,17 @@ outside its examples.
   and uses the approved range. Manifest, heading order, NF entries, and the
   embedded probe were checked against the plan. Final gate and CLI review
   evidence is recorded in the shared delivery ledger before publication.
-- [ ] EP-M2: ADR-003 accepted; pull request A merged.
+- [x] (2026-10-11) Maintainer requested two ADRs and explicitly accepted
+  options A (no version marker) and G (merge plain text), recorded in DEC-24.
+- [x] (2026-10-11) EP-M1 revision drafting: split and index versioning ADR-003
+  and normalization ADR-004; preserve the manifest and probe unchanged.
+- [x] (2026-10-11) EP-M1 revision deterministic validation: all six gates pass
+  sequentially, including 271 tests. Both template sequences, reciprocal/index
+  links, the single unchanged manifest, and unchanged evidence blocks checked.
+  Final committed CLI review and publication evidence are recorded in the
+  shared delivery ledger and PR before publication; these remain separate from
+  written-record acceptance.
+- [ ] EP-M2: both written ADRs accepted; pull request A merged.
 - [ ] EP-M3: guard tests red, then design, roadmap, and guides reconciled
   (pull request B).
 - [ ] EP-M4: full gate sweep, roadmap tick, retrospective.
@@ -336,28 +352,37 @@ outside its examples.
     Resolution: DEC-23 reads the wheel's `urls[].digests.sha256` directly
     from raw PyPI JSON and limits probe claims to what its assertions execute.
 
+19. Observation (2026-10-11): the maintainer requested separate versioning
+    and normalization records and accepted options A and G. The prior
+    combined record grouped two independently reviewable decisions. DEC-24
+    separates their ownership without changing either accepted outcome or
+    the manifest/probe contract. Existing combined-record acceptance requests
+    do not establish acceptance of the rewritten records.
+
 ## Decision log
 
-- DEC-1. Decision: the ADR is
+- DEC-1. Original decision (superseded by DEC-24): the combined ADR is
   `docs/adr-003-parser-profile-and-snapshot-version-policy.md`, titled
   "Architectural decision record (ADR) 003: Snapshot contract v1 — parser
   profile and snapshot-version policy". Rationale: next free sequence number;
   the style guide's naming pattern. Date/Author: 2026-09-27, planning agent.
-- DEC-2. Decision: "explicitly versioned" means an integer **snapshot contract
-  version**, starting at `1`, in a machine-readable manifest inside the ADR,
-  alongside the style guide's `Status` and `Date`. Until the first release whose
-  `serialize()` writes payloads, contract v1 may be corrected in place by
-  dated entries under `### Amendments` (a subsection of
+- DEC-2. Decision (record ownership clarified by DEC-24): "explicitly
+  versioned" means an integer **snapshot contract version**, starting at `1`,
+  in a machine-readable manifest inside normalization ADR-004, alongside the
+  style guide's `Status` and `Date`. Until the first release whose
+  `serialize()` writes payloads, contract v1 may be corrected in place by dated
+  entries under `### Amendments` (a subsection of
   `## Decision outcome / proposed direction`, so the template is kept), because
   no user holds a v1 snapshot yet. After that release, changes that cannot
   alter any payload (editorial clarifications, a Wenmode requirement change
   classified as payload-neutral under DEC-9) are dated amendments, with
   `## Date` meaning "last updated"; any change to the definition of the payload
-  is a new contract version in a new ADR, and the old ADR's status becomes
-  `Superseded (YYYY-MM-DD) by ADR-NNN.` Rationale: accepted ADRs are records;
-  superseding keeps each contract version citable, while the pre-release window
-  lets roadmap 1.1.3 and 1.2.3 correct v1 without ceremony. Date/Author:
-  2026-09-27, planning agent, revised after panel review.
+  is a new contract version in a new normalization ADR, and the old
+  normalization ADR's status becomes `Superseded (YYYY-MM-DD) by ADR-NNN.`
+  Rationale: accepted ADRs are records; superseding keeps each contract version
+  citable, while the pre-release window lets roadmap 1.1.3 and 1.2.3 correct v1
+  without ceremony. Date/Author: 2026-09-27, planning agent, revised after
+  panel review.
 - DEC-3. Decision: pull request B makes exactly these roadmap edits:
   1. 1.1.2 ticked done;
   2. 1.2.1 gains two success sub-bullets: a Dependabot `ignore` entry for
@@ -415,32 +440,33 @@ outside its examples.
   probe shows these 17 names cover direct node-member names observed across its
   22 GitHub-profile node types (NF-12); rule 3 must precede rule 4 (Surprise
   12). Date/Author: 2026-09-27, planning agent, revised after panel review.
-- DEC-7. Decision (accepted by the maintainer on 2026-09-28, DEC-19): adopt
-  `merge-plain-text`, so `a & b` and `a &amp; b`, and `a*b` and `a\*b`, compare
-  equal. Rationale: `mdast-util-from-markdown` merges adjacent text data, so
-  splitting is a Wenmode tokenization artefact rather than mdast structure;
-  where Wenmode splits text is exactly the edge-case behaviour its
-  compatibility page reserves the right to change, so merging insulates
-  snapshots from that churn; the narrow rule (exact member set, siblings only)
-  cannot equate nodes that render differently; and adding the rule later would
-  be a contract change touching every snapshot with an entity or escape. The
-  alternative (retain segmentation) is the more literal reading of design §8's
-  "only these transformations" and is recorded as rejected ADR option F.
-  Date/Author: 2026-09-27, planning agent, reversed after panel review;
-  confirmed by the maintainer 2026-09-28.
-- DEC-8. Decision (accepted by the maintainer on 2026-09-28, DEC-19): the
-  payload carries no version marker and the suffix stays `.mdast.json`. Payload
-  changes surface as ordinary Syrupy diffs of the affected snapshots, explained
-  by release notes; the users' guide maps package versions to contract
-  versions. Options considered in the ADR: A (no marker, chosen), B (in-payload
-  member), C (versioned suffix), D (amber-style header with taint, which fails
-  even identical snapshots), and E (an informational marker that comparison
-  ignores, as insta treats its metadata header). Adding any marker later is
-  itself a payload change. Rationale: design §8's payload is the canonical tree
-  alone, and B to D force every snapshot to change at every bump, which is the
-  broad-update noise design §1 exists to remove. Date/Author: 2026-09-27,
-  planning agent, option E added after panel review; confirmed by the
+- DEC-7. Decision (accepted 2026-09-28, reaffirmed as option G
+  on 2026-10-11 in DEC-24): adopt `merge-plain-text`, so `a & b` and
+  `a &amp; b`, and `a*b` and `a\*b`, compare equal. Rationale:
+  `mdast-util-from-markdown` merges adjacent text data, so splitting is a
+  Wenmode tokenization artefact rather than mdast structure; where Wenmode
+  splits text is exactly the edge-case behaviour its compatibility page
+  reserves the right to change, so merging insulates snapshots from that churn;
+  the narrow rule (exact member set, siblings only) cannot equate nodes that
+  render differently; and adding the rule later would be a contract change
+  touching every snapshot with an entity or escape. The alternative (retain
+  segmentation) is the more literal reading of design §8's "only these
+  transformations" and is recorded as rejected ADR option F. Date/Author:
+  2026-09-27, planning agent, reversed after panel review; confirmed by the
   maintainer 2026-09-28.
+- DEC-8. Decision (accepted 2026-09-28, reaffirmed as option A
+  on 2026-10-11 in DEC-24): the payload carries no version marker and the
+  suffix stays `.mdast.json`. Payload changes surface as ordinary Syrupy diffs
+  of the affected snapshots, explained by release notes; the users' guide maps
+  package versions to contract versions. Options considered in the ADR: A (no
+  marker, chosen), B (in-payload member), C (versioned suffix), D (amber-style
+  header with taint, which fails even identical snapshots), and E (an
+  informational marker that comparison ignores, as insta treats its metadata
+  header). Adding any marker later is itself a payload change. Rationale:
+  design §8's payload is the canonical tree alone, and B to D force every
+  snapshot to change at every bump, which is the broad-update noise design §1
+  exists to remove. Date/Author: 2026-09-27, planning agent, option E added
+  after panel review; confirmed by the maintainer 2026-09-28.
 - DEC-9. Decision: the snapshot-version policy is keyed on **any change to any
   payload**, whatever its cause: contract change, canonicalizer conformance
   fix, or non-neutral Wenmode move.
@@ -502,7 +528,7 @@ outside its examples.
   payload outcomes remain obligations for the corpus and phase 2. Date/Author:
   2026-09-27, planning agent.
 - DEC-12. Decision: verification scope. The executable evidence is the guard
-  test (DOC-1 to DOC-6), its helper unit tests (UNIT-1 to UNIT-3), and the
+  test (DOC-1 to DOC-7), its helper unit tests (UNIT-1 to UNIT-3), and the
   self-checking probe (EV-1). There are no pytest-bdd scenarios, Syrupy
   snapshots, end-to-end tests, Hypothesis properties, CrossHair runs, or
   Rust/Verus proofs in this task. Rationale: the task changes documents, not
@@ -519,14 +545,15 @@ outside its examples.
   invariance, and the merge-before-normalize lemma of Surprise 12), where
   Hypothesis plus CrossHair over the pure canonicalizer is the proportionate
   tool. Date/Author: 2026-09-27, planning agent, revised after panel review.
-- DEC-13. Decision: two pull requests. Pull request A (this branch, titled
-  "Plan: … (1.1.2)") carries this ExecPlan, then ADR-003 and its
-  `docs/contents.md` entry; it merges after acceptance. Pull request B,
-  branched from `main` after A merges, carries EP-M3 and EP-M4. Rationale:
-  squash merges collapse branch history (Surprise 15); two squash commits on
-  `main` make the acceptance-before-implementation order verifiable for ever.
-  Pull request A's merge commit SHA is recorded here when known. Date/Author:
-  2026-09-27, planning agent, added after panel review.
+- DEC-13. Decision (record split amended by DEC-24): two pull requests. Pull
+  request A (this branch, titled "Plan: … (1.1.2)") carries this ExecPlan, then
+  ADR-003, ADR-004, and their `docs/contents.md` entries; it merges after
+  acceptance of both records. Pull request B, branched from `main` after A
+  merges, carries EP-M3 and EP-M4. Rationale: squash merges collapse branch
+  history (Surprise 15); two squash commits on `main` make the
+  acceptance-before-implementation order verifiable for ever. Pull request A's
+  merge commit SHA is recorded here when known. Date/Author: 2026-09-27,
+  planning agent, added after panel review.
 - DEC-14. Decision (revised by DEC-21): two inputs are equivalent precisely
   when the same installed syrupy-mdast version, Wenmode version, and parser
   profile produce byte-identical payloads in the same interpreter environment.
@@ -546,8 +573,8 @@ outside its examples.
   and no Markdown extraction helper exists, so the new module duplicates
   nothing. Its reuse policy: tests only, text-in and data-out functions, no
   file I/O in helpers. Date/Author: 2026-09-27, planning agent.
-- DEC-16. Decision: ADR-003 keeps the template's `## Decision Drivers` heading
-  verbatim, although the style guide otherwise prefers sentence case.
+- DEC-16. Decision: both records keep the template's `## Decision Drivers`
+  heading verbatim, although the style guide otherwise prefers sentence case.
   Rationale: Constraint 5; recorded so a reviewer does not "fix" it.
   Date/Author: 2026-09-27, planning agent.
 - DEC-17. Decision: the writer emits C1 controls, U+2028, U+2029, and
@@ -565,11 +592,11 @@ outside its examples.
   deadline; DEC-12's removal of the Hypothesis property and relocation of the
   Wenmode-declaration check; DEC-13's two pull requests; DEC-14's equivalence
   key; the self-checking probe with key coverage and `-W error`; the guard
-  test's discovery of the current contract ADR, its allowlist, and its
-  executable-example check; formatter and Windows risks. Not adopted: a sidecar
-  version file (Syrupy's snapshot-directory walk may report it as unused;
-  unverified and unnecessary under DEC-8); escaping C1 and bidirectional
-  controls (DEC-17). Date/Author: 2026-09-27, planning agent.
+  test's discovery of the current normalization-contract ADR, its allowlist,
+  and its executable-example check; formatter and Windows risks. Not adopted: a
+  sidecar version file (Syrupy's snapshot-directory walk may report it as
+  unused; unverified and unnecessary under DEC-8); escaping C1 and
+  bidirectional controls (DEC-17). Date/Author: 2026-09-27, planning agent.
 - DEC-19. Decision: the maintainer settled the three questions put at plan
   review, so the ADR is drafted with its direction fixed and no outstanding
   decisions:
@@ -636,17 +663,53 @@ outside its examples.
   evidence claims now match the executed probe. Date/Author: 2026-10-10,
   implementation agent, verified local findings.
 
+- DEC-24. Decision: split the combined proposal into two ADRs at the
+  maintainer's explicit request on 2026-10-11:
+  `docs/adr-003-snapshot-version-policy.md` owns snapshot/package versioning,
+  contract evolution, dependency upgrade policy, and options A to E;
+  `docs/adr-004-parser-profile-and-normalization.md` owns parser construction,
+  the normalization/comparison/writer contract, and options F and G. The
+  maintainer explicitly accepts option A (no payload version marker) and option
+  G (merge adjacent exact-shape plain text siblings); preserve their original
+  labels and record their acceptance date in the corresponding ADR. This is
+  decision acceptance, not blanket acceptance of the rewritten texts. Both
+  complete records remain Proposed pending the written-record gate.
+
+  ADR-004 owns the single unchanged `[snapshot-contract]` manifest, including
+  its contract version and Wenmode requirement, NF-1 to NF-13, and the raw
+  parser probe. ADR-003 references that manifest rather than duplicating it;
+  ADR-004 references ADR-003 for lifecycle/release rules. Versioning-policy
+  record amendments are independent of payload-definition changes: a new
+  normalization contract version supersedes the normalization record, not
+  automatically the versioning record. References to the current record may be
+  updated by a dated editorial amendment without changing payload bytes.
+
+  Consequences: replace the unpublished-to-main combined file with these two
+  indexed files; do not create a third stub or superseded combined record.
+  EP-M1 drafts both; EP-M2 requires both records' explicit acceptance and PR A
+  merge; PR B still owns tests and design/roadmap/guide reconciliation. DOC-1
+  discovers the single accepted normalization manifest chain starting with
+  ADR-004; DOC-5 indexes both records and assigns design §§7/8 to
+  normalization, §13 to versioning, and §11 to both; DOC-7 checks accepted
+  versioning policy and reciprocal links to the current normalization record.
+  Extend DEC-3's 1.1.2 roadmap reconciliation to name both records. Preserve
+  runtime/dependency/fixture exclusions and the approved Wenmode range. No
+  production behavior or byte contract changes. Date/Author: 2026-10-11,
+  maintainer instruction in this conversation.
+
 ## Outcomes & retrospective
 
-The maintainer authorized execution and resolved the release-drift exception
-with DEC-21. EP-M1 has drafted ADR-003 with the approved range and evidence
-baseline. The ADR remains `Proposed`; EP-M2 is blocked until the maintainer
-explicitly accepts its written text on pull request A. EP-M3 and EP-M4 require
-that acceptance and pull request A's merge. The roadmap task is still
-unchecked. The release checks, probe logs, and shared delivery ledger are under
-`/tmp/syrupy-mdast-1-1-2-release-check/`. Stage A passed all six gates at
-`6171b79` on 2026-10-10, including 271 tests; logs use the `baseline-` prefix
-in that directory.
+The combined draft was published at `aa3ba1e` with six passing local gates, 271
+tests, a zero-finding local CLI review, and passing hosted Actions. That is
+historical evidence for the combined record, not validation of this split.
+DEC-24 now separates versioning and normalization and records the accepted A
+and G decisions. Both rewritten texts remain Proposed; acceptance of these
+complete records and PR A merge still gate PR B. The exact 1.1.2 roadmap item
+remains unchecked. The shared delivery ledger and evidence are under
+`/tmp/syrupy-mdast-1-1-2-release-check/`. All six sequential gates passed the
+split on 2026-10-11, including 271 tests. Final gate, committed CLI review, and
+publication evidence are recorded there for their actual candidates. No
+formal/symbolic proof artefact changes.
 
 At completion, record both pull requests' merge SHAs and these handoffs:
 Surprise 7 to roadmap 2.2.2; on-disk line endings to 2.3.1; the Dependabot
@@ -674,9 +737,9 @@ dated document recording one decision and its rationale.
 A **snapshot payload** is the exact text produced for one assertion. The
 **snapshot contract** is everything that determines that text for a given
 Markdown input. Its **contract version** is the integer this task introduces. A
-**manifest** is the single fenced `toml` block in the ADR that states the
-contract's values in machine-readable form. A **guard test** is a test that
-fails when two documents, or a document and code, disagree.
+**manifest** is the single fenced `toml` block in normalization ADR-004 that
+states the contract's values in machine-readable form. A **guard test** is a
+test that fails when two documents, or a document and code, disagree.
 
 Current state:
 
@@ -687,9 +750,8 @@ Current state:
    `NotImplementedError` naming roadmap 2.3.1. This task does not touch it.
 2. `docs/syrupy-mdast-design.md` (revision dated 2026-07-28) defines the
    contract in §§4, 7, 8, 11, and 13. §11 requires this ADR.
-3. `docs/adr-001-python-lint-architecture.md` and
-   `docs/adr-002-main-owns-codescene-coverage-publication.md` exist. Neither
-   follows the style-guide template exactly; ADR-003 must.
+3. ADR-001 and ADR-002 are existing records. DEC-24 assigns versioning to
+   ADR-003 and normalization to ADR-004; both follow the style-guide template.
 4. `docs/contents.md` indexes documents under "Decision records".
 5. `tests/` contains infrastructure contract tests. None reads `docs/`; the
    guard test introduced here is a new pattern, modelled on
@@ -714,8 +776,8 @@ Read these, in this order, before editing:
    ratified); §§9-10 only for the failure taxonomy and concurrency rule the ADR
    cites.
 3. `docs/documentation-style-guide.md` §"Architectural decision records
-   (ADRs)", the template ADR-003 must follow verbatim, plus the spelling,
-   footnote, and table-caption rules.
+   (ADRs)", the template both new records must follow verbatim, plus the
+   spelling, footnote, and table-caption rules.
 4. `docs/execplans/1-1-1-replace-package-stub-with-v1-public-contract.md`
    DEC-13 and `Conformance basis`: the template handoff obligation.
 5. `docs/adr-002-main-owns-codescene-coverage-publication.md`: house tone.
@@ -745,6 +807,12 @@ change).
 
 ## Conformance basis
 
+The 2026-10-11 maintainer instruction explicitly authorizes splitting the
+combined record and accepts A and G (DEC-24). The design's required complete
+contract is now covered by two linked records. This changes record ownership
+and later documentation/test references, not the accepted normalization or
+versioning outcomes. Reconcile the design's single-record wording in PR B.
+
 Current revision authorization: the 2026-10-10 maintainer instruction
 `>=0.15.2,<0.16.0` approves DEC-21's deviation from exact-pin requirements. A
 six-lens design check proceeds with conditions: preserve domain boundaries
@@ -770,8 +838,8 @@ There is no Terms of Reference document for this project. Upstream artefacts:
    `.rules/python-*.md`.
 4. Handoff: 1.1.1 ExecPlan DEC-13 (template conformance).
 
-Deviations from the design, each recorded in the ADR and reconciled into the
-design at EP-M3:
+Deviations from the design, each recorded in its owning ADR and reconciled into
+the design at EP-M3:
 
 1. DEC-5: preset factory call in place of design §7's uncalled preset.
 2. DEC-6: exact rule order and key order fixed in the ADR rather than left to
@@ -797,15 +865,16 @@ explicit maintainer direction authorizes that deviation.
 Trace links (all guard tests are written in EP-M3):
 
 ```plaintext
-TDD-§11 -> RM-1.1.2 -> EP-M2 -> test_exactly_one_contract_adr_is_accepted
+TDD-§11 -> RM-1.1.2 -> EP-M2 -> test_exactly_one_normalization_contract_adr_is_accepted
 TDD-§11 -> RM-1.1.2 -> EP-M1 -> test_manifest_has_the_contract_schema
 TDD-§6  -> RM-1.1.2 -> EP-M3 -> test_manifest_file_extension_matches_the_extension
 TDD-§8  -> RM-1.1.2 -> EP-M1 -> test_key_order_is_framed_and_duplicate_free
 TDD-§7  -> RM-1.1.2 -> EP-M3 -> test_design_parser_construction_matches_manifest
 TDD-§7  -> RM-1.1.2 -> EP-M3 -> test_no_normative_document_uses_the_uncalled_preset
 TDD-§8  -> RM-1.1.2 -> EP-M3 -> test_design_json_examples_are_writer_fixed_points
-TDD-§11 -> RM-1.1.2 -> EP-M3 -> test_contract_adr_is_indexed_and_cited_by_the_design
-TDD-§11 -> RM-1.1.3 -> EP-M1 -> ADR-003 NF-1..NF-13 (consumed by the 1.1.3 corpus)
+TDD-§11 -> RM-1.1.2 -> EP-M3 -> test_contract_adrs_are_indexed_and_cited_by_the_design
+DEC-24  -> RM-1.1.2 -> EP-M3 -> test_version_policy_adr_is_accepted_and_linked
+TDD-§11 -> RM-1.1.3 -> EP-M1 -> ADR-004 NF-1..NF-13 (consumed by the 1.1.3 corpus)
 TDD-§13 -> RM-1.2.1 -> handoff -> Wenmode declaration check (DEC-12)
 ```
 
@@ -821,7 +890,7 @@ the probe exits 1 with `NF-12 key coverage FAILED`. Logs are
 `ep-m1-probe-0.15.2.log` and `ep-m1-probe-negative.log` in the shared evidence
 directory. EV-1 also passes under `-W error` for 0.15.1 and 0.15.2. The
 thirteen NF verdicts agree; each run prints its installed version. These finite
-probes do not prove payload neutrality for the newer release. DOC-1 to DOC-6
+probes do not prove payload neutrality for the newer release. DOC-1 to DOC-7
 and UNIT-1 to UNIT-3 remain pending on pull request B.
 
 ### Axioms
@@ -848,17 +917,17 @@ and UNIT-1 to UNIT-3 remain pending on pull request B.
 
 ### Obligations
 
-**DOC-1: exactly one current contract ADR.** Statement: among `docs/adr-*.md`
-files containing a `### Contract manifest` heading, exactly one has status
-`Accepted`; every other one has status `Superseded (YYYY-MM-DD) by ADR-NNN.`
-naming an existing file; and their `contract-version` values run 1 to N without
-gaps, with the accepted one holding N. Method: explicit assertions. Artefact:
-`test_exactly_one_contract_adr_is_accepted`. Rationale: discovering the current
-ADR, rather than hard-coding ADR-003, keeps the test valid across the
-supersession DEC-2 prescribes. Non-vacuity: assert that the discovered set is
-non-empty and contains ADR-003. Negative controls: UNIT-1.
+**DOC-1: exactly one current normalization-contract ADR.** Statement: among
+`docs/adr-*.md` files containing `### Contract manifest`, exactly one is
+Accepted; others are Superseded with a link naming an existing normalization
+record. Their manifest `contract-version` values run 1 to N without gaps, with
+the accepted record holding N. Method: explicit assertions. Artefact:
+`test_exactly_one_normalization_contract_adr_is_accepted`. Discovery remains
+valid across future normalization supersession. Non-vacuity: the set is
+non-empty and includes ADR-004. Versioning ADR-003 deliberately has no manifest
+and is checked separately by DOC-7. Negative controls: UNIT-1.
 
-**DOC-2: manifest schema.** Statement: the current contract ADR contains
+**DOC-2: manifest schema.** Statement: the current normalization ADR contains
 exactly one fenced `toml` block under `### Contract manifest`. It parses to a
 `[snapshot-contract]` table whose keys are exactly `contract-version` (positive
 integer), `wenmode` (a bounded `>=MAJOR.MINOR.PATCH,<MAJOR.MINOR.PATCH`
@@ -900,30 +969,42 @@ and that every allowlisted file exists and is non-empty. An allowlist, not a
 directory scan, keeps later ExecPlans and superseded ADRs free to quote the old
 form as history.
 
-**DOC-5: the ADR is discoverable.** Statement: `docs/contents.md` links the
-current contract ADR under "Decision records", and design §§7, 8, 11, and 13
-each link it. Method: link-target assertions. Artefact:
-`test_contract_adr_is_indexed_and_cited_by_the_design`. Evidence: red at the
-start of EP-M3 for the design links; green after.
+**DOC-5: both records are discoverable.** Statement: `docs/contents.md` links
+ADR-003 versioning and the current normalization record under Decision records.
+Design §§7 and 8 link normalization, §13 links versioning, and §11 links both.
+Method: link-target assertions. Artefact:
+`test_contract_adrs_are_indexed_and_cited_by_the_design`. Evidence: red before
+PR B reconciliation, green afterwards.
 
 **DOC-6: the design's JSON examples obey the contract.** Statement: every fenced
-`json` block in design §8 and in the ADR's normative fixture decisions, when
-parsed, re-serialized with the manifest's `json-writer` settings, equals its
-own text (a fixed point); every mapping in it follows `key-order`; and no list
-in it holds two adjacent plain text nodes (`merge-plain-text`). Method:
-explicit test with the standard library. Artefact:
+`json` block in design §8 and in the normalization ADR's normative fixture
+decisions, when parsed, re-serialized with the manifest's `json-writer`
+settings, equals its own text (a fixed point); every mapping in it follows
+`key-order`; and no list in it holds two adjacent plain text nodes
+(`merge-plain-text`). Method: explicit test with the standard library. Artefact:
 `test_design_json_examples_are_writer_fixed_points`. Rationale: the design's
 examples are the first thing an implementer copies; this is the only place in
 this task where the contract can be executed. Non-vacuity: assert at least one
 `json` block is found in design §8. Negative control: UNIT-3 feeds a
 mis-ordered and a mis-indented example to the same checker.
 
+**DOC-7: accepted policy and reciprocal record links.** Statement: the current
+normalization record's `### Versioning policy` links an existing Accepted
+versioning ADR. Its `### Normalization contract` links the same current
+normalization record discovered by DOC-1. Method: standard-library Markdown
+link extraction and status assertions. Artefact:
+`test_version_policy_adr_is_accepted_and_linked`. Do not discover versioning
+records by looking for a duplicate manifest. Negative controls: a Proposed
+policy record and removed or stale cross-links must fail the same checker. Both
+records' option acceptance notes retain the A/G labels and 2026-10-11 source;
+those notes do not substitute for complete-record status.
+
 **UNIT-1 to UNIT-3: helper happy and unhappy paths.** In
 `tests/test_snapshot_contract_adr.py`, named examples against hand-written
 Markdown strings:
 
 1. UNIT-1: `adr_status` returns `Accepted`, `Proposed`, and
-   `Superseded (2027-01-01) by ADR-004.` for the three forms, and raises
+   `Superseded (2027-01-01) by ADR-005.` for the three forms, and raises
    `ValueError` naming the file when `## Status` is missing or empty.
 2. UNIT-2: `read_manifest` returns the dataclass for a well-formed block, and
    raises `ValueError` for no block, two blocks, a block under the wrong
@@ -944,13 +1025,13 @@ construction emits no warning, the probe reaches all 22 listed node types, and
 their encountered direct node-member names belong to `key-order`. Method: the
 self-checking probe in `Artefacts and notes`, run under `-W error` in a
 throwaway environment at Stage A, EP-M1, and immediately before the acceptance
-commit; reproduced in the ADR's `### Evidence`. Rationale: committed parser
-probes need the Wenmode dependency and belong to roadmap 1.2.3. Non-vacuity:
-the script includes positive witnesses and contrasting unresolved references,
-undefined footnotes, filtered/unfiltered HTML, and hard/soft breaks. NF-12
-asserts that 22 types are reached; removing `meta` from the allowed keys makes
-that check fail. Discharge: the expected output in `Artefacts and notes`,
-exactly, for these raw observations.
+commit; reproduced in normalization ADR-004's `### Evidence`. Rationale:
+committed parser probes need the Wenmode dependency and belong to roadmap
+1.2.3. Non-vacuity: the script includes positive witnesses and contrasting
+unresolved references, undefined footnotes, filtered/unfiltered HTML, and
+hard/soft breaks. NF-12 asserts that 22 types are reached; removing `meta` from
+the allowed keys makes that check fail. Discharge: the expected output in
+`Artefacts and notes`, exactly, for these raw observations.
 
 Residual gap: the probe does not merge text nodes, normalize string line
 endings, verify canonical member ordering, or generate canonical JSON. NF-8,
@@ -970,13 +1051,14 @@ gate set on the untouched tree and keep the logs. Run the probe and compare its
 output. Check PyPI for releases newer than the 0.15.2 evidence baseline and
 apply the revised Tolerance 2.
 
-Stage B: ADR drafting (EP-M1, pull request A). Write ADR-003 as `Proposed`,
-following the template headings verbatim and the DEC-19 answers. Index it in
-`docs/contents.md`. Commit and push.
+Stage B: ADR drafting (EP-M1, pull request A). Draft versioning ADR-003 and
+normalization ADR-004 as Proposed, following DEC-24 and the exact template.
+Record A and G as accepted decisions, index both records, commit and push.
 
-Stage C: acceptance gate (EP-M2, pull request A). Request acceptance of the
-written ADR. On acceptance, set `Accepted`, commit, push, and ask the
-maintainer to merge pull request A. Do not proceed without both.
+Stage C: acceptance gate (EP-M2, pull request A). Request acceptance of the two
+written ADRs. On explicit acceptance of both, set their statuses to `Accepted`,
+commit, push, and ask the maintainer to merge pull request A. Do not proceed
+without both.
 
 Stage D: guard and reconcile (EP-M3, pull request B). Branch from the updated
 `main`. Write the guard test and helpers; observe the planned failures; then
@@ -988,98 +1070,74 @@ complete the retrospective, set this plan to `COMPLETE`.
 
 ## Milestones and plateaus
 
-### EP-M1: ADR-003 drafted as Proposed (pull request A)
+### EP-M1: two ADRs drafted as Proposed (pull request A)
 
-- Outcome: `docs/adr-003-parser-profile-and-snapshot-version-policy.md` exists
-  with status `Proposed`, `docs/contents.md` lists it, and this plan records
-  progress. Nothing else changes. A proposed ADR is a record of a proposal;
-  committing it does not pre-empt acceptance.
-- Content, in the template's order, with its headings verbatim:
-  1. `## Status`: `Proposed.`
-  2. `## Date`: the drafting date.
-  3. `## Context and problem statement`: why the snapshot contract needs one
-     versioned record; what design §11 requires; what was open.
-  4. `## Decision Drivers`: reviewability (design §1), determinism, Wenmode
-     beta churn, the Python-only boundary, conservative equivalence, and
-     protection from automatic dependency updates.
-  5. `## Requirements` with `### Functional requirements` and
-     `### Technical requirements`.
-  6. `## Options considered`: two independent decisions, each introduced as
-     such. Payload versioning: `### Option A: No version marker`,
-     `### Option B: In-payload version member`, `### Option C: Versioned file
-     suffix`, `### Option D: Header with taint`, and
-     `### Option E: Informational header ignored by comparison`, compared in a
-     table captioned "*Table 1: Payload versioning options.*". Text
-     segmentation: `### Option F: Retain Wenmode's text segmentation` and
-     `### Option G: Merge adjacent plain text nodes`, compared in
-     "*Table 2: Text segmentation options.*".
-  7. `## Decision outcome / proposed direction`, containing, in order:
-     `### Contract manifest` (the single fenced `toml` block); `### Parser
-     profile` (DEC-5); `### Wenmode release` (DEC-21, baseline and range,
-     licence, wheel hash);
-     `### Normalization policy` (DEC-6, DEC-7, referring to the manifest rather
-     than restating `key-order`); `### Canonical JSON writer` (DEC-10, the
-     escape set, DEC-17); `### Comparison contract` (DEC-14);
-     `### Snapshot-version policy` (DEC-2, DEC-8, DEC-9); `### Normative
-     fixture decisions` (NF-1 to NF-13); `### Evidence` (the probe script, the
-     one-line command, the expected output, and the probe date); and
-     `### Amendments` (empty, with a sentence explaining DEC-2's rule).
-  8. `## Goals and non-goals`: non-goals from design §2.2, plus unified byte
-     compatibility and on-disk line terminators.
-  9. `## Migration plan`: numbered phases mapping to roadmap 1.1.3, 1.2.1,
-     1.2.2, 1.2.3, 2.1.2, 2.2.1, 2.3.1, and 3.2.1, as in DEC-3.
-  10. `## Known risks and limitations`: Risks 1 to 8, the consequences of
-      `merge-plain-text`, and DEC-17.
-  11. `## Outstanding decisions`: "None." (DEC-19 settled every question.)
-- Acceptance evidence: Constraint 10's full gate sequence passes; each heading
-  is checked against the template by eye; EV-1 re-run matches.
-- Conformance check: design sections cited; only the ADR, `docs/contents.md`,
-  and this plan changed.
-- Recovery: new file; revert the commit to retry.
-- Remaining gaps: acceptance, reconciliation, and tests.
-- Compatibility decision: none.
+- Outcome: versioning ADR-003 and normalization ADR-004 exist, are indexed,
+  and record the accepted A/G choices with their dates. The old combined file
+  is removed; the plan records DEC-24 and current evidence. No other product
+  file changes.
+- Both use the template heading names and order: Status, Date, Context and
+  problem statement, Decision Drivers, Requirements (functional/technical),
+  Options considered, Decision outcome / proposed direction, Goals and
+  non-goals, Migration plan, Known risks and limitations, Outstanding decisions.
+- Versioning ADR-003 retains options A to E and their comparison table,
+  accepted option A, release/contract evolution rules, upgrade reporting, range
+  exposure and lockfile guidance, and a `### Normalization contract` link to
+  ADR-004. It contains no duplicate manifest or parser probe.
+- Normalization ADR-004 retains options F and G and their comparison table,
+  accepted option G, the full single manifest, parser/profile/release evidence,
+  normalization/writer/comparison semantics, all NF decisions, the complete raw
+  probe and its limits, a `### Versioning policy` link to ADR-003, and dated
+  Amendments guidance. No semantic rule or probe assertion is removed by the
+  split.
+- Preserve DEC-21's range and DEC-23's correct archive hash and evidence limits.
+  Both complete records remain Proposed; their outstanding choices are None,
+  while written-record acceptance remains a separate process gate.
+- Acceptance evidence: all six Constraint 10 gates pass sequentially. Check
+  both heading sequences, reciprocal/index links, exactly one TOML manifest,
+  manifest equality with the pre-split record, unchanged probe assertions, and
+  explicit accepted A/G notes. Complete a local CLI review on the gated
+  committed candidate; log outcomes in the shared delivery ledger.
+- Conformance: only both ADRs, contents, and this plan change. Revert the
+  split commit to restore the combined draft; no runtime compatibility work.
 
-### EP-M2: ADR-003 accepted (pull request A merged)
+### EP-M2: both written ADRs accepted (pull request A merged)
 
-- Outcome: the ADR's status reads
-  `Accepted (YYYY-MM-DD): <one-sentence summary>.`, per the style guide, with a
-  link to the maintainer's accepting comment; pull request A is merged.
-- Procedure: push; post a comment on pull request A asking the maintainer to
-  accept ADR-003 or request changes, and state it in the session. Set this
-  plan's status to `BLOCKED` while waiting (Tolerance 9 governs re-pings). On
-  requested changes, revise `Decision log` first (Tolerance 4), then the ADR,
-  then ask again. Immediately before the acceptance commit, re-run EV-1 and
-  re-check Tolerance 2.
-- Acceptance evidence: the maintainer's explicit acceptance, quoted with its
-  date and link in `Decision log`; the acceptance commit; pull request A's
-  squash SHA on `main`, recorded in DEC-13.
-- Conformance check: the accepted text equals the reviewed text apart from the
-  status line and resolved outstanding decisions.
-- Recovery: if acceptance is withdrawn before merge, revert the status commit.
-- Compatibility decision: none.
+- Outcome: both records' Status sections read Accepted with date, summary,
+  and a link to the maintainer's explicit record acceptance. PR A is merged.
+- Request acceptance of the two rewritten texts; do not ask the maintainer to
+  choose A or G again. Record this plan as BLOCKED while awaiting the record
+  gate. Tolerance 9 still controls re-pings. Update Decision log before any
+  further requested substantive change.
+- Before the acceptance commit, rerun EV-1 and check Tolerance 2. Date/link
+  both explicit acceptances, commit and push the accepted statuses, and ask the
+  maintainer to merge A. Record its squash landing SHA before PR B.
+- Conformance: reviewed accepted texts differ only in status/acceptance links.
+  If acceptance is withdrawn before merge, revert the affected status edit.
 
 ### EP-M3: guard, then reconcile (pull request B)
 
 - Outcome: the guard test passes and every normative document agrees with
-  ADR-003.
+  both accepted records.
 - Red: create a branch from the updated `main` (suggested name
   `1-1-2-guard-snapshot-contract`). Add `tests/support/adr_contract.py` with
   stub helpers (see `Interfaces and dependencies`) and
   `tests/test_snapshot_contract_adr.py`. Run the focused command in
   `Concrete steps`. Expected failures: UNIT-1 to UNIT-3 (stubs), DOC-4 (design
   §7 and roadmap 1.2.2 and 2.1.1 still use the uncalled form), and DOC-5
-  (design does not cite ADR-003). DOC-1, DOC-2, DOC-3, and DOC-6 may already
-  pass against the accepted ADR and the current design; that is expected, and
-  their negative controls are the UNIT examples.
+  (design does not cite the split records). DOC-1, DOC-2, DOC-3, and DOC-6 may
+  already pass against the accepted ADR and the current design; that is
+  expected, and their negative controls are the UNIT examples.
 - Green: implement the helpers; then edit:
   1. `docs/syrupy-mdast-design.md`:
      - design section 7's code block and prose use `github()`;
-     - sections 4, 7, 8, 11, and 13 cite ADR-003;
+     - sections 4, 7, and 8 cite ADR-004; section 13 cites ADR-003;
+       section 11 cites both records;
      - sections 2.3, 7, 11, 13, 15, and 16 replace exact-pin assumptions with
        the bounded requirement and locked-environment qualification (DEC-21);
      - section 8 refers to the ADR for the rule order and key order, and adds
        the `null`-element rule and the merge rule;
-     - section 11 names ADR-003 as the required record;
+     - section 11 names both records as the required contract;
      - section 13 adopts DEC-9 and DEC-21;
      - section 15 adds the GFM divergence, formatter, and Windows risks;
      - the references gain Wenmode's node-model and changelog pages and the GFM
@@ -1088,12 +1146,14 @@ complete the retrospective, set this plan to `COMPLETE`.
   2. `docs/roadmap.md`: DEC-3's edits 2 to 7, plus DEC-21's replacement
      of exact-pin wording in 1.1.2, 1.2.1, 2.4.1, 2.4.2, 3.2.1, and 3.2.2.
      The 1.2 step keeps the fixed contract but permits the approved range.
+     DEC-24 also changes 1.1.2 wording to the two linked records.
   3. `docs/users-guide.md`: a short section, `## Snapshot contract and
      upgrades`, of at most two paragraphs plus one recipe, written in the
      future tense that the existing "after serialization is implemented"
      wording uses. It says that snapshots follow contract v1, defined by
-     ADR-003 (linked, not restated), and is provisional until syrupy-mdast
-     1.0. It says that deliberate patch-release changes, tested with the same parser,
+     ADR-004 with lifecycle policy in ADR-003 (linked, not restated), and is
+     provisional until syrupy-mdast 1.0. It says that deliberate patch-release
+     changes, tested with the same parser,
      never knowingly change payloads; recommends a locked test environment
      because parser updates within the range can change snapshots; and that
      a payload change arrives in a minor release (before 1.0) with release
@@ -1105,17 +1165,18 @@ complete the retrospective, set this plan to `COMPLETE`.
   4. `docs/developers-guide.md`: §"Upgrade Wenmode" rewritten to cite ADR-003
      and DEC-9 (dedicated pull request, corpus plus changelog classification,
      no Dependabot, warnings blocker, triggers, contract-version decision,
-     amendment or superseding ADR); a new `### Snapshot contract ADR` paragraph
+     amendment or superseding ADR); a new `### Snapshot contract ADRs` paragraph
      describing the manifest and the guard test, and the rule that each later
-     code constant (requirement, parser construction, key order, rule order, writer
-     settings) is added to the guard test when it is introduced; and a new
+     code constant from ADR-004 (requirement, parser construction, key order,
+     rule order, writer settings) is added to the guard test when it is
+     introduced; and a new
      `### ADR manifest parser for contract tests` describing
      `tests/support/adr_contract.py` (DEC-15).
 - Acceptance evidence: focused test green; Constraint 10's full gate sequence
   green.
 - Conformance check: every deviation in `Conformance basis` is now in the
   design text; no production file touched; roadmap edits equal DEC-3 and
-  DEC-21's approved scope.
+  DEC-21's and DEC-24's approved scope.
 - Recovery: tests and documents are independent files; revert per file.
 - Remaining gaps: roadmap tick and retrospective.
 - Compatibility decision: none.
@@ -1129,7 +1190,8 @@ complete the retrospective, set this plan to `COMPLETE`.
   B's:
 
   ```bash
-  git log --oneline -- docs/adr-003-parser-profile-and-snapshot-version-policy.md \
+  git log --oneline -- docs/adr-003-snapshot-version-policy.md \
+    docs/adr-004-parser-profile-and-normalization.md \
     tests/test_snapshot_contract_adr.py
   ```
 
@@ -1191,9 +1253,9 @@ uv run pytest -v tests/test_snapshot_contract_adr.py 2>&1 | tee /tmp/adr-contrac
 Commits (subject lines; bodies explain why, Markdown allowed, without an
 attribution trailer):
 
-1. Pull request A: `Draft ADR-003 snapshot contract v1` (EP-M1), then
-   `Accept ADR-003 snapshot contract v1` (EP-M2).
-2. Pull request B: `Guard ADR-003 and reconcile the design` (EP-M3), then
+1. Pull request A: `Split versioning and normalization ADRs` (EP-M1), then
+   `Accept snapshot policy and normalization ADRs` (EP-M2).
+2. Pull request B: `Guard snapshot ADRs and reconcile the design` (EP-M3), then
    `Complete roadmap task 1.1.2` (EP-M4).
 
 ## Validation and acceptance
@@ -1203,7 +1265,7 @@ Quality criteria:
 - Tests: `make test` passes; `tests/test_snapshot_contract_adr.py` passes; its
   UNIT examples failed against the stubs, and DOC-4 and DOC-5 failed before the
   reconciliation edits.
-- Verification: DOC-1 to DOC-6 and UNIT-1 to UNIT-3 discharged; EV-1 output
+- Verification: DOC-1 to DOC-7 and UNIT-1 to UNIT-3 discharged; EV-1 output
   identical to the expected output above.
 - Lint and typecheck: `make check-fmt`, `make typecheck`, and `make lint` pass
   (Interrogate at 100% including the new modules).
@@ -1231,11 +1293,12 @@ plan does not touch, revert that side effect and record it in
 
 ## Artefacts and notes
 
-The self-checking probe, `/tmp/wenmode-probe/probe.py` (never saved in the
-repository; the ADR's `### Evidence` reproduces it):
+The self-checking probe for normalization ADR-004,
+`/tmp/wenmode-probe/probe.py` (never saved in the repository; normalization
+ADR-004's `### Evidence` reproduces it):
 
 ```python
-"""Self-checking probe of Wenmode's GitHub profile for ADR-003 (contract v1)."""
+"""Self-checking probe of Wenmode's GitHub profile for ADR-004 (contract v1)."""
 
 import json
 from importlib.metadata import version
@@ -1404,10 +1467,10 @@ compatibility, node model, and changelog pages under
 
 No production interface changes. No dependency changes.
 
-### ADR-003 contract manifest (normative content for EP-M1)
+### ADR-004 contract manifest (normative content for EP-M1)
 
-The ADR's `### Contract manifest` contains exactly this block (values fixed by
-DEC-21, DEC-5, DEC-6, DEC-7, and DEC-10):
+Normalization ADR-004's `### Contract manifest` contains exactly this block
+(values fixed by DEC-21, DEC-5, DEC-6, DEC-7, and DEC-10):
 
 ```toml
 [snapshot-contract]
@@ -1435,7 +1498,7 @@ sort-keys = false
 trailing-newline = true
 ```
 
-### ADR-003 normative fixture decisions (for EP-M1; consumed by 1.1.3 and 1.2.3)
+### ADR-004 normative fixture decisions (for EP-M1; consumed by 1.1.3 and 1.2.3)
 
 "Equal" means the two inputs must produce byte-identical payloads; "distinct"
 means they must not. The probe line of the same number checks raw parser
@@ -1526,7 +1589,7 @@ def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[s
 ```
 
 `tests/test_snapshot_contract_adr.py` owns all file reads (through
-`tests.support.make_contract.REPO_ROOT`) and holds DOC-1 to DOC-6 and UNIT-1 to
+`tests.support.make_contract.REPO_ROOT`) and holds DOC-1 to DOC-7 and UNIT-1 to
 UNIT-3.
 
 ## Revision notes
@@ -1542,13 +1605,13 @@ UNIT-3.
   plain text nodes (DEC-6, DEC-7); a structured writer specification and
   on-disk line-ending deadline (DEC-10); roadmap edits that bind later tasks to
   the manifest (DEC-3); a self-checking probe with key coverage and `-W error`;
-  a guard test that discovers the current contract ADR, scans an allowlist, and
-  executes the design's JSON examples; the Hypothesis property removed and the
-  Wenmode-declaration check moved to roadmap 1.2.1 (DEC-12); new risks for
-  formatters, Windows line endings, Unicode data, pin conflicts, and warnings.
-  Effect on remaining work: the maintainer answers DEC-19 at plan approval;
-  EP-M1 drafts the ADR on pull request A; EP-M3 starts on a new branch after
-  pull request A merges.
+  a guard test that discovers the current normalization-contract ADR, scans an
+  allowlist, and executes the design's JSON examples; the Hypothesis property
+  removed and the Wenmode-declaration check moved to roadmap 1.2.1 (DEC-12);
+  new risks for formatters, Windows line endings, Unicode data, pin conflicts,
+  and warnings. Effect on remaining work: the maintainer answers DEC-19 at plan
+  approval; EP-M1 drafts the ADR on pull request A; EP-M3 starts on a new
+  branch after pull request A merges.
 - 2026-09-28: recorded the maintainer's DEC-19 answers. `merge-plain-text` is
   now unconditional in DEC-6, DEC-7, the manifest, DOC-6, NF-11, and the
   milestones; DEC-8's option A is confirmed; no upstream report is filed, so
@@ -1582,3 +1645,10 @@ UNIT-3.
   evidence as raw parser observations rather than canonical payload results.
   Effect on remaining work: rerun gates and assessment; the later corpus and
   canonicalizer/writer tests still own their full payload obligations.
+- 2026-10-11: recorded the maintainer's split instruction and acceptance
+  of A/G in DEC-24. Versioning is now ADR-003; parser/normalization/writer
+  semantics, the sole manifest, and raw probe are ADR-004. Updated current
+  scope, milestones, acceptance gate, conformance, discovery/link checks, and
+  future reconciliation. Effect on remaining work: publish and validate the
+  split, obtain acceptance of both complete rewritten texts, then merge A
+  before PR B. A/G choice approval is already settled.
