@@ -9,7 +9,7 @@ contract v1, including exact-shape adjacent plain text merging.
 
 ## Date
 
-2026-10-11.
+2026-10-11 (last updated).
 
 ## Context and problem statement
 
@@ -440,7 +440,9 @@ check(
 print("version", version("wenmode"))
 ```
 
-Run the probe with Wenmode 0.15.2 and warnings treated as errors:
+Before running the command below, create `/tmp/wenmode-probe` and save the
+preceding Python block verbatim as `/tmp/wenmode-probe/probe.py`. Then run the
+saved probe with Wenmode 0.15.2 and warnings treated as errors:
 
 ```bash
 mkdir -p /tmp/wenmode-probe
@@ -489,9 +491,14 @@ policy independently of this normalization record.
 
 Before the first release whose `serialize()` writes payloads, a correction to
 the v1 payload definition may be recorded here as a dated amendment. After that
-release, a payload-definition change requires a new normalization ADR, which
-supersedes this record. Changes to snapshot-version policy belong in ADR-003
-and do not by themselves supersede this record.
+release, payload-neutral changes may also be recorded as dated amendments.
+These include editorial clarifications and Wenmode requirement changes
+classified as payload-neutral under ADR-003. In post-release amendments,
+`## Date` means the last update date. A change to the payload definition
+requires a new contract version in a new normalization ADR, which supersedes
+this record. It does not by itself supersede ADR-003; changes to
+snapshot-version policy remain owned by that record and do not by themselves
+supersede this normalization record.
 
 ## Goals and non-goals
 

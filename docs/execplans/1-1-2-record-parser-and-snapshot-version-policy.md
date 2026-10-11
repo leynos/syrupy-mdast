@@ -265,8 +265,13 @@ outside its examples.
   [recorded on PR A](https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258);
   EV-1 rerun passes all thirteen checks on 0.15.2, and the fresh PyPI check
   identifies no newer release.
-- [ ] EP-M2 delivery: acceptance commit validated/published, PR A merged, and
-  its squash landing SHA recorded before PR B.
+- [x] (2026-10-11) EP-M2 acceptance commit `8a88cd4` validated and published:
+  six sequential gates, 271 tests, and the committed CLI review pass; hosted
+  Actions and CodeScene pass for that candidate.
+- [ ] EP-M2 assessment repair: restore DEC-2 amendment details and explicit
+  probe setup in ADR-004 (DEC-26), then validate and obtain confirmation.
+- [ ] EP-M2 delivery: PR A merged and its squash landing SHA recorded before
+  PR B.
 - [ ] EP-M3: guard tests red, then design, roadmap, and guides reconciled
   (pull request B).
 - [ ] EP-M4: full gate sweep, roadmap tick, retrospective.
@@ -382,6 +387,12 @@ outside its examples.
     marked the initial design gaps as historical, and corrected two ADR-004
     punctuation points. These editorial repairs preserve A/G and the manifest
     and probe; full gates and reassessment remain publication prerequisites.
+
+22. Observation (2026-10-11): the hosted assessment of accepted commit
+    `8a88cd4` found two ADR-004 omissions: DEC-2's payload-neutral amendment
+    policy and the probe file creation instruction. Read-only verification
+    confirms both. DEC-26 restores those details without changing the contract;
+    validation and current-candidate assessment confirmation remain pending.
 
 ## Decision log
 
@@ -742,6 +753,20 @@ outside its examples.
   A merges; EP-M2 still asks the maintainer to merge A. Date/Author:
   2026-10-11, maintainer instruction recorded by the implementation agent.
 
+- DEC-26. Decision: restore two existing documentation requirements in
+  ADR-004 after the
+  [hosted assessment](https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113182172)
+  of `8a88cd4`. Read-only verification confirms both omissions. Define its
+  Date as last updated, and preserve DEC-2's post-release dated amendments for
+  payload-neutral editorial clarifications and Wenmode requirement changes
+  classified neutral under ADR-003. Preserve the existing pre-release
+  correction and post-release payload supersession rules. Explicitly instruct
+  readers to save the preceding probe as `/tmp/wenmode-probe/probe.py` before
+  running it. These clarifications leave accepted decisions, A/G, the range,
+  manifest, and probe assertions unchanged. Repeat gates, committed review,
+  publication, and hosted confirmation before readiness. Date/Author:
+  2026-10-11, implementation agent, verified hosted findings.
+
 ## Outcomes & retrospective
 
 The combined draft was published at `aa3ba1e` with six passing local gates, 271
@@ -754,7 +779,9 @@ unchecked. The shared delivery ledger and evidence are under
 `/tmp/syrupy-mdast-1-1-2-release-check/`. All six sequential gates passed the
 split on 2026-10-11, including 271 tests. Final gate, committed CLI review, and
 publication evidence are recorded there for their actual candidates. No
-formal/symbolic proof artefact changes.
+formal/symbolic proof artefact changes. The acceptance candidate `8a88cd4`
+passes local and hosted gates; its hosted assessment requires the two
+documentation repairs recorded in DEC-26 before readiness.
 
 At completion, record both pull requests' merge SHAs and these handoffs:
 Surprise 7 to roadmap 2.2.2; on-disk line endings to 2.3.1; the Dependabot
@@ -1704,3 +1731,7 @@ UNIT-3.
   complete ADR texts, with the instruction quoted on PR A. Status becomes
   Accepted in both records; fresh release/probe evidence passes. Continue EP-M2
   delivery while preserving the merge-before-PR-B boundary.
+
+- 2026-10-11: DEC-26 restores amendment and probe setup details omitted from
+  ADR-004. Acceptance remains recorded; current-candidate validation and hosted
+  confirmation precede PR A readiness and merge.
