@@ -34,7 +34,7 @@ documentation set.
   versioning, and Wenmode upgrade policy.
 - [ADR-004: Parser profile and normalization](adr-004-parser-profile-and-normalization.md)
   records the accepted Wenmode parser profile, canonicalization rules, writer,
-  and normative snapshot fixtures.
+  and normative fixture decisions.
 
 ## Engineering practice
 

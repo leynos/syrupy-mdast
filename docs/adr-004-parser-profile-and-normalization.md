@@ -227,11 +227,16 @@ record owns the bytes and profile to which that policy applies.
 ### Normative fixture decisions
 
 "Equal" means the two inputs must produce byte-identical payloads; "distinct"
-means they must not. The probe in `### Evidence` grounds the raw parser
-observations for each item. It does not run canonicalization or establish the
-canonical payload outcomes: merging text, normalizing line endings, and
-ordering members remain obligations for the later corpus and canonicalizer
-verification.
+means they must not. The probe in `### Evidence` records raw parser assertions
+for representative cases, not every subcase below. For NF-10, it asserts a
+hard/soft break distinction, code value, language and metadata, an ordered
+list's `start` value, and a task item's `checked` state. It does not compare
+ordered and unordered lists, `spread`, item order, table-cell content or
+alignment, or raw-HTML spelling. These NF-10 distinctions remain normative and
+require explicit assertions in the later contract corpus. The probe does not
+run canonicalization or establish canonical payload outcomes: merging text,
+normalizing line endings, and ordering members remain obligations for the later
+corpus and canonicalizer verification.
 
 - NF-1. Emphasis delimiter spelling: `*a*` and `_a_`, and `**b**` and `__b__`,
   are equal.
@@ -294,7 +299,7 @@ remaining outcomes are verified by later corpus, canonicalizer, and writer
 tests.
 
 ```python
-"""Self-checking probe of Wenmode's GitHub profile for ADR-003 (contract v1)."""
+"""Self-checking probe of Wenmode's GitHub profile for ADR-004 (contract v1)."""
 
 import json
 from importlib.metadata import version

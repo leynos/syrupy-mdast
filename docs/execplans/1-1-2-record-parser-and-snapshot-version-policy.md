@@ -252,7 +252,7 @@ outside its examples.
 - [x] (2026-10-11) Maintainer requested two ADRs and explicitly accepted
   options A (no version marker) and G (merge plain text), recorded in DEC-24.
 - [x] (2026-10-11) EP-M1 revision drafting: split and index versioning ADR-003
-  and normalization ADR-004; preserve the manifest and probe unchanged.
+  and normalization ADR-004; preserve the manifest and probe assertions.
 - [x] (2026-10-11) EP-M1 revision deterministic validation: all six gates pass
   sequentially, including 271 tests. Both template sequences, reciprocal/index
   links, the single unchanged manifest, and unchanged evidence blocks checked.
@@ -773,6 +773,17 @@ outside its examples.
   before publication. Date/Author: 2026-10-11, implementation agent, verified
   local finding.
 
+- DEC-28. Decision: clarify three verified documentation issues from the
+  completed CLI review of `cf5524d`. The contents describes normative fixture
+  decisions rather than corpus files. Correct only the probe module's ADR
+  identifier from ADR-003 to ADR-004; the manifest and executable assertions
+  remain unchanged. Historical byte-identical split evidence applies to the
+  split candidate, before this annotation correction. Narrow ADR-004 and EV-1
+  coverage to the asserted representative cases, explicitly retaining untested
+  NF-10 distinctions as later corpus/implementation obligations. This changes
+  neither the accepted contract nor its required outcomes. Date/Author:
+  2026-10-11, implementation agent, verified local findings.
+
 ## Outcomes & retrospective
 
 The combined draft was published at `aa3ba1e` with six passing local gates, 271
@@ -1097,19 +1108,24 @@ exhaustively. Evidence: red first, because the helpers are written as stubs
 returning a neutral value (for example, `[]` or a fixed string) and the tests
 precede their bodies.
 
-**EV-1: raw parser grounding for NF-1 to NF-13.** Statement: the named raw
-Wenmode 0.15.2 GitHub-profile observations match the probe's assertions, the v1
-construction emits no warning, the probe reaches all 22 listed node types, and
-their encountered direct node-member names belong to `key-order`. Method: the
-self-checking probe in `Artefacts and notes`, run under `-W error` in a
-throwaway environment at Stage A, EP-M1, and immediately before the acceptance
-commit; reproduced in normalization ADR-004's `### Evidence`. Rationale:
-committed parser probes need the Wenmode dependency and belong to roadmap
-1.2.3. Non-vacuity: the script includes positive witnesses and contrasting
-unresolved references, undefined footnotes, filtered/unfiltered HTML, and
-hard/soft breaks. NF-12 asserts that 22 types are reached; removing `meta` from
-the allowed keys makes that check fail. Discharge: the expected output in
-`Artefacts and notes`, exactly, for these raw observations.
+**EV-1: representative raw parser examples for NF-1 to NF-13.** Statement: The
+named raw Wenmode 0.15.2 GitHub-profile observations match the probe's
+assertions, the v1 construction emits no warning, the probe reaches all 22
+listed node types, and their encountered direct node-member names belong to
+`key-order`. Method: the self-checking probe in `Artefacts and notes`, run under
+`-W error` in a throwaway environment at Stage A, EP-M1, and immediately
+before the acceptance commit; reproduced in normalization ADR-004's
+`### Evidence`. Rationale: committed parser probes need the Wenmode dependency
+and belong to roadmap 1.2.3. Non-vacuity: the script includes positive
+witnesses and contrasting unresolved references, undefined footnotes,
+filtered/unfiltered HTML, and hard/soft breaks. NF-12 asserts that 22 types are
+reached; removing `meta` from the allowed keys makes that check fail.
+Discharge: the expected output in `Artefacts and notes`, exactly, for these
+asserted raw observations, not every normative subcase. NF-10 checks hard
+versus soft breaks, one code value/`lang`/`meta` example, list start, and
+checked state. It does not establish list `ordered`/`spread` or item order,
+table cell content/alignment contrasts, or raw-HTML spelling contrasts; those
+requirements remain for the later corpus and implementation tests.
 
 Residual gap: the probe does not merge text nodes, normalize string line
 endings, verify canonical member ordering, or generate canonical JSON. NF-8,
@@ -1753,3 +1769,8 @@ UNIT-3.
   https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258
 [hosted-assessment]:
   https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113182172
+
+- 2026-10-11: DEC-28 clarifies fixture terminology and representative probe
+  coverage, and corrects the probe's ADR identifier without changing
+  assertions. Candidate-specific validation and review evidence uses the shared
+  ledger.
