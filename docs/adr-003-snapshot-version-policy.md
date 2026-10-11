@@ -167,19 +167,19 @@ move is payload-neutral only when the corpus diff is empty and every relevant
 entry has a fixture with no change. The move is blocked if the v1 parser
 construction emits any warning under `-W error`.
 
-The repository's Dependabot pip block ignores `wenmode`; roadmap 1.2.1 adds
-this protection and a contract check. Evaluation is triggered by a new Wenmode
-release, Wenmode 1.0, a Wenmode security advisory, or a newly supported Python
-minor version. A security advisory ships promptly under the applicable version
-rule and named in the release notes. ADR-004 records the evidence baseline,
-wheel archive hash, probe output, and limits of the empirical result.
+Roadmap 1.2.1 will add a `wenmode` ignore to the repository's Dependabot pip
+block and a contract check. Evaluation is triggered by a new Wenmode release,
+Wenmode 1.0, a Wenmode security advisory, or a newly supported Python minor
+version. A security fix ships promptly under the applicable version rule, and
+the advisory is named in the release notes. ADR-004 records the evidence
+baseline, wheel archive hash, probe output, and limits of the empirical result.
 
 Consumers should lock their test dependencies when they need to reproduce
-parser output. The repository's Dependabot ignore protects its own reviewed
-updates; it does not freeze downstream resolution. A downstream lock refresh
-may change payload bytes without a syrupy-mdast release and produce ordinary
-Syrupy diffs. The bounded requirement may conflict with another downstream
-Wenmode constraint, and a security fix outside the range requires a
+parser output. The planned repository Dependabot ignore will protect its
+reviewed updates; it does not freeze downstream resolution. A downstream lock
+refresh may change payload bytes without a syrupy-mdast release and produce
+ordinary Syrupy diffs. The bounded requirement may conflict with another
+downstream Wenmode constraint, and a security fix outside the range requires a
 syrupy-mdast release. Installing syrupy-mdast in a test-only dependency group
 limits conflicts. No runtime version-enforcement mechanism or extra dependency
 is introduced.
@@ -217,7 +217,7 @@ is introduced.
   upgrade report and dedicated review reduce but do not eliminate this risk.
 - An unlocked consumer may resolve a later allowed parser patch without a
   syrupy-mdast release and see snapshot diffs. Consumer locks improve
-  reproducibility, while the repository's Dependabot ignore affects only the
+  reproducibility, while the planned Dependabot ignore will affect only the
   repository itself.
 - An upstream security fix outside the bounded requirement requires a package
   release. Other Wenmode constraints in a consumer's environment may conflict

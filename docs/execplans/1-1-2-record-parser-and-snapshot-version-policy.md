@@ -359,6 +359,13 @@ outside its examples.
     the manifest/probe contract. Existing combined-record acceptance requests
     do not establish acceptance of the rewritten records.
 
+20. Observation (2026-10-11): the completed local CLI review of split commit
+    `649daa3` covered all five branch paths and identified two minor ADR-003
+    wording issues. Verified that the Dependabot ignore is future roadmap
+    1.2.1 work, and corrected that timeline and the security-advisory sentence.
+    The accepted A/G outcomes, manifest, and evidence remain unchanged. Fresh
+    gates and committed reassessment precede publication.
+
 ## Decision log
 
 - DEC-1. Original decision (superseded by DEC-24): the combined ADR is
