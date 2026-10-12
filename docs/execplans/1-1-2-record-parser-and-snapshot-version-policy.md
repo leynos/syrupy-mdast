@@ -294,6 +294,14 @@ outside its examples.
   140 repository tests. The audit reports no known vulnerabilities; the local
   unpublished package and Git-sourced lint plugin are outside its PyPI audit.
   Exact fingerprints and logs are in the shared delivery ledger.
+- [x] (2026-10-12) EP-M3 review repairs and code health: Windows link
+  regression and Unicode writer mutation controls now pass; NumPy public
+  interface documentation and private-operation decomposition preserve the
+  interface. At `cd196f1`, 38 focused cases, 141 repository tests, and all
+  seven local gates pass. Local CodeScene reviews score both helpers at 10.0,
+  with no issue across the complete branch delta. Hosted CI and Act pass on
+  attempt 1, and current CodeScene and security checks pass. The earlier
+  failure is retained for its old candidate in the shared delivery ledger.
 - [ ] EP-M3 closure: committed local CLI assessment remains pending
   (pull request B).
 - [ ] EP-M4: full gate sweep, roadmap tick, retrospective.
@@ -977,8 +985,9 @@ review, and hosted checks. The
 in-scope defect. This is historical candidate evidence; the shared ledger
 retains later validation and review state. PR A subsequently merged on
 2026-10-12 as `8e553d7875a1458e75f77b06fec399223b8aa99e`; PR B guard and
-reconciliation work is now in progress. Its completion and the roadmap tick
-remain pending.
+reconciliation work is locally and remotely validated at `cd196f1`. Its
+committed CLI reassessment remains pending the sampled quota cooldown; the
+roadmap completion tick and final retrospective remain EP-M4 work.
 
 At completion, record both pull requests' merge SHAs and these handoffs:
 Surprise 7 to roadmap 2.2.2; on-disk line endings to 2.3.1; the Dependabot
@@ -1975,3 +1984,11 @@ the documented interface and does not introduce an import cycle.
 
 - 2026-10-12: record PR A's authorized squash landing and begin EP-M3 on
   `1-1-2-guard-snapshot-contract` from the updated `main`.
+
+- 2026-10-12: published PR B #72 as draft after PR A's landing. Preserved
+  the red-to-green witnesses, fixed two valid local review defects, documented
+  the public interfaces, and repaired CodeScene within the 12-file tolerance. At
+  `cd196f1`, all seven local gates, 38 focused cases, 141 full-suite cases,
+  hosted Actions, CodeScene, and security checks pass. Effect on remaining
+  work: honor the sampled CLI cooldown, close EP-M3 on completed assessment,
+  then perform EP-M4 and hosted delivery assessment.
