@@ -635,6 +635,19 @@ outside its examples.
     assertion. This bounded cleanup needs renewed gates and committed review;
     it changes no public API, manifest field, or runtime behaviour.
 
+38. The committed review of `82ebd78` identifies one valid handoff-label
+    defect: Surprise 7 belongs to narrow failure translation (2.2.2), whereas
+    the native Syrupy lifecycle and on-disk line ending belong to 2.3.1.
+    Clarify those separate handoffs. Its repository-key suggestion cites a
+    nonexistent global pathlib rule: direct `docs/adr-*.md` filenames form
+    logical POSIX keys, and the filesystem reads already use `pathlib`.
+    Its metadata suggestion attaches the wrong manifest to a UNIT-3 control.
+    That independent minimal manifest declares only `type` and `children`, so
+    unknown `data` precedes `value` alphabetically. DOC-6 checks normative
+    examples with the accepted manifest; this unit control does not claim v1
+    payload bytes. Preserve the valid synthetic control and record both invalid
+    dispositions rather than changing its authority boundary.
+
 ## Decision log
 
 - DEC-1. Original decision (superseded by DEC-24): the combined ADR is
@@ -1222,12 +1235,13 @@ The handoffs remain with their existing roadmap tasks: corpus construction to
 1.1.3; bounded dependency declaration, licence, Dependabot ignore, and manifest
 equality to 1.2.1; fresh adapter construction and parser-state isolation to
 1.2.2; canonicalizer invariants and merge-before-normalize to 2.1.2; writer
-settings and strict UTF-8 pre-check to 2.2.1; Surprise 7's native Syrupy
-lifecycle to 2.2.2; on-disk line endings to 2.3.1; and requirement/lockfile
-upgrade reporting to 3.2.1. No future task is marked complete by this delivery.
-The two PRs touch exactly twelve distinct files; PR B changes nine, with all
-three Python modules within the 400-line cap. No runtime dependency, production
-parser, corpus, or snapshot change is included.
+settings and strict UTF-8 pre-check to 2.2.1; Surprise 7's narrow failure
+translation to 2.2.2; the native Syrupy lifecycle and on-disk line endings to
+2.3.1; and requirement/lockfile upgrade reporting to 3.2.1. No future task is
+marked complete by this delivery. The two PRs touch exactly twelve distinct
+files; PR B changes nine, with all three Python modules within the 400-line
+cap. No runtime dependency, production parser, corpus, or snapshot change is
+included.
 
 PR B's squash landing is pending separate merge authorization and review
 convergence. Its actual landing SHA, post-merge workflows, and the main-history
@@ -2267,3 +2281,8 @@ the documented interface and does not introduce an import cycle.
   filter after exact schema validation; retain the evidence-backed Windows
   regression disposition. Revalidate this bounded cleanup before publication
   and affected hosted assessment.
+
+- 2026-10-12: clarify the final handoff label after the `82ebd78` review;
+  retain invalid dispositions for the logical-key pathlib claim and the
+  synthetic metadata control's alleged v1 ordering. Source and test hashes
+  remain unchanged; renew the required gates for this record edit.
