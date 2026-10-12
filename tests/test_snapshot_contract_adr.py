@@ -320,15 +320,15 @@ def test_version_policy_adr_is_accepted_and_linked(case: str) -> None:
             adr_documents[versioning_path] = "## Status\n\nProposed\n"
         case "removed-backlink":
             adr_documents[versioning_path] = versioning.replace(
-                f"]({pathlib.Path(normalization_path).name})", "]()"
+                f"]({pathlib.PurePosixPath(normalization_path).name})", "]()"
             )
         case "stale-backlink":
             adr_documents[versioning_path] = versioning.replace(
-                f"]({pathlib.Path(normalization_path).name})", "](adr-999.md)"
+                f"]({pathlib.PurePosixPath(normalization_path).name})", "](adr-999.md)"
             )
         case _:
             normalization = normalization.replace(
-                f"]({pathlib.Path(versioning_path).name})", "](adr-999.md)"
+                f"]({pathlib.PurePosixPath(versioning_path).name})", "](adr-999.md)"
             )
     with pytest.raises(AssertionError):
         _linked_versioning_record(normalization_path, normalization, adr_documents)

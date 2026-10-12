@@ -21,6 +21,7 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
 _MANIFEST_HEADING: typ.Final[str] = "### Contract manifest"
+_FENCE_CLOSE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"^ {0,3}([`~]+)[ \t]*$")
 
 _NORMALIZATION_RULES: typ.Final[frozenset[str]] = frozenset([
     "remove-position",
@@ -287,7 +288,7 @@ def _fence_opening(line: str) -> tuple[str, str] | None:
 
 def _is_fence_closing(line: str, marker: str) -> bool:
     """Match a closer; e.g. four ticks close a three-tick fence."""
-    match = re.match(r"^ {0,3}([`~]+)[ \t]*$", line)
+    match = _FENCE_CLOSE_PATTERN.match(line)
     if match is None:
         return False
     return len(match.group(1)) >= len(marker) and set(match.group(1)) == {marker[0]}

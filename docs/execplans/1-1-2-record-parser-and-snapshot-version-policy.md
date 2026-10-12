@@ -5,13 +5,14 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Outcomes & retrospective`, `Conformance basis`, and `Verification plan` must
 be kept up to date as work proceeds.
 
-Status: IN PROGRESS
+Status: COMPLETE
 
-The hosted assessment reopened implementation activity for a DOC-4 multiline
-preset-detection gap. That repair passes local and hosted gates at `6592cf5`;
-its committed review identifies an additional DOC-1 self-link gap. The bounded
-history controls, final closure, and affected hosted reassessment remain
-pending. PR delivery remains owned by `pr-babysitting` using the same ledger.
+Implementation activity is complete: the DOC-4 multiline and DOC-1 self-link
+repairs and the last committed review's bounded cleanup pass all sequential
+local gates. Only roadmap 1.1.2 is checked. The final record receives its own
+committed CLI assessment and published checks; affected hosted reassessment,
+readiness, formal review, B merge authorization, and post-merge integration
+remain delivery work owned by `pr-babysitting` using the same ledger.
 
 ## Purpose / big picture
 
@@ -322,19 +323,25 @@ outside its examples.
   including 45 focused cases and 148 repository tests; both helpers score 10.0
   in CodeScene and the full delta has no issues. CI and Act pass on attempt 1;
   hosted CodeScene and security checks pass.
-- [ ] EP-M4 final closure after the DOC-4 assessment repair. The earlier
-      record: tick only roadmap 1.1.2 and
-  record the retrospective and existing-task handoffs. Final tracked edits
-  remain subject to the full sequential gate set and committed CLI assessment
-  before publication; candidate-bound results are retained in the shared ledger.
+- [x] (2026-10-12) EP-M4 implementation closure: the DOC-1 repair and review
+  cleanup pass 51 focused cases, 154 repository tests, all seven gates, and the
+  CodeScene delta. Tick only roadmap 1.1.2 and record the retrospective and
+  existing-task handoffs. These final tracked records receive renewed
+  sequential gates and committed CLI assessment; the shared ledger retains
+  their actual candidate evidence. Hosted assessment and delivery remain
+  separate below.
 - [x] (2026-10-12) DOC-4 local repair at `6592cf5`: whole-document detection
   and five construction controls pass 49 focused cases and 152 repository
   tests; all seven gates, the CodeScene delta, CI, and Act pass. The committed
   nine-path CLI review identifies the DOC-1 repair below; its two path-policy
   suggestions retain invalid dispositions. Affected hosted assessment remains
   pending.
-- [ ] DOC-1 self-link repair: synthetic valid and self-linked histories exercise
-  the same guard, which must require another existing normalization record.
+- [x] (2026-10-12) DOC-1 self-link repair at `b80c1c1`: current, valid, and
+  self-linked histories exercise the same guard, which requires another
+  existing normalization record. All 51 focused cases, 154 repository tests,
+  seven local gates, the CodeScene delta, CI, and Act pass. The nine-path
+  committed review identifies only the consistency and record cleanup in the
+  final sweep.
 - [ ] PR B delivery: candidate-bound hosted ExecPlan assessment, readiness,
   formal review reconciliation, separately authorized squash merge, and
   post-merge CI, Act, main coverage, and A-before-B history witness. Record the
@@ -1171,19 +1178,25 @@ candidates in the shared ledger.
 The
 [hosted assessment](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6117871792)
 of `534241c` finds a valid DOC-4 multiline-detection gap. Implementation
-status and the exact task checkbox are reopened during the bounded repair;
-affected assessment clearance remains pending. The following completion results
-are historical evidence for the pre-assessment candidate.
+status and the exact task checkbox are reopened during the bounded repair; both
+guard repairs now pass their local and hosted gates. The DOC-4 controls
+reproduce the original defect, and DOC-1's synthetic histories expose the
+subsequently identified self-link gap. Affected assessment clearance remains
+pending for the published final record. Implementation activity is complete:
+the final cleanup passes all seven local gates, 51 focused cases, 154
+repository tests, and the CodeScene delta (`b-closure-*.log`). The completion
+record's candidate-bound gates and committed CLI evidence remain in the shared
+ledger.
 
 [PR B #72](https://github.com/leynos/syrupy-mdast/pull/72) implements DOC-1
-through DOC-7 and UNIT-1 through UNIT-3, reconciles the four required
-documents, and completes roadmap 1.1.2's implementation activity. At `85f9cc6`,
-45 focused cases, 148 repository tests, all seven gates, and hosted checks
-pass. The full committed CLI review covers all nine paths with zero findings;
-local CodeScene scores both helpers 10.0 and reports no issues across the
-branch delta. This final record and checkbox update is gated before
-publication; its exact candidate evidence belongs in the same ledger, rather
-than being attributed retroactively to `85f9cc6`.
+through DOC-7 and UNIT-1 through UNIT-3 and reconciles the four required
+documents. At `b80c1c1`, 51 focused cases, 154 repository tests, all seven
+gates, and hosted checks pass. The full committed CLI review covers all nine
+paths and identifies three bounded consistency and record findings, addressed
+by this final sweep. Local CodeScene reports no issues across the branch delta.
+This final record and exact checkbox update are gated before publication; their
+candidate evidence belongs in the shared ledger rather than being attributed
+retroactively to `b80c1c1`.
 
 Red witnesses cover the frozen stubs, pre-reconciliation DOC-4/DOC-5 failures,
 Windows path separation, the scalar domain, malformed root envelopes, and
@@ -1413,11 +1426,11 @@ and UNIT-1 to UNIT-3 remain pending on pull request B.
 
 **DOC-1: exactly one current normalization-contract ADR.** Statement: among
 `docs/adr-*.md` files containing `### Contract manifest`, exactly one is
-Accepted; others are Superseded with a link naming an existing normalization
-record. Their manifest `contract-version` values run 1 to N without gaps, with
-the accepted record holding N. Method: explicit assertions. Artefact:
-`test_exactly_one_normalization_contract_adr_is_accepted`. Discovery remains
-valid across future normalization supersession. Non-vacuity: the set is
+Accepted; others are Superseded with a link naming a different existing
+normalization record. Their manifest `contract-version` values run 1 to N
+without gaps, with the accepted record holding N. Method: explicit assertions.
+Artefact: `test_exactly_one_normalization_contract_adr_is_accepted`. Discovery
+remains valid across future normalization supersession. Non-vacuity: the set is
 non-empty and includes ADR-004. Versioning ADR-003 deliberately has no manifest
 and is checked separately by DOC-7. Negative controls: UNIT-1.
 
@@ -1787,7 +1800,11 @@ Red-Green-Refactor record (fill in during EP-M3):
   reconciliation (`b-df12-repair-focused.log`, 2026-10-12). Subsequent Windows,
   scalar-domain, writer-setting, and root-envelope controls pass all 45 cases
   (`b-root-focused.log`); the `allow-nan` mutation is rejected in
-  `b-allow-nan-fixed.log`.
+  `b-allow-nan-fixed.log`. DOC-4's multiline witness passes four controls and
+  fails the uncalled multiline case before repair; DOC-1's history witness
+  passes current and valid histories and fails the self-link case before
+  repair. Their repairs pass 51 focused and 154 full-suite cases
+  (`b-history-clean-*.log`).
 - Refactor: helper decomposition, explicit assertion diagnostics, and match
   dispatch preserve all cases. Constraint 10's sequence plus `make audit` passes
   (`b-df12-repair-*.log`); that historical suite reports 140 tests. Later
@@ -2224,3 +2241,14 @@ the documented interface and does not introduce an import cycle.
   controls, 49 focused and 152 full-suite passes, and green local and hosted
   gates. Its committed review exposes the narrower DOC-1 self-link defect;
   retain implementation status as in progress while exercising that repair.
+
+- 2026-10-12: validate the DOC-1 self-link repair at `b80c1c1` with 51 focused
+  and 154 full-suite passes and green hosted checks. Apply the last committed
+  review's three bounded cleanup findings in the final sweep: coherent EP-M4
+  wording, POSIX filename extraction, and a compiled closing-fence pattern.
+  Affected hosted reassessment and B delivery remain separate pending work.
+
+- 2026-10-12: complete EP-M4 implementation activity after the final cleanup
+  passes 51 focused cases, 154 repository tests, all seven gates, and
+  CodeScene. Restore only roadmap 1.1.2's checkbox; gate and assess the final
+  record before its hosted reassessment and later delivery transitions.
