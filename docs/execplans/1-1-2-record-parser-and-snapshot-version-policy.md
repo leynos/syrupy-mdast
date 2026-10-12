@@ -272,9 +272,29 @@ outside its examples.
   [the hosted assessment][repair-confirmation] confirms both fixes and no
   remaining defect in EP-M1/EP-M2 pre-merge scope. Later candidate evidence
   remains separately recorded in the shared delivery ledger.
-- [ ] EP-M2 delivery: PR A merged and its squash landing SHA recorded before
-  PR B.
-- [ ] EP-M3: guard tests red, then design, roadmap, and guides reconciled
+- [x] (2026-10-12) EP-M2 delivery:
+      [PR A](https://github.com/leynos/syrupy-mdast/pull/58)
+  merged into `main` with squash landing
+  `8e553d7875a1458e75f77b06fec399223b8aa99e`. The maintainer explicitly
+  authorized the squash merge and continuation. PR B branches from that
+  verified landing as `1-1-2-guard-snapshot-contract`. Post-merge CI, Act
+  Validation, and main coverage workflows passed on attempt 1 at that landing;
+  the shared delivery ledger retains their run and job evidence.
+- [x] (2026-10-12) EP-M3 guard scaffold: the focused command collected all
+  34 tests and failed all 34 against the frozen typed stubs, with no collection
+  or setup errors. The shared delivery ledger retains `b-stub-red.log` and
+  candidate fingerprints.
+- [x] (2026-10-12) EP-M3 helper and document witness: after two failing-test
+  repairs, 34 of 37 focused cases pass; only the two parser-construction checks
+  and missing design citations fail. `b-document-red.log` establishes
+  DOC-4/DOC-5 red before any reconciliation edit. This is the preserved
+  pre-reconciliation witness; subsequent green evidence follows.
+- [x] (2026-10-12) EP-M3 implementation validation: 37 focused cases and
+  all seven sequential commit gates pass on the reconciled candidate, including
+  140 repository tests. The audit reports no known vulnerabilities; the local
+  unpublished package and Git-sourced lint plugin are outside its PyPI audit.
+  Exact fingerprints and logs are in the shared delivery ledger.
+- [ ] EP-M3 closure: committed local CLI assessment remains pending
   (pull request B).
 - [ ] EP-M4: full gate sweep, roadmap tick, retrospective.
 
@@ -395,6 +415,27 @@ outside its examples.
     policy and the probe file creation instruction. Read-only verification
     confirms both. DEC-26 restores those details without changing the contract;
     validation and current-candidate assessment confirmation remain pending.
+
+23. Observation: the first helper implementation passes 32 of 37 focused
+    cases but accepts only bare `Proposed` and overlooks a second manifest
+    heading. Evidence: `b-helper-red.log` records the punctuation and
+    `two-blocks` failures alongside the three planned document discrepancies.
+    Impact: accept status punctuation and reject duplicate section headings
+    outside code fences. Preserve the failing cases before the repair; rerun
+    the focused suite before document reconciliation.
+
+24. The first integrated candidate passed all 37 focused cases, formatting,
+    and type checking, but Ruff rejected 46 style and complexity violations.
+    Manifest decoding, field validation, fence-aware heading discovery, and
+    JSON rendering are now separate private operations in the same support
+    module. Public APIs and named negative cases remain unchanged. Internal
+    type errors are translated to the approved manifest `ValueError` boundary.
+    Parameter names live with the synthetic examples to preserve the 400-line
+    limit; neither lint thresholds nor dependency configuration changed.
+    The later df12 lint pass required assertion diagnostics and match-based
+    dispatch. After those repairs, all seven gates pass with 140 tests; the
+    smaller total than historical PR A runs reflects the updated main test
+    suite, not excluded tests. The audit skips two non-PyPI local packages.
 
 ## Decision log
 
@@ -788,6 +829,51 @@ outside its examples.
   changes neither the accepted contract nor its required outcomes. Date/Author:
   2026-10-11, implementation agent, verified local findings.
 
+- DEC-29. Decision: preserve the approved text-only helper interfaces while
+  clarifying two verification descriptions. DOC-7 follows ADR-004's versioning
+  link to ADR-003 and checks the reciprocal normalization link in ADR-003.
+  UNIT-1 expects the pure `adr_status(markdown)` helper to reject missing or
+  empty status sections; filename context belongs to the document-reading test
+  caller. No filename parameter or file I/O is added to the helper. Rationale:
+  the published descriptions misplaced the reciprocal heading and requested
+  filename knowledge unavailable to the approved one-argument interface. These
+  corrections preserve the status, manifest, and reciprocal-link obligations.
+  Date/Author: 2026-10-12, implementation agent.
+
+- DEC-30. Decision: keep hand-written manifest examples and malformed
+  UNIT-2 inputs in `tests/support/adr_contract_examples.toml`. The guard test
+  reads this test-support data through `REPO_ROOT`; helper functions remain
+  text-only and perform no I/O. Rationale: embedding the examples made the test
+  module exceed the repository's 400-line limit. Moving data out follows
+  AGENTS.md without weakening the negative controls. This is parser test data,
+  not the Markdown contract corpus or canonical snapshot fixtures owned by
+  roadmap 1.1.3. The combined two-PR scope is 11 distinct files, within the
+  approved 12-file tolerance. Counting the roadmap once corrects the earlier
+  duplicate count. Date/Author: 2026-10-12, implementation agent.
+
+- DEC-31. Decision: share `section_body(markdown, heading)` in the pure ADR
+  test-support module instead of keeping a second heading extractor in the
+  guard module. The manifest parser and document checks use the same bounded
+  Markdown section convention. The function returns section text or raises
+  `ValueError` for a missing heading; document-reading callers add filename
+  context. Rationale: the DOC-7 negative controls expanded the guard beyond 400
+  lines, and sharing the existing text-only extraction avoids duplication. Its
+  scope is these ADR/document contract tests, not a general Markdown parser or
+  runtime API. No file access or dependency is added. Date/Author: 2026-10-12,
+  implementation agent.
+
+- DEC-32. Decision: preserve the roadmap's existing layout when applying
+  the approved replacements. `mapsplice replace` previews correctly change each
+  selected task but also insert blank lines in neighbouring task lists,
+  matching the renderer-preservation issue described in
+  [mapsplice issue 24](https://github.com/leynos/mapsplice/issues/24). After
+  inspecting the previews, apply only the approved fragments as minimal
+  task-text patches; do not copy the unrelated spacing changes. Task numbers,
+  `Requires` references, and checkbox states remain unchanged. No new product
+  issue is created. Rationale: the installed renderer's formatting must not
+  widen DEC-3/DEC-21/DEC-24's approved roadmap scope. Date/Author: 2026-10-12,
+  implementation agent.
+
 ## Outcomes & retrospective
 
 The combined draft was published at `aa3ba1e` with six passing local gates, 271
@@ -807,8 +893,10 @@ evidence-scope clarifications pass all six gates, 271 tests, the committed CLI
 review, and hosted checks. The
 [candidate-bound assessment][repair-confirmation] confirms no remaining
 in-scope defect. This is historical candidate evidence; the shared ledger
-retains later validation and review state. PR A remains unmerged, and PR B
-remains pending.
+retains later validation and review state. PR A subsequently merged on
+2026-10-12 as `8e553d7875a1458e75f77b06fec399223b8aa99e`; PR B guard and
+reconciliation work is now in progress. Its completion and the roadmap tick
+remain pending.
 
 At completion, record both pull requests' merge SHAs and these handoffs:
 Surprise 7 to roadmap 2.2.2; on-disk line endings to 2.3.1; the Dependabot
@@ -1089,9 +1177,9 @@ mis-ordered and a mis-indented example to the same checker.
 
 **DOC-7: accepted policy and reciprocal record links.** Statement: the current
 normalization record's `### Versioning policy` links an existing Accepted
-versioning ADR. Its `### Normalization contract` links the same current
-normalization record discovered by DOC-1. Method: standard-library Markdown
-link extraction and status assertions. Artefact:
+versioning ADR. That versioning record's `### Normalization contract` links the
+same current normalization record discovered by DOC-1. Method: standard-library
+Markdown link extraction and status assertions. Artefact:
 `test_version_policy_adr_is_accepted_and_linked`. Do not discover versioning
 records by looking for a duplicate manifest. Negative controls: a Proposed
 policy record and removed or stale cross-links must fail the same checker. Both
@@ -1104,7 +1192,9 @@ Markdown strings:
 
 1. UNIT-1: `adr_status` returns `Accepted`, `Proposed`, and
    `Superseded (2027-01-01) by ADR-005.` for the three forms, and raises
-   `ValueError` naming the file when `## Status` is missing or empty.
+   `ValueError` when `## Status` is missing or empty. The document-reading test
+   caller supplies the filename in its failure context; the pure helper
+   receives Markdown text, not a filename (DEC-29).
 2. UNIT-2: `read_manifest` returns the dataclass for a well-formed block, and
    raises `ValueError` for no block, two blocks, a block under the wrong
    heading, invalid TOML, a missing key, an extra key, and a wrong type.
@@ -1381,9 +1471,16 @@ Quality criteria:
 
 Red-Green-Refactor record (fill in during EP-M3):
 
-- Red: the focused command; expected failures listed under EP-M3.
-- Green: the same command; all pass.
-- Refactor: Constraint 10's full sequence.
+- Red: `uv run pytest -v tests/test_snapshot_contract_adr.py` collected 34
+  tests and reported 34 ordinary assertion failures against typed stubs on
+  2026-10-12 (`b-stub-red.log`). The separate DOC-4/DOC-5 witness after helper
+  implementation is recorded in `b-document-red.log`: 34 passing helper and
+  document cases, with only DOC-4/DOC-5 failing.
+- Green: the focused command passes all 37 cases after the four-document
+  reconciliation (`b-df12-repair-focused.log`, 2026-10-12).
+- Refactor: helper decomposition, explicit assertion diagnostics, and match
+  dispatch preserve all cases. Constraint 10's sequence plus `make audit` passes
+  (`b-df12-repair-*.log`); the full suite reports 140 tests.
 
 No pytest-bdd feature file is part of this plan (DEC-12).
 
@@ -1689,6 +1786,7 @@ class SnapshotContractManifest:
 def adr_status(markdown: str) -> str: ...
 def read_manifest(markdown: str) -> SnapshotContractManifest: ...
 def fenced_blocks(markdown: str, language: str) -> list[str]: ...
+def section_body(markdown: str, heading: str) -> str: ...
 def key_order_problems(key_order: cabc.Sequence[str]) -> list[str]: ...
 def rule_order_problems(normalization: cabc.Sequence[str]) -> list[str]: ...
 def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[str]: ...
@@ -1696,7 +1794,9 @@ def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[s
 
 `tests/test_snapshot_contract_adr.py` owns all file reads (through
 `tests.support.make_contract.REPO_ROOT`) and holds DOC-1 to DOC-7 and UNIT-1 to
-UNIT-3.
+UNIT-3. Hand-written manifest and malformed-input examples are stored in
+`tests/support/adr_contract_examples.toml` to keep the test module within 400
+lines (DEC-30); this is test-support data, not the future contract corpus.
 
 ## Revision notes
 
@@ -1787,3 +1887,6 @@ UNIT-3.
 
 [repair-confirmation]:
   https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6114244769
+
+- 2026-10-12: record PR A's authorized squash landing and begin EP-M3 on
+  `1-1-2-guard-snapshot-contract` from the updated `main`.

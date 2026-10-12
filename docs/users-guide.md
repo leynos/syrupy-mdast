@@ -26,6 +26,31 @@ with `ValueError`; non-string input is rejected with `TypeError`. Valid `str`
 input currently raises `NotImplementedError` until the parser and canonical
 serialization milestone is delivered.
 
+## Snapshot contract and upgrades
+
+After serialization is implemented, snapshots will follow contract v1 in
+[ADR-004](adr-004-parser-profile-and-normalization.md), with package and
+snapshot-version policy in [ADR-003](adr-003-snapshot-version-policy.md). This
+contract will remain provisional until syrupy-mdast 1.0. Deliberate patch
+release changes evaluated with the same installed parser will never knowingly
+change payloads. An adopted payload change will require a minor release before
+1.0, release notes, and a review of the affected snapshots before running
+`pytest --snapshot-update`.
+
+The `>=0.15.2,<0.16.0` Wenmode requirement permits later parser patches whose
+output is not established by the 0.15.2 evidence baseline, so a locked test
+environment will be recommended when reproducibility matters. Install
+syrupy-mdast in a test-only dependency group. Exclude snapshot files from JSON
+formatters and mark them as text with LF line endings:
+
+```text
+# .prettierignore
+**/__snapshots__/**/*.mdast.json
+
+# .gitattributes
+**/__snapshots__/**/*.mdast.json text eol=lf
+```
+
 ## Handling MarkdownAstError
 
 Catch `MarkdownAstError` around package operations and inspect its required

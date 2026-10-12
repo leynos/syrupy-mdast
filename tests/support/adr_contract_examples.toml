@@ -1,0 +1,235 @@
+[manifest]
+body = '''[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+'''
+
+[invalid_manifests]
+no-block = '''### Contract manifest
+
+No fence.
+'''
+two-blocks = '''### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+
+### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+wrong-heading = '''### Other contract
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+invalid-toml = '''### Contract manifest
+
+```toml
+[snapshot-contract
+contract-version = 1
+```
+'''
+missing-key = '''### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+extra-key = '''### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+extra = true
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+wrong-type = '''### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = "one"
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+
+[status_examples]
+accepted = "## Status\n\nAccepted (2027-01-01): chosen.\n\tAccepted"
+proposed = "## Status\n\nProposed\n\tProposed"
+proposed-punctuation = "## Status\n\nProposed.\n\tProposed"
+superseded = """## Status
+
+Superseded (2027-01-01) by ADR-005.
+\tSuperseded (2027-01-01) by ADR-005."""
+missing-status = "## Context\n\nNo status.\n\t"
+empty-status = "## Status\n\n## Date\n\t"
+
+[key_order_examples]
+duplicate = "type value data data children"
+position = "type position value data children"
+wrong-first = "depth type value data children"
+wrong-last = "type value data children depth"
+data-after-children = "type value children data"
+
+[writer_examples]
+misordered = '''{
+  "children": [],
+  "type": "root"
+}
+'''
+misindented = '''{"type": "root", "children": []}
+'''
+adjacent-text = '''{
+  "type": "root",
+  "children": [
+    {
+      "type": "text",
+      "value": "a"
+    },
+    {
+      "type": "text",
+      "value": "b"
+    }
+  ]
+}
+'''
+metadata-text = '''{
+  "type": "root",
+  "children": [
+    {
+      "type": "text",
+      "data": {
+        "escaped": true
+      },
+      "value": "a"
+    },
+    {
+      "type": "text",
+      "value": "b"
+    }
+  ]
+}
+'''
+
+[cases]
+policy = "accepted proposed-policy removed-backlink stale-backlink stale-policy-link"
+status = "accepted proposed proposed-punctuation superseded missing-status empty-status"
+manifest = "no-block two-blocks wrong-heading invalid-toml missing-key extra-key wrong-type"
+writer = "misordered misindented adjacent-text metadata-text"
