@@ -302,7 +302,14 @@ outside its examples.
   with no issue across the complete branch delta. Hosted CI and Act pass on
   attempt 1, and current CodeScene and security checks pass. The earlier
   failure is retained for its old candidate in the shared delivery ledger.
-- [ ] EP-M3 closure: committed local CLI assessment remains pending
+- [x] (2026-10-12) EP-M3 scalar and clarity repairs: at `32fe8e9`, all
+  seven local gates, 41 focused cases, 144 repository tests, the complete local
+  CodeScene delta, and hosted checks pass. The committed CLI review covers all
+  nine paths; its two repeated path-policy suggestions retain DEC-35's invalid
+  disposition. The stale retrospective status is corrected in the next
+  record-only refresh and remains subject to validation and reassessment.
+- [ ] EP-M3 closure: committed local CLI assessment of the record refresh
+      remains pending
   (pull request B).
 - [ ] EP-M4: full gate sweep, roadmap tick, retrospective.
 
@@ -536,6 +543,13 @@ outside its examples.
     Ruff rejects the literal field count as a magic value. Bind remaining
     mapping fields and require that mapping to be empty, expressing the exact
     plain-text shape without a numeric constant or extra schema definition.
+
+33. The review of `32fe8e9` repeats two overlapping path-library suggestions
+    already rejected by DEC-35; the reviewed resolver and repository rules have
+    not changed. Its valid third finding identifies an out-of-date Outcomes
+    paragraph. Update that paragraph to show completed scalar validation and
+    reassessment, preserving the separate pending record-refresh review and
+    EP-M4 completion work. All hosted checks pass at the reviewed candidate.
 
 ## Decision log
 
@@ -1060,11 +1074,15 @@ review, and hosted checks. The
 in-scope defect. This is historical candidate evidence; the shared ledger
 retains later validation and review state. PR A subsequently merged on
 2026-10-12 as `8e553d7875a1458e75f77b06fec399223b8aa99e`; PR B guard and
-reconciliation work is locally and remotely validated at `cd196f1`. Its
-committed CLI reassessment completed after the sampled quota cooldown and
-identified the scalar-domain repair recorded in DEC-37. That repair still needs
-validation and reassessment; the roadmap completion tick and final
-retrospective remain EP-M4 work.
+reconciliation work, including the DEC-37 scalar repair and later clarity
+edits, is locally and remotely validated at `32fe8e9`: 41 focused cases, 144
+repository tests, all seven gates, and current hosted checks pass. The
+committed CLI review completes across all nine paths against PR A's squash
+landing. Its two repeated path-policy suggestions are invalid for the evidence
+in DEC-35; the remaining stale retrospective status is corrected in this
+record-only refresh. That refresh still needs its committed reassessment before
+EP-M3 closes. The roadmap completion tick and final retrospective remain EP-M4
+work.
 
 At completion, record both pull requests' merge SHAs and these handoffs:
 Surprise 7 to roadmap 2.2.2; on-disk line endings to 2.3.1; the Dependabot
