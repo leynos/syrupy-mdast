@@ -1,60 +1,68 @@
-r"""Pure text parsers and diagnostics for snapshot-contract ADR examples.
+r"""Typed public interfaces for snapshot-contract ADR test support.
 
-For example, ``adr_status('## Status\\n\\nAccepted')`` returns ``"Accepted"``.
+Examples
+--------
+``adr_status('## Status\n\nAccepted')`` returns ``"Accepted"``.
 """
 
 from __future__ import annotations
 
 import dataclasses
-import itertools
 import json
 import re
-import tomllib
 import typing as typ
+
+from tests.support._adr_contract_support import (
+    _MANIFEST_HEADING,
+    _NORMALIZATION_RULES,
+    _manifest_table,
+    _render_json,
+    _strict_utf8,
+    _string,
+    _string_tuple,
+    _tree_problems,
+    _wenmode_range,
+    _writer_settings,
+)
+from tests.support._adr_contract_support import (
+    fenced_blocks as fenced_blocks,
+)
+from tests.support._adr_contract_support import (
+    section_body as section_body,
+)
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
-MANIFEST_HEADING: typ.Final[str] = "### Contract manifest"
-_NORMALIZATION_RULES: typ.Final[frozenset[str]] = frozenset([
-    "remove-position",
-    "remove-empty-data",
-    "merge-plain-text",
-    "normalize-line-endings",
-    "order-members",
-])
-_MANIFEST_KEYS: typ.Final[frozenset[str]] = frozenset([
-    "contract-version",
-    "wenmode",
-    "parser",
-    "file-extension",
-    "normalization",
-    "key-order",
-    "json-writer",
-])
-_WRITER_TYPES: typ.Final[dict[str, type[object]]] = {
-    "encoding": str,
-    "byte-order-mark": bool,
-    "ensure-ascii": bool,
-    "indent": int,
-    "item-separator": str,
-    "key-separator": str,
-    "allow-nan": bool,
-    "sort-keys": bool,
-    "trailing-newline": bool,
-}
-_HEADING_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
-    r"^ {0,3}(#{1,6})(?:[ \t]+.*)?$"
-)
-_FENCE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
-_RANGE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
-    r">=(\d+)\.(\d+)\.(\d+),<(\d+)\.(\d+)\.(\d+)"
-)
+MANIFEST_HEADING: typ.Final[str] = _MANIFEST_HEADING
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class SnapshotContractManifest:
-    """Typed view of a manifest; e.g. ``manifest.key_order`` is a tuple."""
+    """Typed view of a validated snapshot-contract manifest.
+
+    Attributes
+    ----------
+    contract_version : int
+        Positive payload-contract version.
+    wenmode : str
+        Bounded parser version requirement.
+    parser : str
+        Exact parser construction recorded by the ADR.
+    file_extension : str
+        Syrupy snapshot suffix without its leading dot.
+    normalization : tuple of str
+        Normalization rule identifiers in application order.
+    key_order : tuple of str
+        Preferred JSON member order.
+    json_writer : Mapping[str, str | int | bool]
+        Typed writer settings from the manifest table.
+
+    Examples
+    --------
+    A parsed v1 record exposes ``manifest.contract_version == 1`` and an
+    immutable ``manifest.key_order`` tuple.
+    """
 
     contract_version: int
     wenmode: str
@@ -66,7 +74,28 @@ class SnapshotContractManifest:
 
 
 def adr_status(markdown: str) -> str:
-    """Return an ADR status token; e.g. ``Accepted (date)`` returns Accepted."""
+    """Return the status token from an ADR's Status section.
+
+    Parameters
+    ----------
+    markdown : str
+        ADR text with one unambiguous Status heading.
+
+    Returns
+    -------
+    str
+        Accepted, Proposed, Deprecated, or the complete Superseded status.
+
+    Raises
+    ------
+    ValueError
+        The section is missing, ambiguous, empty, or unsupported.
+
+    Examples
+    --------
+    ``adr_status("## Status" + chr(10) * 2 + "Accepted")`` returns
+    ``"Accepted"``.
+    """
     body = section_body(markdown, "## Status")
     status_line = next((line.strip() for line in body.splitlines() if line.strip()), "")
     if not status_line:
@@ -82,7 +111,28 @@ def adr_status(markdown: str) -> str:
 
 
 def read_manifest(markdown: str) -> SnapshotContractManifest:
-    """Parse a contract manifest; e.g. a TOML fence returns a typed record."""
+    """Parse and validate the unique contract manifest.
+
+    Parameters
+    ----------
+    markdown : str
+        ADR text with a Contract manifest section and one TOML block.
+
+    Returns
+    -------
+    SnapshotContractManifest
+        Typed fields, immutable rule and member sequences, and writer settings.
+
+    Raises
+    ------
+    ValueError
+        The section, TOML, schema, field types, or version bounds are invalid.
+
+    Examples
+    --------
+    Given the accepted ADR in ``markdown``,
+    ``read_manifest(markdown).contract_version`` returns ``1``.
+    """
     contract = _manifest_table(markdown)
     try:
         version = contract["contract-version"]
@@ -107,119 +157,24 @@ def read_manifest(markdown: str) -> SnapshotContractManifest:
         raise ValueError(message) from exc
 
 
-def _manifest_table(markdown: str) -> dict[str, object]:
-    """Validate the fenced table shape; e.g. reject two TOML blocks."""
-    blocks = fenced_blocks(section_body(markdown, MANIFEST_HEADING), "toml")
-    if len(blocks) != 1:
-        message = "contract manifest must contain exactly one TOML block"
-        raise ValueError(message)
-    try:
-        document = _table(tomllib.loads(blocks[0]), "manifest")
-        if document.keys() != {"snapshot-contract"}:
-            message = "manifest must contain only the [snapshot-contract] table"
-            raise ValueError(message)
-        contract = _table(document["snapshot-contract"], "[snapshot-contract]")
-    except (tomllib.TOMLDecodeError, TypeError) as exc:
-        message = "contract manifest contains invalid TOML or table types"
-        raise ValueError(message) from exc
-    if contract.keys() != _MANIFEST_KEYS:
-        message = "[snapshot-contract] keys do not match the schema"
-        raise ValueError(message)
-    return contract
-
-
-def _wenmode_range(value: object) -> str:
-    """Require ascending bounds; e.g. accept >=0.15.2,<0.16.0."""
-    requirement = _string(value, "wenmode")
-    match = _RANGE_PATTERN.fullmatch(requirement)
-    if match is None:
-        message = "wenmode must use >=MAJOR.MINOR.PATCH,<MAJOR.MINOR.PATCH"
-        raise ValueError(message)
-    parts = tuple(int(part) for part in match.groups())
-    if parts[:3] >= parts[3:]:
-        message = "wenmode lower bound must precede its upper bound"
-        raise ValueError(message)
-    return requirement
-
-
-def _writer_settings(value: object) -> dict[str, str | int | bool]:
-    """Validate writer fields; e.g. reject a boolean indent."""
-    writer = _table(value, "[snapshot-contract.json-writer]")
-    if writer.keys() != _WRITER_TYPES.keys():
-        message = "[snapshot-contract.json-writer] keys do not match the schema"
-        raise ValueError(message)
-    for key, expected_type in _WRITER_TYPES.items():
-        if type(writer[key]) is not expected_type:
-            message = f"JSON writer field {key!r} has the wrong type"
-            raise ValueError(message)
-    return {
-        key: item for key, item in writer.items() if isinstance(item, (str, int, bool))
-    }
-
-
-def section_body(markdown: str, heading: str) -> str:
-    """Return a heading body; e.g. ``## A`` ends before the next ``##``."""
-    lines = markdown.splitlines(keepends=True)
-    headings = list(_headings(lines))
-    targets = [(index, level) for index, title, level in headings if title == heading]
-    if len(targets) != 1:
-        problem = "was not found" if not targets else "is ambiguous"
-        message = f"Markdown heading {heading!r} {problem}"
-        raise ValueError(message)
-    start, target_level = targets[0]
-    end = next(
-        (
-            index
-            for index, _, level in headings
-            if index > start and level <= target_level
-        ),
-        len(lines),
-    )
-    return "".join(lines[start + 1 : end])
-
-
-def _headings(lines: cabc.Sequence[str]) -> cabc.Iterator[tuple[int, str, int]]:
-    """Yield headings outside fences; e.g. ignore a fenced ``## Status``."""
-    fence: str | None = None
-    for index, line in enumerate(lines):
-        content = line.rstrip("\r\n")
-        if fence is not None:
-            if _is_fence_closing(content, fence):
-                fence = None
-            continue
-        opening = _fence_opening(content)
-        if opening is not None:
-            fence = opening[0]
-            continue
-        match = _HEADING_PATTERN.match(content)
-        if match is not None:
-            yield index, content.strip(), len(match.group(1))
-
-
-def fenced_blocks(markdown: str, language: str) -> list[str]:
-    """Return matching fence bodies; e.g. a ``toml`` fence yields TOML text."""
-    lines = markdown.splitlines(keepends=True)
-    blocks: list[str] = []
-    index = 0
-    while index < len(lines):
-        opening = _fence_opening(lines[index].rstrip("\r\n"))
-        if opening is None:
-            index += 1
-            continue
-        marker, info = opening
-        end = index + 1
-        while end < len(lines) and not _is_fence_closing(
-            lines[end].rstrip("\r\n"), marker
-        ):
-            end += 1
-        if info == language:
-            blocks.append("".join(lines[index + 1 : end]))
-        index = end + 1
-    return blocks
-
-
 def key_order_problems(key_order: cabc.Sequence[str]) -> list[str]:
-    """Report invalid key framing; e.g. repeated ``type`` is diagnosed."""
+    """Report prohibited key-order shapes.
+
+    Parameters
+    ----------
+    key_order : Sequence[str]
+        Preferred JSON member names.
+
+    Returns
+    -------
+    list of str
+        Diagnostics for duplicates, framing, removed positions, or dependencies.
+
+    Examples
+    --------
+    ``key_order_problems(["type", "value", "data", "children"])``
+    returns an empty list.
+    """
     problems: list[str] = []
     if len(set(key_order)) != len(key_order):
         problems.append("key-order contains duplicate members")
@@ -242,7 +197,23 @@ def key_order_problems(key_order: cabc.Sequence[str]) -> list[str]:
 
 
 def rule_order_problems(normalization: cabc.Sequence[str]) -> list[str]:
-    """Report rule-order faults; e.g. merge must precede line-ending cleanup."""
+    """Report duplicate rules and reversed merge dependencies.
+
+    Parameters
+    ----------
+    normalization : Sequence[str]
+        Normalization identifiers in application order.
+
+    Returns
+    -------
+    list of str
+        Ordering diagnostics, or an empty list for an acceptable sequence.
+
+    Examples
+    --------
+    ``rule_order_problems(["merge-plain-text", "normalize-line-endings"])``
+    returns an empty list.
+    """
     problems: list[str] = []
     if len(set(normalization)) != len(normalization):
         problems.append("normalization contains duplicate rules")
@@ -256,7 +227,26 @@ def rule_order_problems(normalization: cabc.Sequence[str]) -> list[str]:
 
 
 def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[str]:
-    """Check writer and tree rules; e.g. canonical JSON has no diagnostics."""
+    """Check JSON tree ordering and the writer fixed point.
+
+    Parameters
+    ----------
+    document : str
+        Candidate JSON text, including its trailing newline.
+    manifest : SnapshotContractManifest
+        Validated member order and writer settings.
+
+    Returns
+    -------
+    list of str
+        Encoding, JSON, ordering, text-merge, or serialization diagnostics.
+        Invalid input is reported through this list.
+
+    Examples
+    --------
+    With the accepted v1 manifest, ``writer_problems("{}", manifest)``
+    reports that the missing trailing newline breaks the writer fixed point.
+    """
     problems: list[str] = []
     writer = manifest.json_writer
     if writer.get("encoding") != "utf-8" or writer.get("byte-order-mark") is not False:
@@ -273,119 +263,4 @@ def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[s
         return [*problems, str(exc)]
     if canonical != document:
         problems.append("JSON document is not a writer fixed point")
-    return problems
-
-
-def _render_json(value: object, writer: cabc.Mapping[str, str | int | bool]) -> str:
-    """Apply validated settings; e.g. canonical output ends with one LF."""
-    # _writer_settings checks exact types before these serialization casts.
-    canonical = json.dumps(
-        value,
-        ensure_ascii=writer["ensure-ascii"] is True,
-        indent=typ.cast("int", writer["indent"]),
-        separators=(
-            typ.cast("str", writer["item-separator"]),
-            typ.cast("str", writer["key-separator"]),
-        ),
-        allow_nan=writer["allow-nan"] is True,
-        sort_keys=writer["sort-keys"] is True,
-    )
-    return canonical + ("\n" if writer["trailing-newline"] is True else "")
-
-
-def _strict_utf8(text: str) -> None:
-    """Reject surrogate text; e.g. strict UTF-8 accepts ordinary Unicode."""
-    try:
-        text.encode("utf-8", errors="strict")
-    except UnicodeEncodeError as exc:
-        message = "JSON document is not valid strict UTF-8"
-        raise ValueError(message) from exc
-
-
-def _string(value: object, name: str) -> str:
-    """Require a string field; e.g. parser construction remains text."""
-    if not isinstance(value, str):
-        message = f"{name} must be a string"
-        raise TypeError(message)
-    return value
-
-
-def _table(value: object, name: str) -> dict[str, object]:
-    """Require a TOML table; e.g. ``[snapshot-contract]`` parses as one."""
-    if not isinstance(value, dict):
-        message = f"{name} must be a TOML table"
-        raise TypeError(message)
-    table: dict[str, object] = {}
-    for key, item in value.items():
-        if not isinstance(key, str):
-            message = f"{name} keys must be strings"
-            raise TypeError(message)
-        table[key] = item
-    return table
-
-
-def _string_tuple(value: object, name: str) -> tuple[str, ...]:
-    """Validate string lists; e.g. ``["type", "children"]`` becomes a tuple."""
-    if not isinstance(value, list):
-        message = f"{name} must be a list of strings"
-        raise TypeError(message)
-    values: list[str] = []
-    for item in value:
-        if not isinstance(item, str):
-            message = f"{name} must be a list of strings"
-            raise TypeError(message)
-        values.append(item)
-    return tuple(values)
-
-
-def _fence_opening(line: str) -> tuple[str, str] | None:
-    """Find a fence; e.g. `````toml`` returns its marker and language."""
-    match = _FENCE_PATTERN.match(line)
-    if match is None:
-        return None
-    return match.group(1), match.group(2).strip()
-
-
-def _is_fence_closing(line: str, marker: str) -> bool:
-    """Match a closer; e.g. four ticks close a three-tick fence."""
-    match = re.match(r"^ {0,3}([`~]+)[ \t]*$", line)
-    if match is None:
-        return False
-    return len(match.group(1)) >= len(marker) and set(match.group(1)) == {marker[0]}
-
-
-def _is_plain_text_node(value: object) -> bool:
-    """Identify mergeable nodes; e.g. a text node with only type and value."""
-    if not isinstance(value, dict) or value.keys() != {"type", "value"}:
-        return False
-    return value["type"] == "text" and isinstance(value["value"], str)
-
-
-def _tree_problems(value: object, key_order: cabc.Sequence[str]) -> list[str]:
-    """Check nested JSON; e.g. reversed keys receive a diagnostic."""
-    preferred = {key: index for index, key in enumerate(key_order)}
-    problems: list[str] = []
-
-    def visit(item: object, path: str) -> None:
-        """Visit a nested value; for example use `$.children[0]` for its path."""
-        match item:
-            case dict() as mapping:
-                keys = [key for key in mapping if isinstance(key, str)]
-                expected = sorted(
-                    keys, key=lambda key: (preferred.get(key, len(preferred)), key)
-                )
-                if keys != expected:
-                    problems.append(f"{path}: mapping keys are not in contract order")
-                for key in keys:
-                    visit(mapping[key], f"{path}.{key}")
-            case list() as sequence:
-                if any(
-                    _is_plain_text_node(left) and _is_plain_text_node(right)
-                    for left, right in itertools.pairwise(sequence)
-                ):
-                    problems.append(f"{path}: adjacent plain text nodes must be merged")
-                for index, child in enumerate(sequence):
-                    visit(child, f"{path}[{index}]")
-
-    visit(value, "$")
     return problems

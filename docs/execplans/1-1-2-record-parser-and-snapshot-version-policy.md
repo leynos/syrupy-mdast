@@ -444,6 +444,22 @@ outside its examples.
     URL path handling and the Unicode setting assertion without editing the
     accepted ADRs. Fresh gates and committed reassessment remain pending.
 
+26. The committed reassessment of `18fb0ca` completed over all eight paths
+    and found two duplicate NumPy-docstring requests and two duplicate
+    pathlib-only requests. NumPy format is explicitly required by
+    `.rules/python-00.md`; DEC-34 separates internals to satisfy it within the
+    file-size limit. The cited pathlib-only rule is unsupported for logical
+    Markdown URLs; DEC-35 records its evidence-backed disposition. Current
+    validation and reassessment remain pending.
+
+27. Ruff rejects a wrapper's documented propagated `ValueError` because it
+    sees no explicit raise in the wrapper. Re-export the two documented
+    Markdown functions directly from the internal module, with their full
+    docstrings beside their implementations. This preserves the public API and
+    exception behaviour without duplicate implementations, redundant catches,
+    fabricated raises, or a lint suppression. The focused suite had already
+    passed all 38 cases; the refactor's full gates are renewed after this fix.
+
 ## Decision log
 
 - DEC-1. Original decision (superseded by DEC-24): the combined ADR is
@@ -890,6 +906,27 @@ outside its examples.
   type comparison alone do not detect its mutation. The first milestone CLI
   review reported each defect twice; these two repairs address all four
   findings. Date/Author: 2026-10-12, implementation agent.
+
+- DEC-34. Decision: move the pure private parsing and validation operations
+  into `tests/support/_adr_contract_support.py`, preserving the seven public
+  functions and typed record in `adr_contract.py`. This creates room for the
+  required NumPy Parameters, Returns, Raises, and Attributes documentation
+  without exceeding 400 lines in either module. The combined two-PR scope is
+  now 12 distinct files, exactly the approved tolerance. No further file is
+  permitted without escalation. The internal module is reused only within the
+  ADR test-support feature; it performs no I/O and adds no dependency.
+  Date/Author: 2026-10-12, implementation agent.
+
+- DEC-35. Decision: retain lexical POSIX normalization for Markdown URL
+  strings. The reassessment's duplicate pathlib-only findings quote a rule not
+  present in the repository; scripting standards require `pathlib.Path` for
+  filesystem interactions, while this operation has no filesystem access.
+  `PurePosixPath` fixes native separator selection, and `posixpath.normpath`
+  correctly preserves the required `..` normalization. Read-only verification
+  and the passing Windows regression support this disposition. Replacing the
+  standard normalizer with a custom component algorithm would add unnecessary
+  code and verification obligations. Date/Author: 2026-10-12, implementation
+  agent.
 
 ## Outcomes & retrospective
 
@@ -1814,6 +1851,9 @@ def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[s
 UNIT-3. Hand-written manifest and malformed-input examples are stored in
 `tests/support/adr_contract_examples.toml` to keep the test module within 400
 lines (DEC-30); this is test-support data, not the future contract corpus.
+Private parsing and validation operations live in
+`tests/support/_adr_contract_support.py` (DEC-34); the public module retains
+the documented interface and does not introduce an import cycle.
 
 ## Revision notes
 
