@@ -119,9 +119,8 @@ def _writer_settings(value: object) -> dict[str, str | int | bool]:
         if type(writer[key]) is not expected_type:
             message = f"JSON writer field {key!r} has the wrong type"
             raise ValueError(message)
-    return {
-        key: item for key, item in writer.items() if isinstance(item, (str, int, bool))
-    }
+    # Exact key and value-type checks above establish this copy's type.
+    return typ.cast("dict[str, str | int | bool]", dict(writer))
 
 
 def section_body(markdown: str, heading: str) -> str:

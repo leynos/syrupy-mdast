@@ -626,6 +626,15 @@ outside its examples.
     preserving the same citations while meeting the existing local-variable
     limit. Fresh gates must validate that cleanup.
 
+37. The final-record review of `d5200dc` completes across all nine paths with
+    two trivial findings. Remove `_writer_settings`' redundant value filter:
+    exact key equality and the preceding exact-type loop establish the typed
+    dictionary copy. Retain those checks and every writer field. The repeated
+    claim that the Windows patch cannot detect native-path regressions remains
+    invalid: the original native-Path implementation failed the same preserved
+    assertion. This bounded cleanup needs renewed gates and committed review;
+    it changes no public API, manifest field, or runtime behaviour.
+
 ## Decision log
 
 - DEC-1. Original decision (superseded by DEC-24): the combined ADR is
@@ -2252,3 +2261,9 @@ the documented interface and does not introduce an import cycle.
   passes 51 focused cases, 154 repository tests, all seven gates, and
   CodeScene. Restore only roadmap 1.1.2's checkbox; gate and assess the final
   record before its hosted reassessment and later delivery transitions.
+
+- 2026-10-12: the committed final-record review at `d5200dc` completes with
+  two trivial findings and green hosted checks. Remove the redundant writer
+  filter after exact schema validation; retain the evidence-backed Windows
+  regression disposition. Revalidate this bounded cleanup before publication
+  and affected hosted assessment.
