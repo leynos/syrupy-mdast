@@ -5,11 +5,11 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Outcomes & retrospective`, `Conformance basis`, and `Verification plan` must
 be kept up to date as work proceeds.
 
-Status: COMPLETE
+Status: IN PROGRESS
 
-Implementation activity is complete. PR B's hosted assessment, formal review,
-authorized merge, and post-merge ordering/integration evidence remain delivery
-work owned by `pr-babysitting`, as tracked below and in the shared ledger.
+The hosted assessment reopened implementation activity for a DOC-4 multiline
+preset-detection gap. Repair validation and candidate-bound reassessment are
+pending. PR delivery remains owned by `pr-babysitting` using the same ledger.
 
 ## Purpose / big picture
 
@@ -313,17 +313,20 @@ outside its examples.
   disposition. The stale retrospective status is corrected in the validated
   `21f97af` record refresh; its completed review identifies the additional
   writer-setting and root-envelope repairs in DEC-39.
-- [x] (2026-10-12) EP-M3 closure: the committed CLI assessment at
+- [x] (2026-10-12) EP-M3 prior local closure: the committed CLI assessment at
   `85f9cc693899162bb862dac499b9362782511ca2` completes with zero findings
   across all nine PR B paths against
   `8e553d7875a1458e75f77b06fec399223b8aa99e`. All seven local gates pass,
   including 45 focused cases and 148 repository tests; both helpers score 10.0
   in CodeScene and the full delta has no issues. CI and Act pass on attempt 1;
   hosted CodeScene and security checks pass.
-- [x] (2026-10-12) EP-M4 implementation record: tick only roadmap 1.1.2 and
+- [ ] EP-M4 final closure after the DOC-4 assessment repair. The earlier
+      record: tick only roadmap 1.1.2 and
   record the retrospective and existing-task handoffs. Final tracked edits
   remain subject to the full sequential gate set and committed CLI assessment
   before publication; candidate-bound results are retained in the shared ledger.
+- [ ] Hosted DOC-4 repair: whole-document detection and single/multiline
+  positive and negative controls; validate and obtain affected reassessment.
 - [ ] PR B delivery: candidate-bound hosted ExecPlan assessment, readiness,
   formal review reconciliation, separately authorized squash merge, and
   post-merge CI, Act, main coverage, and A-before-B history witness. Record the
@@ -575,6 +578,20 @@ outside its examples.
     baseline passed. Add the bounded checks in DEC-39 and preserve those red
     witnesses. The reviewed candidate's hosted checks all pass; the new repair
     still needs its own validation and reassessment.
+
+35. The candidate-bound hosted assessment of `534241c` identifies one valid
+    DOC-4 gap: per-line matching misses multiline uncalled `github` presets.
+    Its independent inspection confirms the Windows regression's validity and
+    finds no other in-scope omission. Reopen implementation status and the exact
+    1.1.2 checkbox while repairing the guard. Add current-document, single-line,
+    and multiline called/uncalled controls through the existing fixture
+    inventory. The red scaffold retains per-line scanning to expose the gap
+    before whole-document matching is introduced. That exact five-case run
+    passes four controls and fails only `uncalled-multiline`, with an ordinary
+    assertion and no setup/collection errors (`b-doc4-red.log`). Replace it
+    with whole-document `finditer` and derive line numbers from match offsets.
+    The reply and scope evidence
+    are preserved on PR #72 and in the shared ledger.
 
 ## Decision log
 
@@ -1092,6 +1109,16 @@ outside its examples.
   production abstraction is introduced. Date/Author: 2026-10-12, implementation
   agent.
 
+- DEC-40. Decision: search each entire allowlisted document for DOC-4's exact
+  pattern, derive diagnostic lines from match offsets, and test both
+  single-line and multiline constructions through the same detection path. Move
+  the five ratified rule identifiers to the independent TOML fixture to
+  accommodate the controls within the 400-line test cap; the oracle remains
+  independent of the manifest validator (DEC-38). No helper, public API,
+  dependency, or file is added. Reopen the implementation record and exact task
+  checkbox until the repair is validated. Date/Author: 2026-10-12,
+  implementation agent.
+
 ## Outcomes & retrospective
 
 The maintainer accepted A (no payload version marker), G (merge plain text),
@@ -1103,6 +1130,13 @@ before any PR B guard change was committed. Its post-merge CI, Act, and main
 coverage workflows passed. The preceding split and acceptance gates, assessment
 repairs, and review results remain historical evidence for their recorded
 candidates in the shared ledger.
+
+The
+[hosted assessment](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6117871792)
+of `534241c` finds a valid DOC-4 multiline-detection gap. Implementation
+status and the exact task checkbox are reopened during the bounded repair;
+affected assessment clearance remains pending. The following completion results
+are historical evidence for the pre-assessment candidate.
 
 [PR B #72](https://github.com/leynos/syrupy-mdast/pull/72) implements DOC-1
 through DOC-7 and UNIT-1 through UNIT-3, reconciles the four required

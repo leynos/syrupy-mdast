@@ -26,13 +26,6 @@ _VERSIONING_REQUIREMENT: typ.Final[str] = ">=0.15.2,<0.16.0"
 _ACCEPTANCE_SOURCE: typ.Final[str] = (
     "https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258"
 )
-_RULE_IDENTIFIERS: typ.Final[frozenset[str]] = frozenset([
-    "remove-position",
-    "remove-empty-data",
-    "merge-plain-text",
-    "normalize-line-endings",
-    "order-members",
-])  # Keep the ADR oracle independent of the parser's private allow-list.
 _LINK_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
 
@@ -190,9 +183,9 @@ def test_manifest_has_the_contract_schema() -> None:
     assert isinstance(manifest.parser, str), normalization_path
     assert isinstance(manifest.file_extension, str), normalization_path
     assert isinstance(manifest.normalization, tuple), normalization_path
-    assert all(rule in _RULE_IDENTIFIERS for rule in manifest.normalization), (
-        normalization_path
-    )
+    # Keep the fixture oracle independent of the validator's allow-list.
+    rules = frozenset(_example("rules", "allowed").split())
+    assert all(rule in rules for rule in manifest.normalization), normalization_path
     assert isinstance(manifest.key_order, tuple), normalization_path
     assert all(isinstance(key, str) for key in manifest.key_order), normalization_path
     reference = tomllib.loads(_example("manifest", "body"))["snapshot-contract"]
@@ -233,18 +226,24 @@ def test_design_parser_construction_matches_manifest() -> None:
     )
 
 
-def test_no_normative_document_uses_the_uncalled_preset() -> None:
-    """Reject uncalled ``github`` preset construction in the normative allowlist."""
+@pytest.mark.parametrize("case", _example("cases", "parser").split())
+def test_no_normative_document_uses_the_uncalled_preset(case: str) -> None:
+    """Reject uncalled presets across documents and named construction controls."""
+    control, expected = _example("parser_examples", case).split("\t")
+    assert expected in {"clean", "uncalled"}, case
     pattern = re.compile(r"Parser\(\s*github\s*[,)]")
     for relative_path in _NORMATIVE_DOCUMENTS:
         document = _read_repo_text(relative_path)
         assert document.strip(), f"{relative_path}: normative document is empty"
-        for line_number, line in enumerate(document.splitlines(), start=1):
-            if pattern.search(line):
-                pytest.fail(
-                    f"{relative_path}:{line_number}: uncalled preset {line.strip()!r}; "
-                    "construct Parser(github(), ...)"
-                )
+        document += "\n" + control
+        matches = [
+            (document.count("\n", 0, match.start()) + 1, match.group(0))
+            for match in pattern.finditer(document)
+        ]
+        assert bool(matches) == (expected == "uncalled"), (
+            f"{relative_path}: uncalled presets {matches!r}; "
+            "construct Parser(github(), ...)"
+        )
 
 
 def test_contract_adrs_are_indexed_and_cited_by_the_design() -> None:

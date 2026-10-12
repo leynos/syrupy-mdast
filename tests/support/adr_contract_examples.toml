@@ -261,8 +261,19 @@ metadata-text = '''{
 '''
 
 [cases]
+parser = "current called-single called-multiline uncalled-single uncalled-multiline"
 policy = "accepted proposed-policy removed-backlink stale-backlink stale-policy-link"
 status = "accepted proposed proposed-punctuation superseded missing-status empty-status"
 manifest = "no-block two-blocks wrong-heading invalid-toml missing-key extra-key wrong-type"
 writer = "root-scalar non-root missing-children wrong-children scalar-values float-value misordered misindented adjacent-text metadata-text"
 key_order = "duplicate position wrong-first wrong-last data-after-children"
+
+[rules]
+allowed = "remove-position remove-empty-data merge-plain-text normalize-line-endings order-members"
+
+[parser_examples]
+current = "\tclean"
+called-single = "Parser(github(), positions=False)\n\tclean"
+called-multiline = "Parser(\n    github(),\n    positions=False,\n)\n\tclean"
+uncalled-single = "Parser(github, positions=False)\n\tuncalled"
+uncalled-multiline = "Parser(\n    github,\n    positions=False,\n)\n\tuncalled"
