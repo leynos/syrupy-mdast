@@ -277,3 +277,143 @@ called-single = "Parser(github(), positions=False)\n\tclean"
 called-multiline = "Parser(\n    github(),\n    positions=False,\n)\n\tclean"
 uncalled-single = "Parser(github, positions=False)\n\tuncalled"
 uncalled-multiline = "Parser(\n    github,\n    positions=False,\n)\n\tuncalled"
+
+[normative]
+paths = "docs/syrupy-mdast-design.md docs/roadmap.md docs/users-guide.md docs/developers-guide.md"
+
+[acceptance]
+source = "https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258"
+
+[citations]
+"## 7. Parser profile and dependency policy" = "normalization"
+"## 8. Canonicalization contract" = "normalization"
+"## 11. Correctness and verification" = "normalization versioning"
+"## 13. Compatibility, distribution, and migration" = "versioning"
+
+[history_valid]
+"docs/adr-004-parser-profile-and-normalization.md" = '''## Status
+
+Superseded by [ADR-005](adr-005-normalization-contract.md).
+
+## Decision
+
+Historical normalization version 1.
+
+### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+"docs/adr-005-normalization-contract.md" = '''## Status
+
+Accepted
+
+## Decision
+
+Current normalization version 2.
+
+### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 2
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+
+[history_self]
+"docs/adr-004-parser-profile-and-normalization.md" = '''## Status
+
+Superseded by [ADR-004](adr-004-parser-profile-and-normalization.md).
+
+## Decision
+
+Historical normalization version 1.
+
+### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+"docs/adr-005-normalization-contract.md" = '''## Status
+
+Accepted
+
+## Decision
+
+Current normalization version 2.
+
+### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 2
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''

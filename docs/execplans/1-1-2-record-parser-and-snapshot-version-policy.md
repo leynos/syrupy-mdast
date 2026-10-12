@@ -8,7 +8,9 @@ be kept up to date as work proceeds.
 Status: IN PROGRESS
 
 The hosted assessment reopened implementation activity for a DOC-4 multiline
-preset-detection gap. Repair validation and candidate-bound reassessment are
+preset-detection gap. That repair passes local and hosted gates at `6592cf5`;
+its committed review identifies an additional DOC-1 self-link gap. The bounded
+history controls, final closure, and affected hosted reassessment remain
 pending. PR delivery remains owned by `pr-babysitting` using the same ledger.
 
 ## Purpose / big picture
@@ -325,8 +327,14 @@ outside its examples.
   record the retrospective and existing-task handoffs. Final tracked edits
   remain subject to the full sequential gate set and committed CLI assessment
   before publication; candidate-bound results are retained in the shared ledger.
-- [ ] Hosted DOC-4 repair: whole-document detection and single/multiline
-  positive and negative controls; validate and obtain affected reassessment.
+- [x] (2026-10-12) DOC-4 local repair at `6592cf5`: whole-document detection
+  and five construction controls pass 49 focused cases and 152 repository
+  tests; all seven gates, the CodeScene delta, CI, and Act pass. The committed
+  nine-path CLI review identifies the DOC-1 repair below; its two path-policy
+  suggestions retain invalid dispositions. Affected hosted assessment remains
+  pending.
+- [ ] DOC-1 self-link repair: synthetic valid and self-linked histories exercise
+  the same guard, which must require another existing normalization record.
 - [ ] PR B delivery: candidate-bound hosted ExecPlan assessment, readiness,
   formal review reconciliation, separately authorized squash merge, and
   post-merge CI, Act, main coverage, and A-before-B history witness. Record the
@@ -592,6 +600,24 @@ outside its examples.
     with whole-document `finditer` and derive line numbers from match offsets.
     The reply and scope evidence
     are preserved on PR #72 and in the shared ledger.
+
+36. The committed review of `6592cf5` repeats two unsupported path-policy
+    suggestions and identifies a valid DOC-1 self-link gap. A superseded record
+    can satisfy the existing-record check with its own path. Reject self-only
+    links and exercise valid and invalid synthetic histories; retain the real
+    document case. DOC-1 does not require every supersession to point to a
+    higher version, so that broader proposed requirement is not adopted. The
+    existing Windows red witness still validates the native-path simulation;
+    no applicable rule bans pytest monkeypatching. CodeScene, CI, Act, and
+    security checks pass at the reviewed candidate. The three history controls
+    reproduce the defect: current and valid histories pass; the self-linked
+    history fails because the old guard does not raise (`b-history-red.log`).
+    Excluding the current path from eligible records is the bounded repair.
+    The green focused suite passes 51 cases; Ruff initially rejects 13 local
+    variables in the citation test after fixture extraction. Store headings
+    directly as fixture keys and inline two immediate document-read bindings,
+    preserving the same citations while meeting the existing local-variable
+    limit. Fresh gates must validate that cleanup.
 
 ## Decision log
 
@@ -1118,6 +1144,17 @@ outside its examples.
   dependency, or file is added. Reopen the implementation record and exact task
   checkbox until the repair is validated. Date/Author: 2026-10-12,
   implementation agent.
+
+- DEC-41. Decision: a Superseded normalization record must link to a different
+  existing normalization record. Exclude its own path from eligible targets and
+  add current-document, valid-history, and self-linked-history controls through
+  the same DOC-1 assertions. Do not impose a universal higher-version link
+  rule: DOC-1 does not state one, and ADR-004 requires it specifically for
+  payload changes. Existing literal document metadata may move to the
+  independent TOML fixture to preserve the 400-line code cap; no file, helper,
+  public API, or dependency is added. Retain DEC-35 and the Windows red witness
+  for the two invalid path suggestions. Date/Author: 2026-10-12, implementation
+  agent.
 
 ## Outcomes & retrospective
 
@@ -2182,3 +2219,8 @@ the documented interface and does not introduce an import cycle.
   hosted assessment, review, B merge authority, and post-merge evidence as
   separate pending delivery work. Final tracked records are gated before
   publication; the shared ledger records their actual candidate.
+
+- 2026-10-12: repair the hosted DOC-4 gap at `6592cf5` with five constructor
+  controls, 49 focused and 152 full-suite passes, and green local and hosted
+  gates. Its committed review exposes the narrower DOC-1 self-link defect;
+  retain implementation status as in progress while exercising that repair.

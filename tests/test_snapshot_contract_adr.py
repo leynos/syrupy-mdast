@@ -7,6 +7,7 @@ import posixpath
 import re
 import tomllib
 import typing as typ
+from contextlib import nullcontext
 
 import pytest
 
@@ -16,16 +17,7 @@ from tests.support.make_contract import REPO_ROOT
 
 _DESIGN: typ.Final[str] = "docs/syrupy-mdast-design.md"
 _NORMALIZATION_ADR: typ.Final[str] = "docs/adr-004-parser-profile-and-normalization.md"
-_NORMATIVE_DOCUMENTS: typ.Final[tuple[str, ...]] = (
-    _DESIGN,
-    "docs/roadmap.md",
-    "docs/users-guide.md",
-    "docs/developers-guide.md",
-)
 _VERSIONING_REQUIREMENT: typ.Final[str] = ">=0.15.2,<0.16.0"
-_ACCEPTANCE_SOURCE: typ.Final[str] = (
-    "https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258"
-)
 _LINK_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
 
@@ -139,33 +131,44 @@ def _manifest_block(toml: str, *, heading: str = contract.MANIFEST_HEADING) -> s
     return f"{heading}\n\n```toml\n{toml}\n```\n"
 
 
-def test_exactly_one_normalization_contract_adr_is_accepted() -> None:
+@pytest.mark.parametrize("case", ["current", "valid", "self"])
+def test_exactly_one_normalization_contract_adr_is_accepted(case: str) -> None:
     """Require one accepted manifest and a gapless normalization version history."""
-    documents = _normalization_documents()
-    assert documents, "docs/adr-*.md: expected a normalization contract record"
-    assert _NORMALIZATION_ADR in documents, "historical ADR-004 baseline is missing"
-    records = {
-        path: (_status_for_path(path, text), contract.read_manifest(text))
-        for path, text in documents.items()
-    }
-    accepted = [path for path, (status, _) in records.items() if status == "Accepted"]
-    assert len(accepted) == 1, f"expected one Accepted ADR: {accepted!r}"
-
-    record_names = set(documents)
-    for path, (status, _) in records.items():
-        if path in accepted:
-            continue
-        assert status.startswith("Superseded"), f"{path}: expected Superseded status"
-        links = _link_targets(contract.section_body(documents[path], "## Status"), path)
-        assert links & record_names, f"{path}: link an existing normalization ADR"
-
-    versions = sorted(manifest.contract_version for _, manifest in records.values())
-    assert versions == list(range(1, len(versions) + 1)), (
-        f"versions are not gapless: {versions!r}"
+    documents = (
+        _normalization_documents()
+        if case == "current"
+        else typ.cast("dict[str, str]", _EXAMPLES[f"history_{case}"])
     )
-    assert records[accepted[0]][1].contract_version == len(versions), (
-        f"{accepted[0]}: accepted ADR must hold the latest contract version"
+    expectation = (
+        pytest.raises(AssertionError, match="different existing normalization ADR")
+        if case == "self"
+        else nullcontext()
     )
+    with expectation:
+        assert documents, "docs/adr-*.md: expected a normalization contract record"
+        assert _NORMALIZATION_ADR in documents, "historical ADR-004 baseline is missing"
+        records = {
+            path: (_status_for_path(path, text), contract.read_manifest(text))
+            for path, text in documents.items()
+        }
+        accepted = [path for path, record in records.items() if record[0] == "Accepted"]
+        assert len(accepted) == 1, f"expected one Accepted ADR: {accepted!r}"
+        record_names = set(documents)
+        for path, (status, _) in records.items():
+            if path in accepted:
+                continue
+            assert status.startswith("Superseded"), f"{path}: expected Superseded"
+            status_section = contract.section_body(documents[path], "## Status")
+            links = _link_targets(status_section, path)
+            message = f"{path}: link a different existing normalization ADR"
+            assert links & (record_names - {path}), message
+        versions = sorted(manifest.contract_version for _, manifest in records.values())
+        assert versions == list(range(1, len(versions) + 1)), (
+            f"versions are not gapless: {versions!r}"
+        )
+        assert records[accepted[0]][1].contract_version == len(versions), (
+            f"{accepted[0]}: accepted ADR must hold the latest contract version"
+        )
 
 
 def test_manifest_has_the_contract_schema() -> None:
@@ -232,7 +235,7 @@ def test_no_normative_document_uses_the_uncalled_preset(case: str) -> None:
     control, expected = _example("parser_examples", case).split("\t")
     assert expected in {"clean", "uncalled"}, case
     pattern = re.compile(r"Parser\(\s*github\s*[,)]")
-    for relative_path in _NORMATIVE_DOCUMENTS:
+    for relative_path in _example("normative", "paths").split():
         document = _read_repo_text(relative_path)
         assert document.strip(), f"{relative_path}: normative document is empty"
         document += "\n" + control
@@ -249,25 +252,22 @@ def test_no_normative_document_uses_the_uncalled_preset(case: str) -> None:
 def test_contract_adrs_are_indexed_and_cited_by_the_design() -> None:
     """Require both records in the index and their design-section references."""
     normalization_path, normalization = _current_normalization_record()
-    adr_documents = _adr_documents()
     versioning_path, _ = _linked_versioning_record(
-        normalization_path, normalization, adr_documents
+        normalization_path, normalization, _adr_documents()
     )
-    contents = _read_repo_text("docs/contents.md")
     index_links = _link_targets(
-        contract.section_body(contents, "## Decision records"), "docs/contents.md"
+        contract.section_body(
+            _read_repo_text("docs/contents.md"), "## Decision records"
+        ),
+        "docs/contents.md",
     )
     for path in (versioning_path, normalization_path):
         assert path in index_links, f"docs/contents.md: link {path}"
 
     design = _read_repo_text(_DESIGN)
-    citations = (
-        ("## 7. Parser profile and dependency policy", {normalization_path}),
-        ("## 8. Canonicalization contract", {normalization_path}),
-        ("## 11. Correctness and verification", {normalization_path, versioning_path}),
-        ("## 13. Compatibility, distribution, and migration", {versioning_path}),
-    )
-    for heading, paths in citations:
+    targets = {"normalization": normalization_path, "versioning": versioning_path}
+    for heading, roles in _EXAMPLES["citations"].items():
+        paths = {targets[role] for role in typ.cast("str", roles).split()}
         missing = paths - _link_targets(contract.section_body(design, heading), _DESIGN)
         assert not missing, (
             f"{_DESIGN} {heading}: missing ADR links {sorted(missing)!r}"
@@ -312,9 +312,8 @@ def test_version_policy_adr_is_accepted_and_linked(case: str) -> None:
             note = contract.section_body(markdown, "## Outstanding decisions")
             assert f"selected Option {option}" in note, path
             assert "2026-10-11" in note, path
-            assert _ACCEPTANCE_SOURCE in markdown, f"{path}: missing acceptance source"
+            assert _example("acceptance", "source") in markdown, path
         return
-
     adr_documents = adr_documents.copy()
     match case:
         case "proposed-policy":
