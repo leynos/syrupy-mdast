@@ -460,6 +460,24 @@ outside its examples.
     fabricated raises, or a lint suppression. The focused suite had already
     passed all 38 cases; the refactor's full gates are renewed after this fix.
 
+28. PR B #72 is published as draft at `164c869`; all Actions jobs pass, but
+    CodeScene's new-code health and advisory gates fail. Local CodeScene 1.0.52
+    corroborates `_manifest_table` and `key_order_problems` complexity 9 at
+    threshold 9, plus private-module mean complexity 4.60 at threshold 4.
+    DEC-36 repairs those routines within the existing 12-file scope. The CLI
+    reassessment separately hit its quota; its required sampled cooldown ends
+    at 2026-10-12 03:21:58 UTC. No early retry or account/configuration change
+    is authorized by that notice. Hosted and local review evidence remain
+    candidate-specific.
+
+29. The first CodeScene repair passes all seven gates and 38 focused cases;
+    the private module reaches health 10.0, but the public module's new private
+    helpers produce mean complexity 5.14 at threshold 4. Colocate those private
+    validators with the existing private schema operations (DEC-34/DEC-36),
+    preserving their bodies and public API. Both source paths stay measured by
+    file reviews and the complete branch delta; no configuration or scope
+    exclusion is introduced.
+
 ## Decision log
 
 - DEC-1. Original decision (superseded by DEC-24): the combined ADR is
@@ -927,6 +945,16 @@ outside its examples.
   standard normalizer with a custom component algorithm would add unnecessary
   code and verification obligations. Date/Author: 2026-10-12, implementation
   agent.
+
+- DEC-36. Decision: repair CodeScene's current code-health failures through
+  cohesive decomposition and simpler validation. Separate manifest selection,
+  TOML decoding, and root-table schema checks; separate key framing from member
+  dependencies; and separate fence production from language filtering.
+  Container validators check their complete element/key type before a justified
+  cast. Public APIs, diagnostic order, and accepted contract values remain
+  unchanged. The new private routines are local to the same ADR support
+  feature. Do not change rule weights, thresholds, suppressions, dependencies,
+  or file scope. Date/Author: 2026-10-12, implementation agent.
 
 ## Outcomes & retrospective
 

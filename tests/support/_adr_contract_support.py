@@ -60,19 +60,29 @@ def _manifest_table(markdown: str) -> dict[str, object]:
     if len(blocks) != 1:
         message = "contract manifest must contain exactly one TOML block"
         raise ValueError(message)
-    try:
-        document = _table(tomllib.loads(blocks[0]), "manifest")
-        if document.keys() != {"snapshot-contract"}:
-            message = "manifest must contain only the [snapshot-contract] table"
-            raise ValueError(message)
-        contract = _table(document["snapshot-contract"], "[snapshot-contract]")
-    except (tomllib.TOMLDecodeError, TypeError) as exc:
-        message = "contract manifest contains invalid TOML or table types"
-        raise ValueError(message) from exc
+    contract = _decode_contract(blocks[0])
     if contract.keys() != _MANIFEST_KEYS:
         message = "[snapshot-contract] keys do not match the schema"
         raise ValueError(message)
     return contract
+
+
+def _decode_contract(text: str) -> dict[str, object]:
+    """Translate TOML decoding errors; e.g. an invalid table raises ValueError."""
+    try:
+        return _contract_table(tomllib.loads(text))
+    except (tomllib.TOMLDecodeError, TypeError) as exc:
+        message = "contract manifest contains invalid TOML or table types"
+        raise ValueError(message) from exc
+
+
+def _contract_table(value: object) -> dict[str, object]:
+    """Require the single root table; e.g. reject unrelated top-level keys."""
+    document = _table(value, "manifest")
+    if document.keys() != {"snapshot-contract"}:
+        message = "manifest must contain only the [snapshot-contract] table"
+        raise ValueError(message)
+    return _table(document["snapshot-contract"], "[snapshot-contract]")
 
 
 def _wenmode_range(value: object) -> str:
@@ -184,8 +194,12 @@ def fenced_blocks(markdown: str, language: str) -> list[str]:
     --------
     ``fenced_blocks("ordinary text", "toml")`` returns an empty list.
     """
+    return [body for info, body in _fence_bodies(markdown) if info == language]
+
+
+def _fence_bodies(markdown: str) -> cabc.Iterator[tuple[str, str]]:
+    """Yield complete fence contents; e.g. select their language separately."""
     lines = markdown.splitlines(keepends=True)
-    blocks: list[str] = []
     index = 0
     while index < len(lines):
         opening = _fence_opening(lines[index].rstrip("\r\n"))
@@ -198,10 +212,8 @@ def fenced_blocks(markdown: str, language: str) -> list[str]:
             lines[end].rstrip("\r\n"), marker
         ):
             end += 1
-        if info == language:
-            blocks.append("".join(lines[index + 1 : end]))
+        yield info, "".join(lines[index + 1 : end])
         index = end + 1
-    return blocks
 
 
 def _render_json(value: object, writer: cabc.Mapping[str, str | int | bool]) -> str:
@@ -239,31 +251,21 @@ def _string(value: object, name: str) -> str:
 
 
 def _table(value: object, name: str) -> dict[str, object]:
-    """Require a TOML table; e.g. ``[snapshot-contract]`` parses as one."""
-    if not isinstance(value, dict):
-        message = f"{name} must be a TOML table"
-        raise TypeError(message)
-    table: dict[str, object] = {}
-    for key, item in value.items():
-        if not isinstance(key, str):
-            message = f"{name} keys must be strings"
-            raise TypeError(message)
-        table[key] = item
-    return table
+    """Require string-keyed tables; e.g. accept a decoded TOML dictionary."""
+    if isinstance(value, dict) and all(isinstance(key, str) for key in value):
+        # The aggregate key check narrows the container's otherwise unknown keys.
+        return typ.cast("dict[str, object]", value)
+    message = f"{name} must be a TOML table with string keys"
+    raise TypeError(message)
 
 
 def _string_tuple(value: object, name: str) -> tuple[str, ...]:
-    """Validate string lists; e.g. ``["type", "children"]`` becomes a tuple."""
-    if not isinstance(value, list):
-        message = f"{name} must be a list of strings"
-        raise TypeError(message)
-    values: list[str] = []
-    for item in value:
-        if not isinstance(item, str):
-            message = f"{name} must be a list of strings"
-            raise TypeError(message)
-        values.append(item)
-    return tuple(values)
+    """Validate string lists; e.g. ["type", "children"] becomes a tuple."""
+    if isinstance(value, list) and all(isinstance(item, str) for item in value):
+        # The aggregate element check establishes the tuple's string element type.
+        return tuple(typ.cast("list[str]", value))
+    message = f"{name} must be a list of strings"
+    raise TypeError(message)
 
 
 def _fence_opening(line: str) -> tuple[str, str] | None:
@@ -284,9 +286,11 @@ def _is_fence_closing(line: str, marker: str) -> bool:
 
 def _is_plain_text_node(value: object) -> bool:
     """Identify mergeable nodes; e.g. a text node with only type and value."""
-    if not isinstance(value, dict) or value.keys() != {"type", "value"}:
+    if not isinstance(value, dict):
         return False
-    return value["type"] == "text" and isinstance(value["value"], str)
+    return value == {"type": "text", "value": value.get("value")} and isinstance(
+        value.get("value"), str
+    )
 
 
 def _tree_problems(value: object, key_order: cabc.Sequence[str]) -> list[str]:
@@ -317,3 +321,27 @@ def _tree_problems(value: object, key_order: cabc.Sequence[str]) -> list[str]:
 
     visit(value, "$")
     return problems
+
+
+def _key_frame_problems(key_order: cabc.Sequence[str]) -> list[str]:
+    """Check the outer members; e.g. type first and children last."""
+    problems: list[str] = []
+    if not key_order or key_order[0] != "type":
+        problems.append("key-order must start with 'type'")
+    if not key_order or key_order[-1] != "children":
+        problems.append("key-order must end with 'children'")
+    return problems
+
+
+def _key_dependency_problems(key_order: cabc.Sequence[str]) -> list[str]:
+    """Check required member dependencies; e.g. data follows value."""
+    missing = {"value", "data", "children"} - set(key_order)
+    if missing:
+        return [f"key-order is missing required members: {sorted(missing)!r}"]
+    if (
+        not key_order.index("value")
+        < key_order.index("data")
+        < key_order.index("children")
+    ):
+        return ["key-order must place value before data before children"]
+    return []

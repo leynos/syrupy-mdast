@@ -15,6 +15,8 @@ import typing as typ
 from tests.support._adr_contract_support import (
     _MANIFEST_HEADING,
     _NORMALIZATION_RULES,
+    _key_dependency_problems,
+    _key_frame_problems,
     _manifest_table,
     _render_json,
     _strict_utf8,
@@ -178,21 +180,10 @@ def key_order_problems(key_order: cabc.Sequence[str]) -> list[str]:
     problems: list[str] = []
     if len(set(key_order)) != len(key_order):
         problems.append("key-order contains duplicate members")
-    if not key_order or key_order[0] != "type":
-        problems.append("key-order must start with 'type'")
-    if not key_order or key_order[-1] != "children":
-        problems.append("key-order must end with 'children'")
+    problems.extend(_key_frame_problems(key_order))
     if "position" in key_order:
         problems.append("key-order must omit 'position'")
-    missing = {"value", "data", "children"} - set(key_order)
-    if missing:
-        problems.append(f"key-order is missing required members: {sorted(missing)!r}")
-    elif (
-        not key_order.index("value")
-        < key_order.index("data")
-        < key_order.index("children")
-    ):
-        problems.append("key-order must place value before data before children")
+    problems.extend(_key_dependency_problems(key_order))
     return problems
 
 
