@@ -32,7 +32,7 @@ _RULE_IDENTIFIERS: typ.Final[frozenset[str]] = frozenset([
     "merge-plain-text",
     "normalize-line-endings",
     "order-members",
-])
+])  # Keep the ADR oracle independent of the parser's private allow-list.
 _LINK_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
 

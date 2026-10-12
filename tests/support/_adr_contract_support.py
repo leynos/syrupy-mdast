@@ -295,11 +295,11 @@ def _is_fence_closing(line: str, marker: str) -> bool:
 
 def _is_plain_text_node(value: object) -> bool:
     """Identify mergeable nodes; e.g. a text node with only type and value."""
-    if not isinstance(value, dict):
-        return False
-    return value == {"type": "text", "value": value.get("value")} and isinstance(
-        value.get("value"), str
-    )
+    match value:
+        case {"type": "text", "value": str(), **extra_fields} if not extra_fields:
+            return True
+        case _:
+            return False
 
 
 def _tree_problems(value: object, key_order: cabc.Sequence[str]) -> list[str]:

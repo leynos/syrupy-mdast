@@ -441,9 +441,10 @@ outside its examples.
     Parameter names live with the synthetic examples to preserve the 400-line
     limit; neither lint thresholds nor dependency configuration changed.
     The later df12 lint pass required assertion diagnostics and match-based
-    dispatch. After those repairs, all seven gates pass with 140 tests; the
-    total is smaller than in historical PR A runs because main has an updated
-    test suite; no tests were excluded. The audit skips two non-PyPI local packages.
+    dispatch. After those repairs, all seven gates pass with 140 tests. This
+    total is below the earlier 271-test runs for PR #58 because `main`'s test
+    suite changed. No tests were excluded. The audit skips two non-PyPI local
+    packages.
 
 25. The first committed PR B CLI review of `ad3f392` completed over all eight
     paths and reported four findings representing two defects. A new regression
@@ -521,8 +522,20 @@ outside its examples.
     reads fresh. Reuse the already-discovered normalization document, clarify
     the test-count sentence, remove broken compound spacing, and document the
     private module's purpose, ownership, and usage. No new helper, file, runtime
-    behavior, or dependency is needed. Renew gates and reassessment after these
+    behaviour, or dependency is needed. Renew gates and reassessment after these
     bounded edits.
+
+32. At `52b3314`, the committed CLI review completes across all nine paths;
+    hosted Actions, CodeScene, and security checks pass. The next two clarity
+    edits identify PR #58 directly in the test-count paragraph and express the
+    exact plain-text predicate with a mapping pattern plus a two-key guard.
+    The third suggestion would remove the independent DOC-2 rule oracle and is
+    invalid (DEC-38). The existing metadata-bearing text control still prevents
+    merging text nodes with extra fields. Renew validation and reassessment for
+    these bounded edits. The first focused suite passes all 41 cases, but
+    Ruff rejects the literal field count as a magic value. Bind remaining
+    mapping fields and require that mapping to be empty, expressing the exact
+    plain-text shape without a numeric constant or extra schema definition.
 
 ## Decision log
 
@@ -1014,6 +1027,17 @@ outside its examples.
   this remains the same finite test scope. The primary specification was
   retrieved through Firecrawl on 2026-10-12 (HTTP 200). Date/Author:
   2026-10-12, implementation agent.
+
+- DEC-38. Decision: retain the test's independent normalization-rule allow-list
+  and subset assertion. DOC-2 requires identifiers drawn from DEC-6's five
+  ratified rules. The private `_NORMALIZATION_RULES` is part of `read_manifest`
+  validation under test, so deriving the oracle from that same implementation
+  would let joint helper/manifest drift pass. The repeated literals implement
+  distinct authority boundaries, not an accidental duplicate helper. A code
+  comment records this purpose; read-only verification confirms the trace
+  links. The repository style rules require public-behaviour tests but do not
+  assert a separate independent-oracle policy. Date/Author: 2026-10-12,
+  implementation agent.
 
 ## Outcomes & retrospective
 
