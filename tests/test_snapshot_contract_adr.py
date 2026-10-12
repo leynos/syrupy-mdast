@@ -54,12 +54,6 @@ def _example(section: str, name: str) -> str:
     return value
 
 
-def _accepted_manifest() -> contract.SnapshotContractManifest:
-    """Parse the accepted current contract; e.g. return a typed manifest."""
-    _, markdown = _current_normalization_record()
-    return contract.read_manifest(markdown)
-
-
 def _normalization_documents() -> dict[str, str]:
     """Return manifest ADRs by path; ADR-004 appears in the result."""
     return {
@@ -127,9 +121,23 @@ def _status_for_path(relative_path: str, markdown: str) -> str:
 def _link_targets(markdown: str, source_path: str) -> set[str]:
     """Resolve document links; a sibling ADR link yields its full repository path."""
     return {
-        posixpath.normpath(str(pathlib.Path(source_path).parent / target.split("#")[0]))
+        posixpath.normpath(
+            str(pathlib.PurePosixPath(source_path).parent / target.split("#")[0])
+        )
         for _, target in _LINK_PATTERN.findall(markdown)
     }
+
+
+def test_link_targets_preserves_posix_keys_on_windows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Keep Markdown URL paths portable when the native Path uses backslashes."""
+    with monkeypatch.context() as patch:
+        patch.setattr(pathlib, "Path", pathlib.PureWindowsPath)
+        targets = _link_targets(
+            "[next](./adr-004-parser-profile-and-normalization.md)", "docs/adr-003.md"
+        )
+    assert targets == {_NORMALIZATION_ADR}, "Windows links must use repository keys"
 
 
 def _manifest_block(toml: str, *, heading: str = contract.MANIFEST_HEADING) -> str:
@@ -190,11 +198,12 @@ def test_manifest_has_the_contract_schema() -> None:
     assert {key: type(value) for key, value in manifest.json_writer.items()} == {
         key: type(value) for key, value in reference["json-writer"].items()
     }, f"{normalization_path}: JSON writer keys or value types differ"
+    assert manifest.json_writer["ensure-ascii"] is False, normalization_path
 
 
 def test_manifest_file_extension_matches_the_extension() -> None:
     """Keep the ADR suffix aligned with the public Syrupy extension."""
-    manifest = _accepted_manifest()
+    manifest = contract.read_manifest(_current_normalization_record()[1])
     assert manifest.file_extension == MarkdownAstSnapshotExtension.file_extension, (
         f"{_NORMALIZATION_ADR}: suffix must match MarkdownAstSnapshotExtension"
     )
@@ -202,7 +211,7 @@ def test_manifest_file_extension_matches_the_extension() -> None:
 
 def test_key_order_is_framed_and_duplicate_free() -> None:
     """Require framed keys and the dependency order of normalization rules."""
-    manifest = _accepted_manifest()
+    manifest = contract.read_manifest(_current_normalization_record()[1])
     problems = contract.key_order_problems(manifest.key_order)
     assert not problems, f"normalization key-order: {problems!r}"
     problems = contract.rule_order_problems(manifest.normalization)
@@ -211,7 +220,7 @@ def test_key_order_is_framed_and_duplicate_free() -> None:
 
 def test_design_parser_construction_matches_manifest() -> None:
     """Require design section 7 to quote the accepted parser construction."""
-    manifest = _accepted_manifest()
+    manifest = contract.read_manifest(_current_normalization_record()[1])
     design = _read_repo_text(_DESIGN)
     section = contract.section_body(
         design, "## 7. Parser profile and dependency policy"
@@ -267,7 +276,7 @@ def test_contract_adrs_are_indexed_and_cited_by_the_design() -> None:
 
 def test_design_json_examples_are_writer_fixed_points() -> None:
     """Require design and normative-fixture JSON to follow the writer rules."""
-    manifest = _accepted_manifest()
+    manifest = contract.read_manifest(_current_normalization_record()[1])
     normalization_path, normalization = _current_normalization_record()
     design = _read_repo_text(_DESIGN)
     design_examples = contract.fenced_blocks(

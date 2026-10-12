@@ -437,6 +437,13 @@ outside its examples.
     smaller total than historical PR A runs reflects the updated main test
     suite, not excluded tests. The audit skips two non-PyPI local packages.
 
+25. The first committed PR B CLI review of `ad3f392` completed over all eight
+    paths and reported four findings representing two defects. A new regression
+    fails under a simulated native Windows path flavour; an in-memory writer
+    mutation passes the old DOC-2 guard incorrectly. DEC-33 repairs logical
+    URL path handling and the Unicode setting assertion without editing the
+    accepted ADRs. Fresh gates and committed reassessment remain pending.
+
 ## Decision log
 
 - DEC-1. Original decision (superseded by DEC-24): the combined ADR is
@@ -873,6 +880,16 @@ outside its examples.
   issue is created. Rationale: the installed renderer's formatting must not
   widen DEC-3/DEC-21/DEC-24's approved roadmap scope. Date/Author: 2026-10-12,
   implementation agent.
+
+- DEC-33. Decision: resolve Markdown link strings with `PurePosixPath` and
+  lexical POSIX normalization, preserving full repository keys and `..`
+  handling independently of the native filesystem. A simulated Windows `Path`
+  regression first fails with backslash keys, then exercises the repair. This
+  avoids filesystem lookup for logical document URLs. Directly assert the
+  accepted writer's `ensure-ascii = false` value because ASCII examples and a
+  type comparison alone do not detect its mutation. The first milestone CLI
+  review reported each defect twice; these two repairs address all four
+  findings. Date/Author: 2026-10-12, implementation agent.
 
 ## Outcomes & retrospective
 
