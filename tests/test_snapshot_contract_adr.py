@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pathlib
-import posixpath
 import re
 import tomllib
 import typing as typ
@@ -13,12 +12,12 @@ import pytest
 
 from syrupy_mdast import MarkdownAstSnapshotExtension
 from tests.support import adr_contract as contract
+from tests.support._adr_contract_support import _headings, _link_targets
 from tests.support.make_contract import REPO_ROOT
 
 _DESIGN: typ.Final[str] = "docs/syrupy-mdast-design.md"
 _NORMALIZATION_ADR: typ.Final[str] = "docs/adr-004-parser-profile-and-normalization.md"
 _VERSIONING_REQUIREMENT: typ.Final[str] = ">=0.15.2,<0.16.0"
-_LINK_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
 
 def _read_repo_text(relative_path: str) -> str:
@@ -41,12 +40,17 @@ def _example(section: str, name: str) -> str:
     return value
 
 
-def _normalization_documents() -> dict[str, str]:
+def _normalization_documents(
+    documents: dict[str, str] | None = None,
+) -> dict[str, str]:
     """Return manifest ADRs by path; ADR-004 appears in the result."""
     return {
         path: text
-        for path, text in _adr_documents().items()
-        if contract.MANIFEST_HEADING in text
+        for path, text in (
+            documents if documents is not None else _adr_documents()
+        ).items()
+        if contract.MANIFEST_HEADING
+        in {title for _, title, _ in _headings(text.splitlines())}
     }
 
 
@@ -104,26 +108,24 @@ def _status_for_path(relative_path: str, markdown: str) -> str:
         raise ValueError(message) from exc
 
 
-def _link_targets(markdown: str, source_path: str) -> set[str]:
-    """Resolve document links; a sibling ADR link yields its full repository path."""
-    return {
-        posixpath.normpath(
-            str(pathlib.PurePosixPath(source_path).parent / target.split("#")[0])
-        )
-        for _, target in _LINK_PATTERN.findall(markdown)
-    }
-
-
+@pytest.mark.parametrize("case", _example("cases", "links").split())
 def test_link_targets_preserves_posix_keys_on_windows(
-    monkeypatch: pytest.MonkeyPatch,
+    case: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Keep Markdown URL paths portable when the native Path uses backslashes."""
+    """Keep real-link POSIX keys under Windows paths; ignore code and images."""
+    markdown, expected = _example("link_examples", case).split("\t")
     with monkeypatch.context() as patch:
         patch.setattr(pathlib, "Path", pathlib.PureWindowsPath)
-        targets = _link_targets(
-            "[next](./adr-004-parser-profile-and-normalization.md)", "docs/adr-003.md"
-        )
-    assert targets == {_NORMALIZATION_ADR}, "Windows links must use repository keys"
+        targets = _link_targets(markdown, "docs/adr-003.md")
+    assert targets == set(expected.split()), case
+
+
+@pytest.mark.parametrize("case", _example("cases", "discovery").split())
+def test_normalization_discovery_uses_real_headings(case: str) -> None:
+    """Discover real headings, including empty and duplicate manifest sections."""
+    markdown, expected = _example("discovery_examples", case).split("\t")
+    documents = _normalization_documents({"docs/adr-999.md": markdown})
+    assert bool(documents) == (expected == "record"), case
 
 
 def _manifest_block(toml: str, *, heading: str = contract.MANIFEST_HEADING) -> str:
@@ -367,9 +369,8 @@ def test_read_manifest_returns_a_typed_manifest(closing: str) -> None:
 @pytest.mark.parametrize("case", _example("cases", "manifest").split())
 def test_read_manifest_rejects_invalid_manifest_shapes(case: str) -> None:
     """Reject absent, ambiguous, misplaced, malformed, and mistyped manifests."""
-    with pytest.raises(
-        ValueError, match=r"manifest|snapshot-contract|heading|contract-version"
-    ):
+    expected_error = _example("manifest_errors", case)
+    with pytest.raises(ValueError, match=expected_error):
         contract.read_manifest(_example("invalid_manifests", case))
 
 

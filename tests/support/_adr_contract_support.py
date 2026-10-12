@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import itertools
 import json
+import pathlib
+import posixpath
 import re
 import tomllib
 import typing as typ
@@ -21,6 +23,10 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
 _MANIFEST_HEADING: typ.Final[str] = "### Contract manifest"
+_LINK_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"(?<!!)\[([^\]]*)\]\(([^)]+)\)")
+_CODE_SPAN_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
+    r"(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)"
+)
 _FENCE_CLOSE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"^ {0,3}([`~]+)[ \t]*$")
 
 _NORMALIZATION_RULES: typ.Final[frozenset[str]] = frozenset([
@@ -166,8 +172,21 @@ def section_body(markdown: str, heading: str) -> str:
     return "".join(lines[start + 1 : end])
 
 
-def _headings(lines: cabc.Sequence[str]) -> cabc.Iterator[tuple[int, str, int]]:
-    """Yield headings outside fences; e.g. ignore a fenced ``## Status``."""
+def _link_targets(markdown: str, source_path: str) -> set[str]:
+    """Resolve document links; a sibling ADR link yields its full repository path."""
+    lines = markdown.splitlines(keepends=True)
+    visible = "".join(line for _, line in _unfenced_lines(lines))
+    visible = _CODE_SPAN_PATTERN.sub(" ", visible)
+    return {
+        posixpath.normpath(
+            str(pathlib.PurePosixPath(source_path).parent / target.split("#")[0])
+        )
+        for _, target in _LINK_PATTERN.findall(visible)
+    }
+
+
+def _unfenced_lines(lines: cabc.Sequence[str]) -> cabc.Iterator[tuple[int, str]]:
+    """Yield visible lines and indices; e.g. ignore terminal fenced examples."""
     fence: str | None = None
     for index, line in enumerate(lines):
         content = line.rstrip("\r\n")
@@ -179,6 +198,13 @@ def _headings(lines: cabc.Sequence[str]) -> cabc.Iterator[tuple[int, str, int]]:
         if opening is not None:
             fence = opening[0]
             continue
+        yield index, line
+
+
+def _headings(lines: cabc.Sequence[str]) -> cabc.Iterator[tuple[int, str, int]]:
+    """Yield headings outside fences; e.g. ignore a fenced ``## Status``."""
+    for index, line in _unfenced_lines(lines):
+        content = line.rstrip("\r\n")
         match = _HEADING_PATTERN.match(content)
         if match is not None:
             yield index, content.strip(), len(match.group(1))

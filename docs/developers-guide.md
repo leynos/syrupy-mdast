@@ -161,14 +161,18 @@ manifest in code or documentation.
 functions, including fence-aware `section_body` extraction and manifest
 validation. Private parsing, schema, and JSON operations live in
 `tests/support/_adr_contract_support.py`; this module is internal to the ADR
-test-support feature and is not a runtime interface. The JSON checker requires
-an AST root envelope and checks recursive member ordering and the scalar
-domain; it is not a full node-schema validator. Both modules read no files; the
-guard test owns repository I/O and obtains its root from the shared `REPO_ROOT`
-helper. `tests/support/adr_contract_examples.toml` supplies synthetic parser
-examples for status, malformed manifests, key order, and writer checks. These
-examples exercise the guard implementation and are not the normative Markdown
-contract corpus.
+test-support feature and is not a runtime interface. The guard reuses private
+fence-aware traversal for manifest-heading discovery and logical ADR-link
+resolution. These feature-local helpers ignore fenced examples and preserve
+real duplicate headings for ambiguity validation; they do not implement a full
+Markdown parser. The JSON checker requires an AST root envelope and checks
+recursive member ordering and the scalar domain; it is not a full node-schema
+validator. Both modules read no files; the guard test owns repository I/O and
+obtains its root from the shared `REPO_ROOT` helper.
+`tests/support/adr_contract_examples.toml` supplies synthetic parser examples
+for status, malformed manifests, key order, and writer checks. These examples
+exercise the guard implementation and are not the normative Markdown contract
+corpus.
 
 ### Verify a wheel
 

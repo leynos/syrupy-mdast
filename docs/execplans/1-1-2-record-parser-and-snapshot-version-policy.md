@@ -7,12 +7,14 @@ be kept up to date as work proceeds.
 
 Status: COMPLETE
 
-Implementation activity is complete: the DOC-4 multiline and DOC-1 self-link
-repairs and the last committed review's bounded cleanup pass all sequential
-local gates. Only roadmap 1.1.2 is checked. The final record receives its own
-committed CLI assessment and published checks; affected hosted reassessment,
-readiness, formal review, B merge authorization, and post-merge integration
-remain delivery work owned by `pr-babysitting` using the same ledger.
+Implementation activity is complete after the formal-review extraction repair:
+real manifest headings and reader links share the fence grammar, with named
+positive and negative controls. The repaired source passes 65 focused cases,
+168 repository tests, all seven gates, and CodeScene. Only roadmap 1.1.2 is
+checked. Final-record gates, committed review, published checks, affected
+assessment, and actual thread/pre-merge reconciliation remain candidate-bound
+delivery work in the shared ledger. The PR stays ready; B merge authorization
+and post-merge integration remain separate.
 
 ## Purpose / big picture
 
@@ -323,13 +325,13 @@ outside its examples.
   including 45 focused cases and 148 repository tests; both helpers score 10.0
   in CodeScene and the full delta has no issues. CI and Act pass on attempt 1;
   hosted CodeScene and security checks pass.
-- [x] (2026-10-12) EP-M4 implementation closure: the DOC-1 repair and review
-  cleanup pass 51 focused cases, 154 repository tests, all seven gates, and the
-  CodeScene delta. Tick only roadmap 1.1.2 and record the retrospective and
-  existing-task handoffs. These final tracked records receive renewed
-  sequential gates and committed CLI assessment; the shared ledger retains
-  their actual candidate evidence. Hosted assessment and delivery remain
-  separate below.
+- [x] (2026-10-12) EP-M4 renewed implementation closure: the formal-review
+  extraction repair passes 65 focused cases, 168 repository tests, all seven
+  gates, and the CodeScene delta. Tick only roadmap 1.1.2 and retain the
+  retrospective and existing-task handoffs. Final tracked records receive
+  renewed sequential gates and committed assessment; the shared ledger retains
+  their actual candidate. Published affected assessment and review resolution
+  remain separate delivery steps.
 - [x] (2026-10-12) DOC-4 local repair at `6592cf5`: whole-document detection
   and five construction controls pass 49 focused cases and 152 repository
   tests; all seven gates, the CodeScene delta, CI, and Act pass. The committed
@@ -342,6 +344,10 @@ outside its examples.
   seven local gates, the CodeScene delta, CI, and Act pass. The nine-path
   committed review identifies only the consistency and record cleanup in the
   final sweep.
+- [x] (2026-10-12) Formal-review extraction repair: real manifest headings and
+  reader-visible links share the existing fence grammar. The red witness has
+  eight ordinary failures; the repaired focused suite passes all 65 cases.
+  Publication and both Codex thread confirmations remain delivery work.
 - [ ] PR B delivery: candidate-bound hosted ExecPlan assessment, readiness,
   formal review reconciliation, separately authorized squash merge, and
   post-merge CI, Act, main coverage, and A-before-B history witness. Record the
@@ -647,6 +653,38 @@ outside its examples.
     examples with the accepted manifest; this unit control does not claim v1
     payload bytes. Preserve the valid synthetic control and record both invalid
     dispositions rather than changing its authority boundary.
+
+39. Formal review at `1b55ead` identifies two valid Codex P2 findings: raw
+    substring discovery mistakes quoted/fenced text for manifest headings, and
+    regex link extraction counts fenced pseudo-links as reader-visible links.
+    Reuse the existing fence-aware heading scanner and one shared unfenced-line
+    traversal. Move the existing pure logical-link resolver into the private
+    feature module to preserve the test file's 400-line cap while adding named
+    extraction controls. Preserve duplicate real headings so manifest parsing
+    still reports ambiguity. No file, public API, or dependency is added.
+    CodeRabbit's separate Testing (Overall) error and Property / Proof warning
+    receive focused reconciliation against DOC-2/3/4 and DEC-12; neither row is
+    ignored or waived by green CI or the earlier assessment. The substantive
+    [scope reply](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118750431)
+    withdraws both testing demands because they extend the approved contract;
+    it explicitly leaves the two Codex repairs, live failed rows, and formal
+    change request unresolved. Record that scope disposition and reconcile
+    actual review state after the repairs are published. The frozen red run
+    collects 22 extraction/manifest controls: 14 pass and eight fail by ordinary
+    assertions (`b-extraction-red.log`). Four discovery failures are quoted,
+    backtick-fenced, tilde-fenced, and unterminated-fence cases; four link
+    failures are fenced, inline-code-only, or image-only lookalikes. All eight
+    malformed-manifest controls already pass, including duplicate real headings.
+    The repair shares `_unfenced_lines` with `_headings` and logical links, and
+    excludes matched inline code spans and images. CommonMark 0.31.2 §6.1's
+    exact backtick delimiter runs[^commonmark-code-spans] and example 484's empty
+    link text[^commonmark-empty-links] were checked against primary HTML. Mask
+    inline code with a space to preserve the outer reader link without joining
+    surrounding tokens. This remains a bounded ADR-link extractor, not a full
+    Markdown parser. The complete repaired suite passes 65 focused cases and
+    168 repository tests; all seven gates and the nine-path CodeScene delta
+    pass (`b-extraction-*.out` and the shared ledger). Restore the exact task
+    checkbox only after those results; final record edits receive renewed gates.
 
 ## Decision log
 
@@ -1185,6 +1223,16 @@ outside its examples.
   for the two invalid path suggestions. Date/Author: 2026-10-12, implementation
   agent.
 
+- DEC-42. Decision: repair the two formal-review Markdown extraction defects
+  with one private fence-aware traversal reused by heading discovery and
+  logical ADR links. Keep these helpers feature-local; the manifest API remains
+  seven functions and one record. A quoted or fenced heading is not a manifest
+  section; duplicate real headings remain discoverable and fail existing
+  ambiguity validation. Add named current/positive/negative controls through
+  the actual discovery and link paths, and preserve scope and code-size caps.
+  Reopen the exact implementation checkbox until repaired and validated. Date/
+  Author: 2026-10-12, implementation agent.
+
 ## Outcomes & retrospective
 
 The maintainer accepted A (no payload version marker), G (merge plain text),
@@ -1199,26 +1247,27 @@ candidates in the shared ledger.
 
 The
 [hosted assessment](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6117871792)
-of `534241c` finds a valid DOC-4 multiline-detection gap. Implementation
-status and the exact task checkbox are reopened during the bounded repair; both
-guard repairs now pass their local and hosted gates. The DOC-4 controls
-reproduce the original defect, and DOC-1's synthetic histories expose the
-subsequently identified self-link gap. Affected assessment clearance remains
-pending for the published final record. Implementation activity is complete:
-the final cleanup passes all seven local gates, 51 focused cases, 154
-repository tests, and the CodeScene delta (`b-closure-*.log`). The completion
-record's candidate-bound gates and committed CLI evidence remain in the shared
-ledger.
+of `534241c` found a DOC-4 multiline gap. Its
+[follow-up](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118585797)
+cleared the repaired implementation at `1b55ead`, with 51 guard cases and 154
+repository tests. The subsequent formal review exposed two Markdown extraction
+defects. Their frozen controls reproduce eight ordinary failures; the shared
+fence-aware repair now passes 65 focused cases, 168 repository tests, all seven
+local gates, and the CodeScene delta. Implementation activity is complete,
+while affected assessment and formal-review confirmation remain pending for the
+newly published candidate. The
+[scope reconciliation](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118750431)
+withdraws the additional testing demands under DOC-2/3/4 and DEC-12 without
+claiming that the live failed rows or change-request review are already cleared.
 
 [PR B #72](https://github.com/leynos/syrupy-mdast/pull/72) implements DOC-1
 through DOC-7 and UNIT-1 through UNIT-3 and reconciles the four required
-documents. At `b80c1c1`, 51 focused cases, 154 repository tests, all seven
-gates, and hosted checks pass. The full committed CLI review covers all nine
-paths and identifies three bounded consistency and record findings, addressed
-by this final sweep. Local CodeScene reports no issues across the branch delta.
-This final record and exact checkbox update are gated before publication; their
-candidate evidence belongs in the shared ledger rather than being attributed
-retroactively to `b80c1c1`.
+documents. It includes the multiline and self-link controls, actual-heading
+discovery, and reader-link controls. The final record and exact checkbox update
+are gated before publication; their candidate-bound evidence belongs in the
+shared ledger. Earlier zero-finding committed reviews and hosted green results
+remain historical evidence for their actual heads, rather than being attributed
+to this later repair.
 
 Red witnesses cover the frozen stubs, pre-reconciliation DOC-4/DOC-5 failures,
 Windows path separation, the scalar domain, malformed root envelopes, and
@@ -2286,3 +2335,18 @@ the documented interface and does not introduce an import cycle.
   retain invalid dispositions for the logical-key pathlib claim and the
   synthetic metadata control's alleged v1 ordering. Source and test hashes
   remain unchanged; renew the required gates for this record edit.
+
+- 2026-10-12: the ready PR's formal review finds two Markdown extraction
+  defects. Reopen implementation status and only roadmap 1.1.2, retain the
+  ready PR, and reconcile pre-merge testing rows against the approved
+  verification scope. The earlier clear assessment remains evidence for its
+  original head.
+
+[^commonmark-code-spans]: <https://spec.commonmark.org/0.31.2/#code-spans>
+[^commonmark-empty-links]: <https://spec.commonmark.org/0.31.2/#example-484>
+
+- 2026-10-12: close the renewed implementation activity after the extraction
+  repair passes 65 guard cases, 168 repository tests, all seven gates, and
+  CodeScene. Restore only roadmap 1.1.2. Keep published candidate assessment,
+  thread confirmation, pre-merge reconciliation, B authorization, and landing
+  evidence in the delivery loop.
