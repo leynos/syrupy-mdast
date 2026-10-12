@@ -29,6 +29,12 @@ documentation set.
 - [ADR-002: `main` owns CodeScene coverage publication](adr-002-main-owns-codescene-coverage-publication.md)
   records why only the push-to-`main` publisher contacts CodeScene, and how
   pull requests ratchet coverage without it.
+- [ADR-003: Snapshot-version policy](adr-003-snapshot-version-policy.md)
+  records the accepted absence of a payload marker, package and contract
+  versioning, and Wenmode upgrade policy.
+- [ADR-004: Parser profile and normalization](adr-004-parser-profile-and-normalization.md)
+  records the accepted Wenmode parser profile, canonicalization rules, writer,
+  and normative fixture decisions.
 
 ## Engineering practice
 
