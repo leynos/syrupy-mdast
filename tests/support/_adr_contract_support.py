@@ -302,10 +302,19 @@ def _is_plain_text_node(value: object) -> bool:
             return False
 
 
+def _root_shape_problems(value: object) -> list[str]:
+    """Require the root envelope; e.g. a scalar is not a Markdown tree."""
+    match value:
+        case {"type": "root", "children": list()}:
+            return []
+        case _:
+            return ["JSON root must have type 'root' and a children array"]
+
+
 def _tree_problems(value: object, key_order: cabc.Sequence[str]) -> list[str]:
     """Check nested JSON; e.g. reversed keys receive a diagnostic."""
     preferred = {key: index for index, key in enumerate(key_order)}
-    problems: list[str] = []
+    problems = _root_shape_problems(value)
 
     def visit(item: object, path: str) -> None:
         """Visit a nested value; for example use `$.children[0]` for its path."""

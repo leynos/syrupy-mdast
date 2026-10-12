@@ -189,6 +189,21 @@ wrong-last = "type value data children depth"
 data-after-children = "type value children data"
 
 [writer_examples]
+root-scalar = "42\n"
+non-root = '''{
+  "type": "paragraph",
+  "children": []
+}
+'''
+missing-children = '''{
+  "type": "root"
+}
+'''
+wrong-children = '''{
+  "type": "root",
+  "children": false
+}
+'''
 scalar-values = '''{
   "type": "root",
   "children": [
@@ -249,5 +264,5 @@ metadata-text = '''{
 policy = "accepted proposed-policy removed-backlink stale-backlink stale-policy-link"
 status = "accepted proposed proposed-punctuation superseded missing-status empty-status"
 manifest = "no-block two-blocks wrong-heading invalid-toml missing-key extra-key wrong-type"
-writer = "scalar-values float-value misordered misindented adjacent-text metadata-text"
+writer = "root-scalar non-root missing-children wrong-children scalar-values float-value misordered misindented adjacent-text metadata-text"
 key_order = "duplicate position wrong-first wrong-last data-after-children"

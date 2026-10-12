@@ -199,7 +199,7 @@ def test_manifest_has_the_contract_schema() -> None:
     assert {key: type(value) for key, value in manifest.json_writer.items()} == {
         key: type(value) for key, value in reference["json-writer"].items()
     }, f"{normalization_path}: JSON writer keys or value types differ"
-    assert manifest.json_writer["ensure-ascii"] is False, normalization_path
+    assert manifest.json_writer == reference["json-writer"], normalization_path
 
 
 def test_manifest_file_extension_matches_the_extension() -> None:

@@ -306,11 +306,11 @@ outside its examples.
   seven local gates, 41 focused cases, 144 repository tests, the complete local
   CodeScene delta, and hosted checks pass. The committed CLI review covers all
   nine paths; its two repeated path-policy suggestions retain DEC-35's invalid
-  disposition. The stale retrospective status is corrected in the next
-  record-only refresh and remains subject to validation and reassessment.
-- [ ] EP-M3 closure: committed local CLI assessment of the record refresh
-      remains pending
-  (pull request B).
+  disposition. The stale retrospective status is corrected in the validated
+  `21f97af` record refresh; its completed review identifies the additional
+  writer-setting and root-envelope repairs in DEC-39.
+- [ ] EP-M3 closure: writer-setting and root-envelope repairs require
+  validation and committed CLI reassessment (pull request B).
 - [ ] EP-M4: full gate sweep, roadmap tick, retrospective.
 
 ## Surprises & discoveries
@@ -550,6 +550,15 @@ outside its examples.
     paragraph. Update that paragraph to show completed scalar validation and
     reassessment, preserving the separate pending record-refresh review and
     EP-M4 completion work. All hosted checks pass at the reviewed candidate.
+
+34. The `21f97af` committed review completes across all nine paths and reports
+    two pairs of duplicate findings: `allow-nan = true` is accepted because
+    the guard checks only its type, and canonical non-root examples pass.
+    Four canonical root-shape controls fail with ordinary assertions; a
+    controlled in-memory `allow-nan` mutation passes the old guard after the
+    baseline passed. Add the bounded checks in DEC-39 and preserve those red
+    witnesses. The reviewed candidate's hosted checks all pass; the new repair
+    still needs its own validation and reassessment.
 
 ## Decision log
 
@@ -1053,6 +1062,20 @@ outside its examples.
   assert a separate independent-oracle policy. Date/Author: 2026-10-12,
   implementation agent.
 
+- DEC-39. Decision: compare all parsed writer settings with the independent
+  synthetic v1 fixture, alongside the existing key/type checks. This covers
+  `allow-nan` and other settings that positive examples cannot expose. Validate
+  the root envelope required by design §8: a mapping with `type == "root"` and a
+  `children` array. The new `_root_shape_problems` helper owns only that
+  envelope; the existing recursive checker owns member order, plain-text
+  adjacency, and scalar-domain diagnostics. No equivalent validator exists in
+  current production or test-support code; the existing `ast-shape` error type
+  does not validate values. Keep this helper private to ADR test support, allow
+  scalar children in the finite writer controls, and leave full node-schema
+  validation to the planned runtime implementation. No new file, dependency, or
+  production abstraction is introduced. Date/Author: 2026-10-12, implementation
+  agent.
+
 ## Outcomes & retrospective
 
 The combined draft was published at `aa3ba1e` with six passing local gates, 271
@@ -1060,8 +1083,8 @@ tests, a zero-finding local CLI review, and passing hosted Actions. That is
 historical evidence for the combined record, not validation of this split.
 DEC-24 now separates versioning and normalization and records the accepted A
 and G decisions. DEC-25 records explicit acceptance of both complete rewritten
-texts; PR A merge still gates PR B. The exact 1.1.2 roadmap item remains
-unchecked. The shared delivery ledger and evidence are under
+texts; PR A's merge is a prerequisite for PR B. The exact 1.1.2 roadmap item
+remains unchecked. The shared delivery ledger and evidence are under
 `/tmp/syrupy-mdast-1-1-2-release-check/`. All six sequential gates passed the
 split on 2026-10-11, including 271 tests. Final gate, committed CLI review, and
 publication evidence are recorded there for their actual candidates. No
@@ -1079,10 +1102,12 @@ edits, is locally and remotely validated at `32fe8e9`: 41 focused cases, 144
 repository tests, all seven gates, and current hosted checks pass. The
 committed CLI review completes across all nine paths against PR A's squash
 landing. Its two repeated path-policy suggestions are invalid for the evidence
-in DEC-35; the remaining stale retrospective status is corrected in this
-record-only refresh. That refresh still needs its committed reassessment before
-EP-M3 closes. The roadmap completion tick and final retrospective remain EP-M4
-work.
+in DEC-35; the stale retrospective status is corrected by the validated
+`21f97af` record refresh. Its committed reassessment identifies two additional
+guard repairs: exact writer settings and the design's root envelope (DEC-39).
+Their new controls expose the old gaps; validation and reassessment of the
+repair are pending. The roadmap completion tick and final retrospective remain
+EP-M4 work.
 
 At completion, record both pull requests' merge SHAs and these handoffs:
 Surprise 7 to roadmap 2.2.2; on-disk line endings to 2.3.1; the Dependabot

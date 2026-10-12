@@ -218,7 +218,7 @@ def rule_order_problems(normalization: cabc.Sequence[str]) -> list[str]:
 
 
 def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[str]:
-    """Check JSON tree ordering and the writer fixed point.
+    r"""Check JSON tree ordering and the writer fixed point.
 
     Parameters
     ----------
@@ -230,13 +230,13 @@ def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[s
     Returns
     -------
     list of str
-        Encoding, JSON, ordering, text-merge, or serialization diagnostics.
+        Encoding, root-shape, ordering, text-merge, or serialization diagnostics.
         Invalid input is reported through this list.
 
     Examples
     --------
-    With the accepted v1 manifest, ``writer_problems("{}", manifest)``
-    reports that the missing trailing newline breaks the writer fixed point.
+    With the accepted v1 manifest, ``writer_problems("{}\n", manifest)``
+    reports that the document lacks the required root envelope.
     """
     problems: list[str] = []
     writer = manifest.json_writer
