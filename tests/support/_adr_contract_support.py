@@ -198,7 +198,7 @@ def fenced_blocks(markdown: str, language: str) -> list[str]:
 
 
 def _fence_bodies(markdown: str) -> cabc.Iterator[tuple[str, str]]:
-    """Yield complete fence contents; e.g. select their language separately."""
+    """Yield fenced contents; e.g. EOF closes a terminal block as in CommonMark."""
     lines = markdown.splitlines(keepends=True)
     index = 0
     while index < len(lines):
@@ -302,25 +302,32 @@ def _tree_problems(value: object, key_order: cabc.Sequence[str]) -> list[str]:
         """Visit a nested value; for example use `$.children[0]` for its path."""
         match item:
             case dict() as mapping:
-                keys = [key for key in mapping if isinstance(key, str)]
-                expected = sorted(
-                    keys, key=lambda key: (preferred.get(key, len(preferred)), key)
-                )
-                if keys != expected:
-                    problems.append(f"{path}: mapping keys are not in contract order")
+                # json.loads guarantees string keys before this private walk.
+                keys = list(typ.cast("dict[str, object]", mapping))
+                problems.extend(_member_order_problems(keys, preferred, path))
                 for key in keys:
                     visit(mapping[key], f"{path}.{key}")
             case list() as sequence:
-                if any(
-                    _is_plain_text_node(left) and _is_plain_text_node(right)
-                    for left, right in itertools.pairwise(sequence)
-                ):
+                plain_nodes = map(_is_plain_text_node, sequence)
+                if any(all(pair) for pair in itertools.pairwise(plain_nodes)):
                     problems.append(f"{path}: adjacent plain text nodes must be merged")
                 for index, child in enumerate(sequence):
                     visit(child, f"{path}[{index}]")
+            case float():
+                problems.append(f"{path}: float is outside the contract value domain")
 
     visit(value, "$")
     return problems
+
+
+def _member_order_problems(
+    keys: cabc.Sequence[str], preferred: cabc.Mapping[str, int], path: str
+) -> list[str]:
+    """Check one mapping's order; e.g. unknown keys follow known keys."""
+    expected = sorted(keys, key=lambda key: (preferred.get(key, len(preferred)), key))
+    if list(keys) != expected:
+        return [f"{path}: mapping keys are not in contract order"]
+    return []
 
 
 def _key_frame_problems(key_order: cabc.Sequence[str]) -> list[str]:

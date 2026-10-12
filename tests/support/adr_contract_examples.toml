@@ -189,6 +189,23 @@ wrong-last = "type value data children depth"
 data-after-children = "type value children data"
 
 [writer_examples]
+scalar-values = '''{
+  "type": "root",
+  "children": [
+    true,
+    1,
+    null,
+    "é"
+  ]
+}
+'''
+float-value = '''{
+  "type": "root",
+  "children": [
+    1.5
+  ]
+}
+'''
 misordered = '''{
   "children": [],
   "type": "root"
@@ -232,4 +249,5 @@ metadata-text = '''{
 policy = "accepted proposed-policy removed-backlink stale-backlink stale-policy-link"
 status = "accepted proposed proposed-punctuation superseded missing-status empty-status"
 manifest = "no-block two-blocks wrong-heading invalid-toml missing-key extra-key wrong-type"
-writer = "misordered misindented adjacent-text metadata-text"
+writer = "scalar-values float-value misordered misindented adjacent-text metadata-text"
+key_order = "duplicate position wrong-first wrong-last data-after-children"

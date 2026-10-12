@@ -346,10 +346,11 @@ def test_adr_status_parses_forms_and_rejects_missing_sections(case: str) -> None
     assert contract.adr_status(markdown) == expected, case
 
 
-def test_read_manifest_returns_a_typed_manifest() -> None:
+@pytest.mark.parametrize("closing", ["", "\n```\n"])
+def test_read_manifest_returns_a_typed_manifest(closing: str) -> None:
     """Parse a valid TOML fence into tuples and a typed manifest."""
     body = _example("manifest", "body")
-    manifest = contract.read_manifest(_manifest_block(body))
+    manifest = contract.read_manifest(_manifest_block(body).removesuffix(closing))
     expected = typ.cast("dict[str, object]", tomllib.loads(body))
     reference = typ.cast("dict[str, object]", expected["snapshot-contract"])
     writer = typ.cast("dict[str, str | int | bool]", reference["json-writer"])
@@ -373,10 +374,7 @@ def test_read_manifest_rejects_invalid_manifest_shapes(case: str) -> None:
         contract.read_manifest(_example("invalid_manifests", case))
 
 
-@pytest.mark.parametrize(
-    "case",
-    ["duplicate", "position", "wrong-first", "wrong-last", "data-after-children"],
-)
+@pytest.mark.parametrize("case", _example("cases", "key_order").split())
 def test_key_order_problems_reports_invalid_sequences(case: str) -> None:
     """Report every prohibited key-order shape named by UNIT-3."""
     assert contract.key_order_problems(
@@ -397,4 +395,6 @@ def test_writer_problems_reports_noncanonical_json(case: str) -> None:
     """Reject writer or plain-text merge defects while retaining text metadata."""
     manifest = contract.read_manifest(_manifest_block(_example("manifest", "body")))
     problems = contract.writer_problems(_example("writer_examples", case), manifest)
-    assert bool(problems) == (case != "metadata-text"), f"{case}: {problems!r}"
+    assert bool(problems) == (case not in {"metadata-text", "scalar-values"}), (
+        f"{case}: {problems!r}"
+    )

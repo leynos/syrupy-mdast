@@ -486,6 +486,32 @@ outside its examples.
     file reviews and the complete branch delta; no configuration or scope
     exclusion is introduced.
 
+30. After the recorded 89-minute cooldown, the committed CLI review completed
+    at `80f4978`, covering all nine PR B paths against PR A's merged base.
+    It identified float acceptance and terminal fences without a closer. A
+    canonical-order float control exposes the valid scalar-domain gap; the
+    first control was misordered and rejected for an unrelated reason, so it
+    was corrected before accepting the red witness. The second focused run
+    reports two ordinary assertion failures, with no collection/setup errors.
+    The fence request is invalid against CommonMark's EOF-closing rule and
+    DOC-2's existing contract (DEC-37); it becomes a positive control. The
+    repaired tree walk rejects floats while a separate positive control retains
+    booleans, integers, null, and Unicode strings. Validation and committed CLI
+    reassessment remain pending for these repairs.
+    The 41-case focused suite passes, but the first full lint run reports
+    `_tree_problems` complexity 9 above limit 8. Classify each node's
+    mergeability once and inspect pairs of those flags, preserving the
+    adjacency rule while removing duplicated classification and a branch.
+    The structure lint still reports 9 after that simplification. Remove the
+    redundant mapping-key filter: the sole caller walks `json.loads` output,
+    whose object keys are already strings. A documented cast preserves that
+    established boundary without silently dropping a key. Renew the gates;
+    no threshold is changed. The third run confirms the lint still counts
+    nine control-flow paths; expression simplification alone does not reduce
+    that count. Extract the actual member-order diagnostic into one cohesive
+    private validator, leaving the recursive walk to traverse values and apply
+    independent checks. This validator remains local to ADR test support.
+
 ## Decision log
 
 - DEC-1. Original decision (superseded by DEC-24): the combined ADR is
@@ -964,6 +990,19 @@ outside its examples.
   feature. Do not change rule weights, thresholds, suppressions, dependencies,
   or file scope. Date/Author: 2026-10-12, implementation agent.
 
+- DEC-37. Decision: enforce the ADR-004 scalar domain by diagnosing decoded
+  JSON floats, including nested values. Keep booleans, integers, strings, and
+  null accepted. Preserve terminal fenced blocks closed implicitly by EOF:
+  [CommonMark 0.31.2 §4.5](https://spec.commonmark.org/0.31.2/#fenced-code-blocks)
+  explicitly permits that syntax, and DOC-2 does not impose an explicit
+  closing delimiter. Verify that behavior as a positive typed-manifest case,
+  rather than narrowing the approved contract in response to an invalid CLI
+  finding. Move the existing key-order case inventory beside the other TOML
+  inventories to accommodate the controls within the 400-line test-module cap;
+  this remains the same finite test scope. The primary specification was
+  retrieved through Firecrawl on 2026-10-12 (HTTP 200). Date/Author:
+  2026-10-12, implementation agent.
+
 ## Outcomes & retrospective
 
 The combined draft was published at `aa3ba1e` with six passing local gates, 271
@@ -986,8 +1025,10 @@ in-scope defect. This is historical candidate evidence; the shared ledger
 retains later validation and review state. PR A subsequently merged on
 2026-10-12 as `8e553d7875a1458e75f77b06fec399223b8aa99e`; PR B guard and
 reconciliation work is locally and remotely validated at `cd196f1`. Its
-committed CLI reassessment remains pending the sampled quota cooldown; the
-roadmap completion tick and final retrospective remain EP-M4 work.
+committed CLI reassessment completed after the sampled quota cooldown and
+identified the scalar-domain repair recorded in DEC-37. That repair still needs
+validation and reassessment; the roadmap completion tick and final
+retrospective remain EP-M4 work.
 
 At completion, record both pull requests' merge SHAs and these handoffs:
 Surprise 7 to roadmap 2.2.2; on-disk line endings to 2.3.1; the Dependabot
