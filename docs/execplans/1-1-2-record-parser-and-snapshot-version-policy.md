@@ -353,6 +353,14 @@ outside its examples.
   post-merge CI, Act, main coverage, and A-before-B history witness. Record the
   actual B landing on PR #72 and in the shared ledger when it exists.
 
+- [x] (2026-10-12) CLI guard follow-up: the 12-case frozen link experiment
+  passes nine cases and reproduces three ordinary assertion failures
+  (`b-comment-red.log`), with no setup errors or source-hash drift. Repair
+  comment masking and independent reciprocal-link controls. The repair passes
+  70 focused cases, 173 repository tests, all seven gates, and CodeScene.
+  Restore only roadmap 1.1.2; final records receive renewed gates before
+  publication and candidate-bound committed and hosted assessment.
+
 ## Surprises & discoveries
 
 1. Observation: the design's parser construction is deprecated. Evidence:
@@ -685,6 +693,23 @@ outside its examples.
     168 repository tests; all seven gates and the nine-path CodeScene delta
     pass (`b-extraction-*.out` and the shared ledger). Restore the exact task
     checkbox only after those results; final record edits receive renewed gates.
+
+40. The committed review of `337d210` reports four findings. The roadmap
+    claim is invalid: DEC-19 declines a report on the known, ratified GFM
+    divergence; roadmap 3.2.1 conditionally classifies future regressions
+    requiring a report. Preserve that approved wording. The comment-only link
+    defect is valid, as are both duplicate findings about live backlink
+    mutations depending on bare filenames. Reopen implementation activity and
+    roadmap 1.1.2 while repairing those two underlying guard issues. Keep the
+    accepted ADRs and ready PR unchanged. The frozen 12-case link experiment
+    passes nine cases and fails three by ordinary assertions: closed and
+    unterminated comments count as links, while a backtick in a comment hides
+    a real link after the comment. All nine file hashes remain unchanged
+    across the experiment (`b-comment-red.log` and freeze inventory). The
+    repaired suite passes 70 focused cases and 173 repository tests; all seven
+    gates and CodeScene pass with identical frozen hashes. Synthetic policy
+    pairs also verify valid `./` sibling links with fragments through the same
+    guard. Both duplicate backlink findings are addressed by this change.
 
 ## Decision log
 
@@ -1233,6 +1258,16 @@ outside its examples.
   Reopen the exact implementation checkbox until repaired and validated. Date/
   Author: 2026-10-12, implementation agent.
 
+- DEC-43. Decision: exclude HTML comments and matched inline code spans in
+  one leftmost literal matcher before discovering logical reader links. Add
+  named negative comment controls and positive controls for comment/code
+  delimiter interaction. Replace reciprocal-link negative mutations of live
+  prose with independent synthetic documents passed through the same guard;
+  retain freshly read accepted ADRs as the positive baseline. Valid sibling
+  links with `./` and fragments must resolve normally. No new file, public API,
+  dependency, or production behaviour is introduced; retain the 400-line code
+  cap and 12-file combined scope. Date/Author: 2026-10-12, implementation agent.
+
 ## Outcomes & retrospective
 
 The maintainer accepted A (no payload version marker), G (merge plain text),
@@ -1253,9 +1288,11 @@ cleared the repaired implementation at `1b55ead`, with 51 guard cases and 154
 repository tests. The subsequent formal review exposed two Markdown extraction
 defects. Their frozen controls reproduce eight ordinary failures; the shared
 fence-aware repair now passes 65 focused cases, 168 repository tests, all seven
-local gates, and the CodeScene delta. Implementation activity is complete,
-while affected assessment and formal-review confirmation remain pending for the
-newly published candidate. The
+local gates, and the CodeScene delta. The next committed review exposes
+comment-only links and brittle reciprocal-link controls. Those repairs pass 70
+focused cases, 173 repository tests, all seven gates, and CodeScene, restoring
+implementation closure. Affected assessment and formal-review confirmation
+remain pending for the newly published candidate. The
 [scope reconciliation](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118750431)
 withdraws the additional testing demands under DOC-2/3/4 and DEC-12 without
 claiming that the live failed rows or change-request review are already cleared.
@@ -2350,3 +2387,15 @@ the documented interface and does not introduce an import cycle.
   CodeScene. Restore only roadmap 1.1.2. Keep published candidate assessment,
   thread confirmation, pre-merge reconciliation, B authorization, and landing
   evidence in the delivery loop.
+
+- 2026-10-12: reopen implementation activity for the committed review's
+  comment-only link defect and two duplicate backlink-control findings.
+  Preserve roadmap 3.2.1: its future conditional regression-report category
+  does not contradict DEC-19's declined report on the known GFM divergence.
+  Repair within the existing scope, then renew gates and committed review.
+
+- 2026-10-12: close the bounded comment/backlink repair after 70 focused
+  cases, 173 repository tests, all seven gates, and CodeScene pass. Restore
+  only roadmap 1.1.2 and gate the final record. Published assessment, thread
+  confirmation, pre-merge reconciliation, B merge authority, and landing
+  evidence remain separate delivery obligations.

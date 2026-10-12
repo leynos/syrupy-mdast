@@ -24,8 +24,8 @@ if typ.TYPE_CHECKING:
 
 _MANIFEST_HEADING: typ.Final[str] = "### Contract manifest"
 _LINK_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"(?<!!)\[([^\]]*)\]\(([^)]+)\)")
-_CODE_SPAN_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
-    r"(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)"
+_INLINE_LITERAL_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
+    r"(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)|<!--[\s\S]*?(?:-->|$)"
 )
 _FENCE_CLOSE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"^ {0,3}([`~]+)[ \t]*$")
 
@@ -173,10 +173,11 @@ def section_body(markdown: str, heading: str) -> str:
 
 
 def _link_targets(markdown: str, source_path: str) -> set[str]:
-    """Resolve document links; a sibling ADR link yields its full repository path."""
+    """Resolve visible links; ``[next](adr-004.md)`` yields its sibling path."""
     lines = markdown.splitlines(keepends=True)
     visible = "".join(line for _, line in _unfenced_lines(lines))
-    visible = _CODE_SPAN_PATTERN.sub(" ", visible)
+    # One pass preserves whether a code span or HTML comment opened first.
+    visible = _INLINE_LITERAL_PATTERN.sub(" ", visible)
     return {
         posixpath.normpath(
             str(pathlib.PurePosixPath(source_path).parent / target.split("#")[0])

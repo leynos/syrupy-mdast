@@ -308,13 +308,13 @@ metadata-text = '''{
 
 [cases]
 parser = "current called-single called-multiline uncalled-single uncalled-multiline"
-policy = "accepted proposed-policy removed-backlink stale-backlink stale-policy-link"
+policy = "accepted proposed-policy removed-backlink stale-backlink stale-policy-link linked-relative"
 status = "accepted proposed proposed-punctuation superseded missing-status empty-status"
 manifest = "no-block two-blocks wrong-heading invalid-toml missing-key extra-key wrong-type duplicate-heading"
 writer = "root-scalar non-root missing-children wrong-children scalar-values float-value misordered misindented adjacent-text metadata-text"
 key_order = "duplicate position wrong-first wrong-last data-after-children"
 discovery = "actual quoted backtick-fenced tilde-fenced duplicate unterminated-fence"
-links = "current backtick-fenced tilde-fenced mixed inline-code-only image-only unmatched-backtick inline-code-label"
+links = "current backtick-fenced tilde-fenced mixed inline-code-only image-only unmatched-backtick inline-code-label html-comment-only unterminated-comment comment-with-backticks-before-real-link code-span-with-comment-opener-before-real-link"
 
 [rules]
 allowed = "remove-position remove-empty-data merge-plain-text normalize-line-endings order-members"
@@ -343,6 +343,10 @@ inline-code-only = "Use `[next](./adr-004-parser-profile-and-normalization.md)` 
 image-only = "![diagram](./adr-004-parser-profile-and-normalization.md)\t"
 unmatched-backtick = "A lone ` before [next](./adr-004-parser-profile-and-normalization.md).\tdocs/adr-004-parser-profile-and-normalization.md"
 inline-code-label = "[`next`](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
+html-comment-only = "<!-- [next](./adr-004-parser-profile-and-normalization.md) -->\t"
+unterminated-comment = "<!-- [next](./adr-004-parser-profile-and-normalization.md)\t"
+comment-with-backticks-before-real-link = "<!-- `ignored --> [next](./adr-004-parser-profile-and-normalization.md)`\tdocs/adr-004-parser-profile-and-normalization.md"
+code-span-with-comment-opener-before-real-link = "`<!-- not a comment` [next](./adr-004-parser-profile-and-normalization.md) -->\tdocs/adr-004-parser-profile-and-normalization.md"
 
 [normative]
 paths = "docs/syrupy-mdast-design.md docs/roadmap.md docs/users-guide.md docs/developers-guide.md"
@@ -493,3 +497,127 @@ missing-key = "manifest|snapshot-contract|heading|contract-version"
 extra-key = "manifest|snapshot-contract|heading|contract-version"
 wrong-type = "manifest|snapshot-contract|heading|contract-version"
 duplicate-heading = "ambiguous"
+
+[normalization_examples]
+proposed-policy = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic normalization record.
+
+### Versioning policy
+
+[Versioning policy]({versioning_name})
+'''
+removed-backlink = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic normalization record.
+
+### Versioning policy
+
+[Versioning policy]({versioning_name})
+'''
+stale-backlink = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic normalization record.
+
+### Versioning policy
+
+[Versioning policy]({versioning_name})
+'''
+stale-policy-link = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic normalization record.
+
+### Versioning policy
+
+[Versioning policy](adr-999.md)
+'''
+linked-relative = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic normalization record.
+
+### Versioning policy
+
+[Versioning policy](./{versioning_name}#policy)
+'''
+
+[policy_examples]
+proposed-policy = '''## Status
+
+Proposed
+
+## Context
+
+Synthetic versioning policy.
+
+### Normalization contract
+
+[Normalization contract]({normalization_name})
+'''
+removed-backlink = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic versioning policy.
+
+### Normalization contract
+
+No reciprocal link is present.
+'''
+stale-backlink = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic versioning policy.
+
+### Normalization contract
+
+[Normalization contract](adr-999.md)
+'''
+stale-policy-link = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic versioning policy.
+
+### Normalization contract
+
+[Normalization contract]({normalization_name})
+'''
+linked-relative = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic versioning policy.
+
+### Normalization contract
+
+[Normalization contract](./{normalization_name}#normalization)
+'''

@@ -112,7 +112,7 @@ def _status_for_path(relative_path: str, markdown: str) -> str:
 def test_link_targets_preserves_posix_keys_on_windows(
     case: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Keep real-link POSIX keys under Windows paths; ignore code and images."""
+    """Keep real-link POSIX keys under Windows; ignore code, comments, and images."""
     markdown, expected = _example("link_examples", case).split("\t")
     with monkeypatch.context() as patch:
         patch.setattr(pathlib, "Path", pathlib.PureWindowsPath)
@@ -316,24 +316,21 @@ def test_version_policy_adr_is_accepted_and_linked(case: str) -> None:
             assert "2026-10-11" in note, path
             assert _example("acceptance", "source") in markdown, path
         return
-    adr_documents = adr_documents.copy()
-    match case:
-        case "proposed-policy":
-            adr_documents[versioning_path] = "## Status\n\nProposed\n"
-        case "removed-backlink":
-            adr_documents[versioning_path] = versioning.replace(
-                f"]({pathlib.PurePosixPath(normalization_path).name})", "]()"
-            )
-        case "stale-backlink":
-            adr_documents[versioning_path] = versioning.replace(
-                f"]({pathlib.PurePosixPath(normalization_path).name})", "](adr-999.md)"
-            )
-        case _:
-            normalization = normalization.replace(
-                f"]({pathlib.PurePosixPath(versioning_path).name})", "](adr-999.md)"
-            )
-    with pytest.raises(AssertionError):
-        _linked_versioning_record(normalization_path, normalization, adr_documents)
+    names = {
+        "normalization_name": pathlib.PurePosixPath(normalization_path).name,
+        "versioning_name": pathlib.PurePosixPath(versioning_path).name,
+    }
+    adr_documents = {
+        normalization_path: _example("normalization_examples", case).format(**names),
+        versioning_path: _example("policy_examples", case).format(**names),
+    }
+    expectation = (
+        nullcontext() if case == "linked-relative" else pytest.raises(AssertionError)
+    )
+    with expectation:
+        _linked_versioning_record(
+            normalization_path, adr_documents[normalization_path], adr_documents
+        )
 
 
 @pytest.mark.parametrize("case", _example("cases", "status").split())
