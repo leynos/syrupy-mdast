@@ -5,7 +5,11 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Outcomes & retrospective`, `Conformance basis`, and `Verification plan` must
 be kept up to date as work proceeds.
 
-Status: IN PROGRESS
+Status: COMPLETE
+
+Implementation activity is complete. PR B's hosted assessment, formal review,
+authorized merge, and post-merge ordering/integration evidence remain delivery
+work owned by `pr-babysitting`, as tracked below and in the shared ledger.
 
 ## Purpose / big picture
 
@@ -309,9 +313,21 @@ outside its examples.
   disposition. The stale retrospective status is corrected in the validated
   `21f97af` record refresh; its completed review identifies the additional
   writer-setting and root-envelope repairs in DEC-39.
-- [ ] EP-M3 closure: writer-setting and root-envelope repairs require
-  validation and committed CLI reassessment (pull request B).
-- [ ] EP-M4: full gate sweep, roadmap tick, retrospective.
+- [x] (2026-10-12) EP-M3 closure: the committed CLI assessment at
+  `85f9cc693899162bb862dac499b9362782511ca2` completes with zero findings
+  across all nine PR B paths against
+  `8e553d7875a1458e75f77b06fec399223b8aa99e`. All seven local gates pass,
+  including 45 focused cases and 148 repository tests; both helpers score 10.0
+  in CodeScene and the full delta has no issues. CI and Act pass on attempt 1;
+  hosted CodeScene and security checks pass.
+- [x] (2026-10-12) EP-M4 implementation record: tick only roadmap 1.1.2 and
+  record the retrospective and existing-task handoffs. Final tracked edits
+  remain subject to the full sequential gate set and committed CLI assessment
+  before publication; candidate-bound results are retained in the shared ledger.
+- [ ] PR B delivery: candidate-bound hosted ExecPlan assessment, readiness,
+  formal review reconciliation, separately authorized squash merge, and
+  post-merge CI, Act, main coverage, and A-before-B history witness. Record the
+  actual B landing on PR #72 and in the shared ledger when it exists.
 
 ## Surprises & discoveries
 
@@ -1078,46 +1094,55 @@ outside its examples.
 
 ## Outcomes & retrospective
 
-The combined draft was published at `aa3ba1e` with six passing local gates, 271
-tests, a zero-finding local CLI review, and passing hosted Actions. That is
-historical evidence for the combined record, not validation of this split.
-DEC-24 now separates versioning and normalization and records the accepted A
-and G decisions. DEC-25 records explicit acceptance of both complete rewritten
-texts; PR A's merge is a prerequisite for PR B. The exact 1.1.2 roadmap item
-remains unchecked. The shared delivery ledger and evidence are under
-`/tmp/syrupy-mdast-1-1-2-release-check/`. All six sequential gates passed the
-split on 2026-10-11, including 271 tests. Final gate, committed CLI review, and
-publication evidence are recorded there for their actual candidates. No
-formal/symbolic proof artefact changes. The acceptance candidate `8a88cd4`
-passes local and hosted gates; its assessment identified two documentation
-repairs recorded in DEC-26. At `60a92e2`, those repairs, reference links, and
-evidence-scope clarifications pass all six gates, 271 tests, the committed CLI
-review, and hosted checks. The
-[candidate-bound assessment][repair-confirmation] confirms no remaining
-in-scope defect. This is historical candidate evidence; the shared ledger
-retains later validation and review state. PR A subsequently merged on
-2026-10-12 as `8e553d7875a1458e75f77b06fec399223b8aa99e`; PR B guard and
-reconciliation work, including the DEC-37 scalar repair and later clarity
-edits, is locally and remotely validated at `32fe8e9`: 41 focused cases, 144
-repository tests, all seven gates, and current hosted checks pass. The
-committed CLI review completes across all nine paths against PR A's squash
-landing. Its two repeated path-policy suggestions are invalid for the evidence
-in DEC-35; the stale retrospective status is corrected by the validated
-`21f97af` record refresh. Its committed reassessment identifies two additional
-guard repairs: exact writer settings and the design's root envelope (DEC-39).
-Their new controls expose the old gaps; validation and reassessment of the
-repair are pending. The roadmap completion tick and final retrospective remain
-EP-M4 work.
+The maintainer accepted A (no payload version marker), G (merge plain text),
+and both complete written records. ADR-003 owns versioning; ADR-004 owns the
+parser profile and normalization manifest. The accepted requirement remains
+`>=0.15.2,<0.16.0`. [PR A #58](https://github.com/leynos/syrupy-mdast/pull/58)
+merged into `main` on 2026-10-12 as `8e553d7875a1458e75f77b06fec399223b8aa99e`,
+before any PR B guard change was committed. Its post-merge CI, Act, and main
+coverage workflows passed. The preceding split and acceptance gates, assessment
+repairs, and review results remain historical evidence for their recorded
+candidates in the shared ledger.
 
-At completion, record both pull requests' merge SHAs and these handoffs:
-Surprise 7 to roadmap 2.2.2; on-disk line endings to 2.3.1; the Dependabot
-ignore and bounded-requirement guard to 1.2.1; adapter construction to 1.2.2;
-canonicalizer invariants and merge-before-normalize to 2.1.2; writer settings
-and strict UTF-8 pre-check to 2.2.1; and range/lockfile upgrade reporting to
-3.2.1. No formal proof artefact is introduced or changed (DEC-12).
-Final-candidate quality gates and local CLI review use the shared delivery
-ledger; those results do not establish hosted assessment, maintainer
-acceptance, or merge.
+[PR B #72](https://github.com/leynos/syrupy-mdast/pull/72) implements DOC-1
+through DOC-7 and UNIT-1 through UNIT-3, reconciles the four required
+documents, and completes roadmap 1.1.2's implementation activity. At `85f9cc6`,
+45 focused cases, 148 repository tests, all seven gates, and hosted checks
+pass. The full committed CLI review covers all nine paths with zero findings;
+local CodeScene scores both helpers 10.0 and reports no issues across the
+branch delta. This final record and checkbox update is gated before
+publication; its exact candidate evidence belongs in the same ledger, rather
+than being attributed retroactively to `85f9cc6`.
+
+Red witnesses cover the frozen stubs, pre-reconciliation DOC-4/DOC-5 failures,
+Windows path separation, the scalar domain, malformed root envelopes, and
+in-memory writer-setting mutations. The fixture inventory remains synthetic
+unit-control data. It is not roadmap 1.1.3's Markdown corpus. Writer controls
+check the root envelope and allowed scalar domain without claiming full
+node-schema validation. The test's rule oracle remains independent of the
+manifest validator (DEC-38). No formal or symbolic proof is introduced or
+changed; these finite examples do not prove universal parser equivalence
+(DEC-12). The audit reports no known vulnerabilities but excludes the local
+project and Git-sourced lint plugin, which are unavailable on PyPI.
+
+The handoffs remain with their existing roadmap tasks: corpus construction to
+1.1.3; bounded dependency declaration, licence, Dependabot ignore, and manifest
+equality to 1.2.1; fresh adapter construction and parser-state isolation to
+1.2.2; canonicalizer invariants and merge-before-normalize to 2.1.2; writer
+settings and strict UTF-8 pre-check to 2.2.1; Surprise 7's native Syrupy
+lifecycle to 2.2.2; on-disk line endings to 2.3.1; and requirement/lockfile
+upgrade reporting to 3.2.1. No future task is marked complete by this delivery.
+The two PRs touch exactly twelve distinct files; PR B changes nine, with all
+three Python modules within the 400-line cap. No runtime dependency, production
+parser, corpus, or snapshot change is included.
+
+PR B's squash landing is pending separate merge authorization and review
+convergence. Its actual landing SHA, post-merge workflows, and the main-history
+ordering witness will be recorded on PR #72 and in
+`/tmp/syrupy-mdast-1-1-2-release-check/delivery-ledger.md`. Implementation
+completion does not establish hosted assessment clearance, formal approval,
+merge, or integration success. The `pr-babysitting` lifecycle owns those
+remaining delivery gates using this same ledger.
 
 ## Context and orientation
 
@@ -1688,10 +1713,15 @@ Red-Green-Refactor record (fill in during EP-M3):
   implementation is recorded in `b-document-red.log`: 34 passing helper and
   document cases, with only DOC-4/DOC-5 failing.
 - Green: the focused command passes all 37 cases after the four-document
-  reconciliation (`b-df12-repair-focused.log`, 2026-10-12).
+  reconciliation (`b-df12-repair-focused.log`, 2026-10-12). Subsequent Windows,
+  scalar-domain, writer-setting, and root-envelope controls pass all 45 cases
+  (`b-root-focused.log`); the `allow-nan` mutation is rejected in
+  `b-allow-nan-fixed.log`.
 - Refactor: helper decomposition, explicit assertion diagnostics, and match
   dispatch preserve all cases. Constraint 10's sequence plus `make audit` passes
-  (`b-df12-repair-*.log`); the full suite reports 140 tests.
+  (`b-df12-repair-*.log`); that historical suite reports 140 tests. Later
+  bounded decomposition and review repairs pass all seven gates and 148 tests at
+  `85f9cc6`; final-record candidate evidence is retained separately.
 
 No pytest-bdd feature file is part of this plan (DEC-12).
 
@@ -2112,3 +2142,9 @@ the documented interface and does not introduce an import cycle.
   hosted Actions, CodeScene, and security checks pass. Effect on remaining
   work: honor the sampled CLI cooldown, close EP-M3 on completed assessment,
   then perform EP-M4 and hosted delivery assessment.
+
+- 2026-10-12: close EP-M3 on the zero-finding nine-path review at `85f9cc6`,
+  complete the exact 1.1.2 implementation item and retrospective, and retain
+  hosted assessment, review, B merge authority, and post-merge evidence as
+  separate pending delivery work. Final tracked records are gated before
+  publication; the shared ledger records their actual candidate.

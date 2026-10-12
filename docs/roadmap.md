@@ -29,7 +29,7 @@ outcome bounds every parser, serializer, and compatibility decision. See the
   - Remove the generated `hello` API and document the compatibility policy.
   - Success: import and API-stability checks expose only the names defined in
     design §6.
-- [ ] 1.1.2. Record the parser profile and snapshot-version policy in two
+- [x] 1.1.2. Record the parser profile and snapshot-version policy in two
       linked ADRs.
   - Requires 1.1.1.
   - Record the parser profile, normalization policy, comparison contract,
