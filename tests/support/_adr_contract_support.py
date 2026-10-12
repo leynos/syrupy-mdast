@@ -1,4 +1,13 @@
-"""Private pure text operations for snapshot-contract ADR test support."""
+r"""Private pure text operations for snapshot-contract ADR test support.
+
+The public ``tests.support.adr_contract`` module owns the test-facing API.
+These operations parse text and validate the manifest and JSON contract without
+filesystem access; callers supply the document text.
+
+Examples
+--------
+``section_body("## Status\n\nAccepted", "## Status")`` returns ``"\nAccepted"``.
+"""
 
 from __future__ import annotations
 

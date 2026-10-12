@@ -442,8 +442,8 @@ outside its examples.
     limit; neither lint thresholds nor dependency configuration changed.
     The later df12 lint pass required assertion diagnostics and match-based
     dispatch. After those repairs, all seven gates pass with 140 tests; the
-    smaller total than historical PR A runs reflects the updated main test
-    suite, not excluded tests. The audit skips two non-PyPI local packages.
+    total is smaller than in historical PR A runs because main has an updated
+    test suite; no tests were excluded. The audit skips two non-PyPI local packages.
 
 25. The first committed PR B CLI review of `ad3f392` completed over all eight
     paths and reported four findings representing two defects. A new regression
@@ -511,6 +511,18 @@ outside its examples.
     that count. Extract the actual member-order diagnostic into one cohesive
     private validator, leaving the recursive walk to traverse values and apply
     independent checks. This validator remains local to ADR test support.
+
+31. The scalar repair at `5e8d0d7` passes 41 focused cases, all seven local
+    gates including 144 repository tests, both local helper health reviews at
+    10.0, the complete nine-path CodeScene delta, and hosted checks. Its
+    committed CLI assessment completes across all nine paths and raises five
+    fixture-efficiency, wording, and module-documentation concerns. Parse the
+    immutable synthetic TOML inventory once per test worker; keep ADR document
+    reads fresh. Reuse the already-discovered normalization document, clarify
+    the test-count sentence, remove broken compound spacing, and document the
+    private module's purpose, ownership, and usage. No new helper, file, runtime
+    behavior, or dependency is needed. Renew gates and reassessment after these
+    bounded edits.
 
 ## Decision log
 

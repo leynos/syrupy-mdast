@@ -499,7 +499,7 @@ the versioning and release policy. The policy governs known payload changes.
 Deliberate patch-release changes evaluated with the same installed parser never
 knowingly change payloads; a knowingly adopted payload change requires a minor
 package release before 1.0.0 and a major release from 1.0.0 onward; release
-notes list affected constructs and the review-then- `pytest --snapshot-update`
+notes list affected constructs and the review-then-`pytest --snapshot-update`
 step. The contract version increments when the payload definition changes; it
 is a migration signal, not the equivalence key.
 

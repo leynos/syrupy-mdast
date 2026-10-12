@@ -43,13 +43,15 @@ def _read_repo_text(relative_path: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
+_EXAMPLES: typ.Final[dict[str, dict[str, object]]] = typ.cast(
+    "dict[str, dict[str, object]]",
+    tomllib.loads(_read_repo_text("tests/support/adr_contract_examples.toml")),
+)
+
+
 def _example(section: str, name: str) -> str:
     """Read one synthetic fixture; e.g. ``_example('manifest', 'body')``."""
-    examples = typ.cast(
-        "dict[str, dict[str, object]]",
-        tomllib.loads(_read_repo_text("tests/support/adr_contract_examples.toml")),
-    )
-    value = examples[section][name]
+    value = _EXAMPLES[section][name]
     assert isinstance(value, str), f"fixture {section}.{name} must be text"
     return value
 
@@ -102,10 +104,9 @@ def _linked_versioning_record(
         f"{normalization_path}: expected one linked Accepted versioning ADR"
     )
     versioning_path, versioning = linked[0]
-    normalization_name = normalization_path
-    assert normalization_name in _link_targets(
+    assert normalization_path in _link_targets(
         contract.section_body(versioning, "### Normalization contract"), versioning_path
-    ), f"{versioning_path}: link current normalization ADR {normalization_name}"
+    ), f"{versioning_path}: link current normalization ADR {normalization_path}"
     return versioning_path, versioning
 
 
@@ -276,8 +277,8 @@ def test_contract_adrs_are_indexed_and_cited_by_the_design() -> None:
 
 def test_design_json_examples_are_writer_fixed_points() -> None:
     """Require design and normative-fixture JSON to follow the writer rules."""
-    manifest = contract.read_manifest(_current_normalization_record()[1])
     normalization_path, normalization = _current_normalization_record()
+    manifest = contract.read_manifest(normalization)
     design = _read_repo_text(_DESIGN)
     design_examples = contract.fenced_blocks(
         contract.section_body(design, "## 8. Canonicalization contract"), "json"
@@ -395,6 +396,5 @@ def test_writer_problems_reports_noncanonical_json(case: str) -> None:
     """Reject writer or plain-text merge defects while retaining text metadata."""
     manifest = contract.read_manifest(_manifest_block(_example("manifest", "body")))
     problems = contract.writer_problems(_example("writer_examples", case), manifest)
-    assert bool(problems) == (case not in {"metadata-text", "scalar-values"}), (
-        f"{case}: {problems!r}"
-    )
+    is_invalid = case not in {"metadata-text", "scalar-values"}
+    assert bool(problems) == is_invalid, f"{case}: {problems!r}"
