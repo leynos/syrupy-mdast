@@ -11,7 +11,7 @@ Examples
 
 from __future__ import annotations
 
-import json
+import dataclasses
 import pathlib
 import posixpath
 import re
@@ -60,14 +60,46 @@ _HEADING_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
     r"^ {0,3}(#{1,6})(?:[ \t]+.*)?$"
 )
 _FENCE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
-_RANGE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
-    r">=(\d+)\.(\d+)\.(\d+),<(\d+)\.(\d+)\.(\d+)"
-)
+
+
+@dataclasses.dataclass(slots=True)
+class _SourceScanState:
+    """Track Markdown literals; e.g. a comment can span multiple lines."""
+
+    fence: str | None = None
+    in_comment: bool = False
+    code_end: int | None = None
+
+    def resume_code_span(self, offset: int, line_end: int) -> int:
+        """Resume code crossing a line; e.g. skip its literal comment marker."""
+        cursor = offset
+        if self.code_end is not None:
+            cursor = min(self.code_end, line_end)
+            self.code_end = self.code_end if self.code_end > line_end else None
+        return cursor
+
+    def resume_comment(self, source: str, cursor: int, line_end: int) -> int:
+        """Resume a comment; e.g. skip text through its closing delimiter."""
+        if self.in_comment:
+            close = source.find("-->", cursor, line_end)
+            self.in_comment = close < 0
+            cursor = line_end if self.in_comment else close + 3
+        return cursor
+
+    def record_inline_literal(self, match: re.Match[str], line_end: int) -> None:
+        """Record a cross-line literal; e.g. retain an open HTML comment."""
+        continues = match.end() > line_end
+        self.code_end = match.end() if continues and match.group(1) else None
+        self.in_comment = continues and self.code_end is None
 
 
 def _manifest_table(markdown: str) -> dict[str, object]:
     """Validate the fenced table shape; e.g. reject two TOML blocks."""
-    blocks = fenced_blocks(section_body(markdown, _MANIFEST_HEADING), "toml")
+    blocks = [
+        body
+        for info, body in _fence_bodies(section_body(markdown, _MANIFEST_HEADING))
+        if info == "toml"
+    ]
     if len(blocks) != 1:
         message = "contract manifest must contain exactly one TOML block"
         raise ValueError(message)
@@ -98,8 +130,10 @@ def _contract_table(value: object) -> dict[str, object]:
 
 def _wenmode_range(value: object) -> str:
     """Require ascending bounds; e.g. accept >=0.15.2,<0.16.0."""
-    requirement = _string(value, "wenmode")
-    match = _RANGE_PATTERN.fullmatch(requirement)
+    if not isinstance(value, str):
+        message = "wenmode must be a string"
+        raise TypeError(message)
+    match = re.fullmatch(r">=(\d+)\.(\d+)\.(\d+),<(\d+)\.(\d+)\.(\d+)", value)
     if match is None:
         message = "wenmode must use >=MAJOR.MINOR.PATCH,<MAJOR.MINOR.PATCH"
         raise ValueError(message)
@@ -107,7 +141,7 @@ def _wenmode_range(value: object) -> str:
     if parts[:3] >= parts[3:]:
         message = "wenmode lower bound must precede its upper bound"
         raise ValueError(message)
-    return requirement
+    return value
 
 
 def _writer_settings(value: object) -> dict[str, str | int | bool]:
@@ -182,18 +216,48 @@ def _link_targets(markdown: str, source_path: str) -> set[str]:
 
 
 def _mask_fenced_source(lines: cabc.Sequence[str]) -> str:
-    """Keep fence literals from consuming later spans; e.g. preserve offsets."""
-    fence: str | None = None
-    masked_lines = []
-    for line in lines:
-        content = line.rstrip("\r\n")
-        is_fenced = fence is not None
-        if fence is None and (opening := _fence_opening(content)):
-            fence, is_fenced = opening[0], True
-        elif fence is not None and _is_fence_closing(content, fence):
-            fence = None
-        masked_lines.append(re.sub(r"[^\r\n]", "\x00", line) if is_fenced else line)
-    return "".join(masked_lines)
+    """Mask real fences; e.g. a commented delimiter stays visible."""
+    source = "".join(lines)
+    masked = list(source)
+    state = _SourceScanState()
+    offset = 0
+    while offset < len(source):
+        line_end = (
+            len(source) if (newline := source.find("\n", offset)) < 0 else newline + 1
+        )
+        content = source[offset:line_end].rstrip("\r\n")
+        if _advance_fence_state(content, offset, state):
+            masked[offset : offset + len(content)] = "\x00" * len(content)
+        else:
+            _scan_inline_literals(source, offset, line_end, state)
+        offset = line_end
+    return "".join(masked)
+
+
+def _advance_fence_state(content: str, offset: int, state: _SourceScanState) -> bool:
+    """Advance fence state; e.g. ignore a fence inside an open code span."""
+    if state.fence is not None:
+        state.fence = None if _is_fence_closing(content, state.fence) else state.fence
+        return True
+    code_span_is_open = state.code_end is not None and state.code_end > offset
+    if state.in_comment or code_span_is_open:
+        return False
+    if opening := _fence_opening(content):
+        state.fence = opening[0]
+        return True
+    return False
+
+
+def _scan_inline_literals(
+    source: str, offset: int, line_end: int, state: _SourceScanState
+) -> None:
+    """Scan comments and code spans; e.g. ignore comment markers inside ticks."""
+    cursor = state.resume_code_span(offset, line_end)
+    cursor = state.resume_comment(source, cursor, line_end)
+    for match in _INLINE_LITERAL_PATTERN.finditer(source, cursor):
+        if match.start() >= line_end:
+            break
+        state.record_inline_literal(match, line_end)
 
 
 def _unfenced_lines(
@@ -201,11 +265,7 @@ def _unfenced_lines(
 ) -> cabc.Iterator[tuple[int, str, bool]]:
     """Yield lines outside fences and comments; e.g. retain a multiline code span."""
     source = _mask_fenced_source(lines)
-    code_spans = [
-        (match.start(), match.end())
-        for match in _INLINE_LITERAL_PATTERN.finditer(source)
-        if match[1]
-    ]
+    code_spans = _inline_code_spans(source)
     ignored: set[int] = set()
     state: str | None = None
     offset = 0
@@ -237,6 +297,12 @@ def _scan_unfenced_line(
     if state is not None:
         ignored.update(active)
     return state, is_visible, inside_code
+
+
+def _inline_code_spans(source: str) -> list[tuple[int, int]]:
+    """Collect code-span offsets; e.g. retain absolute source positions."""
+    matches = _INLINE_LITERAL_PATTERN.finditer(source)
+    return [(match.start(), match.end()) for match in matches if match[1]]
 
 
 def _active_code_span_indexes(
@@ -293,28 +359,6 @@ def _headings(lines: cabc.Sequence[str]) -> cabc.Iterator[tuple[int, str, int]]:
             yield index, content.strip(), len(match.group(1))
 
 
-def fenced_blocks(markdown: str, language: str) -> list[str]:
-    """Extract fence bodies with the requested language.
-
-    Parameters
-    ----------
-    markdown : str
-        Markdown text with backtick or tilde fences.
-    language : str
-        Exact fence information string to select.
-
-    Returns
-    -------
-    list of str
-        Matching bodies in source order, retaining line endings.
-
-    Examples
-    --------
-    ``fenced_blocks("ordinary text", "toml")`` returns an empty list.
-    """
-    return [body for info, body in _fence_bodies(markdown) if info == language]
-
-
 def _fence_bodies(markdown: str) -> cabc.Iterator[tuple[str, str]]:
     """Yield fenced contents; e.g. EOF closes a terminal block as in CommonMark."""
     lines = markdown.splitlines(keepends=True)
@@ -334,55 +378,12 @@ def _fence_bodies(markdown: str) -> cabc.Iterator[tuple[str, str]]:
         index = end + 1
 
 
-def _render_json(value: object, writer: cabc.Mapping[str, str | int | bool]) -> str:
-    """Apply validated settings; e.g. canonical output ends with one LF."""
-    # _writer_settings checks exact types before these serialization casts.
-    canonical = json.dumps(
-        value,
-        ensure_ascii=writer["ensure-ascii"] is True,
-        indent=typ.cast("int", writer["indent"]),
-        separators=(
-            typ.cast("str", writer["item-separator"]),
-            typ.cast("str", writer["key-separator"]),
-        ),
-        allow_nan=writer["allow-nan"] is True,
-        sort_keys=writer["sort-keys"] is True,
-    )
-    return canonical + ("\n" if writer["trailing-newline"] is True else "")
-
-
-def _strict_utf8(text: str) -> None:
-    """Reject surrogate text; e.g. strict UTF-8 accepts ordinary Unicode."""
-    try:
-        text.encode("utf-8", errors="strict")
-    except UnicodeEncodeError as exc:
-        message = "JSON document is not valid strict UTF-8"
-        raise ValueError(message) from exc
-
-
-def _string(value: object, name: str) -> str:
-    """Require a string field; e.g. parser construction remains text."""
-    if not isinstance(value, str):
-        message = f"{name} must be a string"
-        raise TypeError(message)
-    return value
-
-
 def _table(value: object, name: str) -> dict[str, object]:
     """Require string-keyed tables; e.g. accept a decoded TOML dictionary."""
     if isinstance(value, dict) and all(isinstance(key, str) for key in value):
         # The aggregate key check narrows the container's otherwise unknown keys.
         return typ.cast("dict[str, object]", value)
     message = f"{name} must be a TOML table with string keys"
-    raise TypeError(message)
-
-
-def _string_tuple(value: object, name: str) -> tuple[str, ...]:
-    """Validate string lists; e.g. ["type", "children"] becomes a tuple."""
-    if isinstance(value, list) and all(isinstance(item, str) for item in value):
-        # The aggregate element check establishes the tuple's string element type.
-        return tuple(typ.cast("list[str]", value))
-    message = f"{name} must be a list of strings"
     raise TypeError(message)
 
 
@@ -395,6 +396,5 @@ def _fence_opening(line: str) -> tuple[str, str] | None:
 def _is_fence_closing(line: str, marker: str) -> bool:
     """Match a closer; e.g. four ticks close a three-tick fence."""
     match = _FENCE_CLOSE_PATTERN.match(line)
-    if match is None:
-        return False
-    return len(match.group(1)) >= len(marker) and set(match.group(1)) == {marker[0]}
+    fence = match.group(1) if match else ""
+    return len(fence) >= len(marker) and set(fence) == {marker[0]}

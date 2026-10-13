@@ -7,16 +7,17 @@ be kept up to date as work proceeds.
 
 Status: COMPLETE
 
-The affected assessment at `f01bfbd` found one DOC-7 interaction defect: an
-unclosed comment marker inside fenced content can hide a later multiline code
-span and real link. The named combined control fails at that published head and
-passes after offset-preserving fence masking. The final candidate `e205b10`
-passes all 76 focused guard cases, all 179 repository tests, the seven
-sequential Make gates, and a complete CodeScene 1.0.52 delta with no issues.
-The support module remains exactly 400 lines; the other Python modules are 334
-and 396 lines. Implementation is complete. Publication, hosted checks, affected
-assessment, formal-review reconciliation, and merge remain delivery work. The
-separate roadmap checkbox change is tracked in PR #73.
+The affected assessment at published head `01ffc3e` found one remaining DOC-7
+extraction defect: a three-backtick line inside a multiline HTML comment was
+mistaken for a real fence during preliminary masking. The named
+comment/fence/multiline-code-span/link control failed there by ordinary
+assertion and passes in the repaired local candidate. The candidate passes all
+77 focused guard cases, all 180 repository tests, all seven sequential Make
+gates, and a CodeScene delta with no findings across the three eligible Python
+files. The support modules are 400 and 393 lines; the test module is 396.
+Implementation is complete. The repair remains unpublished; hosted assessment,
+review convergence, and merge are delivery work. Preserve DEC-44 and keep
+roadmap completion in PR #73.
 
 ## Purpose / big picture
 
@@ -350,6 +351,27 @@ outside its examples.
   reader-visible links share the existing fence grammar. The red witness has
   eight ordinary failures; the repaired focused suite passes all 65 cases.
   Publication and both Codex thread confirmations remain delivery work.
+- [x] (2026-10-13) DOC-7 comment/fence/code-span order: a fence marker inside
+  an HTML comment must remain comment text, while comment markers inside a
+  matched multiline code span remain literal. The combined named link witness
+  fails at 01ffc3e by ordinary assertion (expected sibling ADR path, received
+  an empty set). The repaired preliminary scanner now tracks comments and
+  matched code spans before recognizing fence lines; the named witness and all
+  77 focused ADR cases pass, and the private support module is exactly 400
+  lines. An earlier gate batch passed five gates and 180 tests, but exposed
+  duplicate undefined fence helpers in the public module plus scanner
+  complexity limits. Those defects are corrected; freeze the final record and
+  rerun all seven required gates sequentially before restoring implementation
+  completion. The final frozen candidate then passed all seven gates
+  sequentially; `make test` reports 180 passed. The audit found no known
+  vulnerabilities and records two unavailable-on-PyPI exclusions. The lint
+  follow-up separates comment/code-span state resumption, records literal state
+  through the scanner dataclass, and extracts code-span offset collection; the
+  private state-class docstring remains for the 100% interrogate gate. The
+  focused ADR suite passes all 77 cases, all three Python modules are within
+  400 lines, and the exact source passes a CodeScene delta with no findings
+  across all three eligible files. The final-record Markdown checks remain
+  before commit.
 - [ ] PR B delivery: candidate-bound hosted ExecPlan assessment, readiness,
   formal review reconciliation, separately authorized squash merge, and
   post-merge CI, Act, main coverage, and A-before-B history witness. Record the
@@ -748,6 +770,12 @@ outside its examples.
     gates and CodeScene pass with identical frozen hashes. Synthetic policy
     pairs also verify valid `./` sibling links with fragments through the same
     guard. Both duplicate backlink findings are addressed by this change.
+
+A new current-head DOC-7 control reproduces an ordinary assertion failure: a
+three-backtick line inside a multiline HTML comment is incorrectly masked as a
+fence, preventing discovery of a later multiline code span and reader-visible
+ADR link. The assessment confirms this is an existing extraction obligation,
+not a request for full Markdown parsing or additional property tests.
 
 ## Decision log
 
@@ -1352,6 +1380,19 @@ outside its examples.
   fenced block must not start comment state that suppresses links after the
   closing fence. Reuse the feature-local stateful traversal and preserve the
   accepted-link, API, dependency, and 12-file boundaries. Date/Author:
+  2026-10-13, implementation agent.
+
+- DEC-50. Decision: preliminary fence masking must share Markdown lexical
+  precedence with comment and matched inline-code recognition. Fence markers
+  inside an HTML comment remain literal; comment markers inside an actual fence
+  or a matched inline-code span remain inert. Preserve source offsets,
+  unmatched backtick behaviour, POSIX link resolution, and all existing
+  controls. Add the named combined regression through the existing link guard.
+  Keep the existing files, public API, dependencies, 400-line per-module limit,
+  twelve-file combined scope, and DEC-44 checkbox split. Place existing private
+  JSON rendering beside its sole public writer consumer and keep fenced-block
+  selection defined with its public interface, preserving their behaviour and
+  signatures, to leave room for the bounded scanner repair. Date/Author:
   2026-10-13, implementation agent.
 
 ## Outcomes & retrospective

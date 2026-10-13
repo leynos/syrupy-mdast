@@ -314,7 +314,7 @@ manifest = "no-block two-blocks wrong-heading invalid-toml missing-key extra-key
 writer = "root-scalar non-root missing-children wrong-children scalar-values float-value misordered misindented adjacent-text metadata-text"
 key_order = "duplicate position wrong-first wrong-last data-after-children"
 discovery = "actual quoted backtick-fenced tilde-fenced duplicate unterminated-fence"
-links = "current backtick-fenced tilde-fenced mixed inline-code-only image-only unmatched-backtick inline-code-label html-comment-only unterminated-comment comment-with-backticks-before-real-link code-span-with-comment-opener-before-real-link comment-fence-before-real-link comment-fence-pseudo-link fenced-comment-before-real-link code-span-comment-opener-before-real-link multiline-code-span-comment-opener-before-real-link fenced-comment-multiline-code-span-before-real-link"
+links = "current backtick-fenced tilde-fenced mixed inline-code-only image-only unmatched-backtick inline-code-label html-comment-only unterminated-comment comment-with-backticks-before-real-link code-span-with-comment-opener-before-real-link comment-fence-before-real-link comment-fence-pseudo-link fenced-comment-before-real-link code-span-comment-opener-before-real-link multiline-code-span-comment-opener-before-real-link fenced-comment-multiline-code-span-before-real-link comment-fence-multiline-code-span-before-real-link"
 
 [rules]
 allowed = "remove-position remove-empty-data merge-plain-text normalize-line-endings order-members"
@@ -353,6 +353,7 @@ comment-fence-before-real-link = "<!-- explanatory comment\n```\ncomment ends --
 comment-fence-pseudo-link = "<!-- explanatory comment\n```\n[next](./adr-004-parser-profile-and-normalization.md)\ncomment ends -->\t"
 fenced-comment-before-real-link = "~~~markdown\n<!-- code only\n~~~\n[next](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
 fenced-comment-multiline-code-span-before-real-link = "~~~text\n<!-- fence literal\n~~~\n`<!-- span literal\ncontinued`\n[next](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
+comment-fence-multiline-code-span-before-real-link = "<!-- explanatory comment\n```\n-->\n`<!-- span literal\ncontinued`\n[next](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
 
 [normative]
 paths = "docs/syrupy-mdast-design.md docs/roadmap.md docs/users-guide.md docs/developers-guide.md"

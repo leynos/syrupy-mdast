@@ -16,16 +16,10 @@ import typing as typ
 from tests.support._adr_contract_support import (
     _MANIFEST_HEADING,
     _NORMALIZATION_RULES,
+    _fence_bodies,
     _manifest_table,
-    _render_json,
-    _strict_utf8,
-    _string,
-    _string_tuple,
     _wenmode_range,
     _writer_settings,
-)
-from tests.support._adr_contract_support import (
-    fenced_blocks as fenced_blocks,
 )
 from tests.support._adr_contract_support import (
     section_body as section_body,
@@ -35,6 +29,36 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
 MANIFEST_HEADING: typ.Final[str] = _MANIFEST_HEADING
+
+
+def _string(value: object, name: str) -> str:
+    """Require a string field; e.g. parser construction remains text."""
+    if not isinstance(value, str):
+        message = f"{name} must be a string"
+        raise TypeError(message)
+    return value
+
+
+def fenced_blocks(markdown: str, language: str) -> list[str]:
+    """Extract fence bodies with the requested language.
+
+    Parameters
+    ----------
+    markdown : str
+        Markdown text with backtick or tilde fences.
+    language : str
+        Exact fence information string to select.
+
+    Returns
+    -------
+    list of str
+        Matching bodies in source order, retaining line endings.
+
+    Examples
+    --------
+    ``fenced_blocks("ordinary text", "toml")`` returns an empty list.
+    """
+    return [body for info, body in _fence_bodies(markdown) if info == language]
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -292,6 +316,41 @@ def _key_dependency_problems(key_order: cabc.Sequence[str]) -> list[str]:
     ):
         return ["key-order must place value before data before children"]
     return []
+
+
+def _render_json(value: object, writer: cabc.Mapping[str, str | int | bool]) -> str:
+    """Apply validated settings; e.g. canonical output ends with one LF."""
+    # _writer_settings checks exact types before these serialization casts.
+    canonical = json.dumps(
+        value,
+        ensure_ascii=writer["ensure-ascii"] is True,
+        indent=typ.cast("int", writer["indent"]),
+        separators=(
+            typ.cast("str", writer["item-separator"]),
+            typ.cast("str", writer["key-separator"]),
+        ),
+        allow_nan=writer["allow-nan"] is True,
+        sort_keys=writer["sort-keys"] is True,
+    )
+    return canonical + ("\n" if writer["trailing-newline"] is True else "")
+
+
+def _strict_utf8(text: str) -> None:
+    """Reject surrogate text; e.g. strict UTF-8 accepts ordinary Unicode."""
+    try:
+        text.encode("utf-8", errors="strict")
+    except UnicodeEncodeError as exc:
+        message = "JSON document is not valid strict UTF-8"
+        raise ValueError(message) from exc
+
+
+def _string_tuple(value: object, name: str) -> tuple[str, ...]:
+    """Validate string lists; e.g. ["type", "children"] becomes a tuple."""
+    if isinstance(value, list) and all(isinstance(item, str) for item in value):
+        # The aggregate element check establishes the tuple's string element type.
+        return tuple(typ.cast("list[str]", value))
+    message = f"{name} must be a list of strings"
+    raise TypeError(message)
 
 
 def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[str]:
