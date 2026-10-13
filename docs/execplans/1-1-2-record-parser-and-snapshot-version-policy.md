@@ -5,18 +5,18 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Outcomes & retrospective`, `Conformance basis`, and `Verification plan` must
 be kept up to date as work proceeds.
 
-Status: IN PROGRESS
+Status: COMPLETE
 
 The affected assessment at `f01bfbd` found one DOC-7 interaction defect: an
 unclosed comment marker inside fenced content can hide a later multiline code
-span and real link. A named combined control fails at the published candidate
-and passes after offset-preserving fence masking. The 76-case focused guard
-suite and 179 repository tests pass. The initial full base-to-candidate
-CodeScene delta found scanner complexity and module-average regressions. A
-cohesive span-selection refactor clears the local delta; its first formatted
-version exceeded the 400-line module limit. The final compact refactor and all
-sequential gates remain pending before implementation closure. PR #73 contains
-the separate roadmap checkbox change.
+span and real link. The named combined control fails at that published head and
+passes after offset-preserving fence masking. The final candidate `e205b10`
+passes all 76 focused guard cases, all 179 repository tests, the seven
+sequential Make gates, and a complete CodeScene 1.0.52 delta with no issues.
+The support module remains exactly 400 lines; the other Python modules are 334
+and 396 lines. Implementation is complete. Publication, hosted checks, affected
+assessment, formal-review reconciliation, and merge remain delivery work. The
+separate roadmap checkbox change is tracked in PR #73.
 
 ## Purpose / big picture
 
@@ -373,12 +373,14 @@ outside its examples.
   focused suite passes 75 cases, the repository suite passes 178 tests, all
   seven gates pass sequentially, and CodeScene reports no issues. The private
   scanner helpers stay within the 400-line file limit.
-- [ ] (2026-10-13) DOC-7 fenced-comment/code-span interaction: the named
+- [x] (2026-10-13) DOC-7 fenced-comment/code-span interaction: the named
   combined control fails at `f01bfbd` and passes after masking fenced source in
-  the preliminary code-span scan. The 76-case focused suite and 179 repository
-  tests pass. All seven gates passed before the CodeScene-driven refactor; the
-  first refactor cleared CodeScene but exceeded the file cap. Rerun the seven
-  gates and CodeScene on the final under-cap candidate before closure.
+  the preliminary code-span scan. Candidate `e205b10` passes all 76 focused
+  guard cases and 179 repository tests. The seven gates pass sequentially, and
+  the complete CodeScene 1.0.52 base-to-head delta reports no issues across all
+  three eligible Python files. The support module is exactly 400 lines. The
+  earlier complexity and over-limit attempts remain recorded below; this final
+  refactor introduces no suppression or threshold change.
 - [x] (2026-10-13) DOC-7 inline-code follow-up: a comment opener inside a
   matched inline-code span must not start multiline comment state or hide the
   following real link. The named control fails at `5057aab` and passes after
@@ -1381,12 +1383,16 @@ the equivalent case across a newline, red at `48f5577`; six targeted controls
 pass after the expanded repair. Earlier candidate `f01bfbd` passed 75 focused
 cases, 178 repository tests, all seven sequential gates, and CodeScene 1.0.52
 with no issues. Private JSON tree and key-order checks now sit with the public
-writer guard so all Python modules remain below 400 lines. Its affected
-assessment exposed a combined fence/comment/code-span interaction. The new
-named control fails on the published candidate and passes after
-offset-preserving fence masking; the full suite and gates remain pending.
-Implementation activity is reopened before publication, affected assessment,
-and formal review reconciliation. The
+writer guard so all Python modules remain below 400 lines. The affected
+assessment of `f01bfbd` exposed a combined fence/comment/code-span interaction.
+The named control fails on that published candidate and passes after
+offset-preserving fence masking. The final local candidate `e205b10` passes 76
+focused guard cases, all 179 repository tests, all seven sequential gates, and
+the full CodeScene 1.0.52 delta with no issues. The three Python modules are
+400, 334, and 396 lines. Implementation activity is complete; publication,
+current hosted checks, affected reassessment, formal review convergence, and
+merge remain delivery work. The roadmap checkbox stays in the separate PR #73.
+The
 [scope reconciliation](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118750431)
 withdraws the additional testing demands under DOC-2/3/4 and DEC-12; the live
 failed rows and current change-request review still need reconciliation.
@@ -1895,13 +1901,14 @@ complete the retrospective, set this plan to `COMPLETE`.
   design text; no production file touched; roadmap edits equal DEC-3 and
   DEC-21's and DEC-24's approved scope.
 - Recovery: tests and documents are independent files; revert per file.
-- Remaining gaps: roadmap tick and retrospective.
+- Remaining gaps at this milestone: the roadmap checkbox is tracked separately
+  in PR #73 under DEC-44; the EP-M4 retrospective is recorded below.
 - Compatibility decision: none.
 
 ### EP-M4: sweep and close (pull request B)
 
-- Outcome: all gates pass; roadmap 1.1.2 ticked (DEC-3 edit 1); this plan
-  `COMPLETE` with retrospective and handoffs.
+- Outcome: implementation gates pass; this plan is `COMPLETE` with retrospective
+  and handoffs. The roadmap checkbox remains in PR #73 under DEC-44.
 - Acceptance evidence: gate logs, and, on `main` after pull request B merges,
   the following command lists pull request A's squash commit below pull request
   B's:
@@ -2547,9 +2554,11 @@ the documented interface and does not introduce an import cycle.
   on the frozen candidate. Local CodeScene, publication, affected reassessment,
   formal review convergence, and merge remain delivery work.
 
-- 2026-10-13: the first committed DOC-7 candidate passed all seven Make gates,
-  but its base-to-head CodeScene delta flagged scanner complexity and module
-  average. The first cohesive extraction cleared CodeScene and preserved all 76
-  focused cases, but formatted to 406 lines. Reopen implementation activity and
-  compact the final source without suppressions, then rerun the complete
-  sequential gate set and CodeScene before publication.
+- 2026-10-13: the CodeScene-driven scanner refactor initially exceeded the
+  400-line limit; a subsequent gate run also exposed four Ruff
+  `raise-vanilla-args` findings. The final private span selector and compact
+  fence helper preserve the scanner threshold and file cap, while named
+  exception messages satisfy Ruff. Candidate `e205b10` passes the seven Make
+  gates sequentially, all 179 tests, and CodeScene 1.0.52 with no findings.
+  Implementation activity is complete. The shared delivery ledger records the
+  full gate logs and candidate-bound publication and review follow-up.
