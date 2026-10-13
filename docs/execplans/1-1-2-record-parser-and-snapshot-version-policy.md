@@ -7,15 +7,17 @@ be kept up to date as work proceeds.
 
 Status: COMPLETE
 
-Implementation activity is complete after the formal-review extraction repair:
-real manifest headings and reader links share the fence grammar, with named
-positive and negative controls. The repaired source passes 65 focused cases,
-168 repository tests, all seven gates, and CodeScene. The task checkbox is
-deferred to the separate follow-up PR #73, after this PR lands the parser
-reconciliation and guard. Final-record gates, committed review, published
-checks, affected assessment, and actual thread/pre-merge reconciliation remain
-candidate-bound delivery work in the shared ledger. The PR stays ready; merge
-and post-merge integration remain separate.
+The affected assessment of head `1752d24` found one remaining DOC-7
+link-extraction gap: a fence marker inside a multiline HTML comment can hide a
+real ADR link. The red control reproduced it with 13 of 14 link cases passing.
+The repair covers both comment/fence delimiter directions, passes all 15
+focused link controls and all 73 ADR guard cases, and isolates fence-state
+transitions in `_advance_unfenced_state`. The complete repository suite passes
+176 tests, all seven sequential gates pass, and the current CodeScene delta
+reports no issues; the helper remains exactly 400 lines. The final plan record
+receives fresh Markdown gates before publication. Candidate-bound assessment,
+formal review reconciliation, merge, and post-merge evidence remain delivery
+work. The roadmap checkbox stays in the separate follow-up PR #73.
 
 ## Purpose / big picture
 
@@ -361,6 +363,15 @@ outside its examples.
   70 focused cases, 173 repository tests, all seven gates, and CodeScene.
   Restore only roadmap 1.1.2; final records receive renewed gates before
   publication and candidate-bound committed and hosted assessment.
+
+- [x] (2026-10-13) DOC-7 follow-up: add the reverse control proving that an
+  unclosed comment marker inside a real fenced block cannot suppress a reader
+  link after the fence. The complete repaired source passes 15 focused link
+  controls, all 73 ADR guard cases, 176 repository tests, all seven sequential
+  gates, and CodeScene with no issues. The feature module remains exactly 400
+  lines. Only roadmap 1.1.2 stays checked in the separate checkbox PR #73;
+  candidate-bound assessment, formal review, merge, and post-merge evidence
+  remain delivery work.
 
 ## Surprises & discoveries
 
@@ -1273,6 +1284,13 @@ outside its examples.
   guard needed by that completion claim. Leave item 1.1.2 unchecked in this
   branch; merge #73 only after #72 lands, then rebase and reassess #73 against
   the updated base. Date/Author: 2026-10-13, implementation agent.
+- DEC-45. Decision: in logical-link discovery, a standalone fence delimiter
+  inside a multiline HTML comment must not start a Markdown code fence and hide
+  later reader-visible links. Conversely, comment delimiters inside a real
+  fenced block must not start comment state that suppresses links after the
+  closing fence. Reuse the feature-local stateful traversal and preserve the
+  accepted-link, API, dependency, and 12-file boundaries. Date/Author:
+  2026-10-13, implementation agent.
 
 ## Outcomes & retrospective
 
@@ -1291,17 +1309,21 @@ The
 of `534241c` found a DOC-4 multiline gap. Its
 [follow-up](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118585797)
 cleared the repaired implementation at `1b55ead`, with 51 guard cases and 154
-repository tests. The subsequent formal review exposed two Markdown extraction
-defects. Their frozen controls reproduce eight ordinary failures; the shared
-fence-aware repair now passes 65 focused cases, 168 repository tests, all seven
-local gates, and the CodeScene delta. The next committed review exposes
-comment-only links and brittle reciprocal-link controls. Those repairs pass 70
-focused cases, 173 repository tests, all seven gates, and CodeScene, restoring
-implementation closure. Affected assessment and formal-review confirmation
-remain pending for the newly published candidate. The
+repository tests. Later formal reviews exposed Markdown extraction defects;
+their frozen controls reproduced ordinary failures, and the corresponding
+repairs passed 70 focused cases, 173 repository tests, all seven gates, and
+CodeScene. The subsequent DOC-7 assessment of `1752d24` found that fence
+markers inside multiline HTML comments can corrupt later link discovery. The
+frozen red control passed 13 of 14 link cases and exposed that gap. The latest
+repair passes all 15 focused link controls and 73 ADR guard cases; the complete
+suite passes 176 tests, all seven sequential gates pass, and the CodeScene
+delta is clear. The state-transition helper keeps `_adr_contract_support.py` at
+exactly 400 lines. Only final Markdown record gates remain before this
+candidate is committed and published. Assessment, formal review reconciliation,
+merge, and post-merge evidence remain pending. The
 [scope reconciliation](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118750431)
-withdraws the additional testing demands under DOC-2/3/4 and DEC-12 without
-claiming that the live failed rows or change-request review are already cleared.
+withdraws the additional testing demands under DOC-2/3/4 and DEC-12; the live
+failed rows and current change-request review still need reconciliation.
 
 [PR B #72](https://github.com/leynos/syrupy-mdast/pull/72) implements DOC-1
 through DOC-7 and UNIT-1 through UNIT-3 and reconciles the four required
@@ -2405,3 +2427,18 @@ the documented interface and does not introduce an import cycle.
   only roadmap 1.1.2 and gate the final record. Published assessment, thread
   confirmation, pre-merge reconciliation, B merge authority, and landing
   evidence remain separate delivery obligations.
+
+- 2026-10-13: reopen implementation activity for the affected DOC-7 finding
+  at head `1752d24`. A fence marker in a multiline comment must not mask a
+  later reader link, while comment-looking text inside a real fence must remain
+  inert. The repaired guard passes both directions, all 15 link controls, 73
+  ADR guard cases, and 176 repository tests. The helper is exactly 400 lines;
+  `check-fmt`, `typecheck`, `lint`, `test`, `audit`, `markdownlint`, and
+  `nixie` pass sequentially. Final-record validation, publication,
+  candidate-bound assessment, and review reconciliation remain delivery work.
+
+- 2026-10-13: the first complete gate run after the DOC-7 repair passed, but
+  CodeScene flagged nested state logic in `_unfenced_lines`. Move per-line
+  transitions into `_advance_unfenced_state`; the new uncommitted CodeScene
+  delta is clear. Rerun the complete sequential gates on this refactor and the
+  final plan record before publication.

@@ -36,7 +36,6 @@ _NORMALIZATION_RULES: typ.Final[frozenset[str]] = frozenset([
     "normalize-line-endings",
     "order-members",
 ])
-
 _MANIFEST_KEYS: typ.Final[frozenset[str]] = frozenset([
     "contract-version",
     "wenmode",
@@ -46,7 +45,6 @@ _MANIFEST_KEYS: typ.Final[frozenset[str]] = frozenset([
     "key-order",
     "json-writer",
 ])
-
 _WRITER_TYPES: typ.Final[dict[str, type[object]]] = {
     "encoding": str,
     "byte-order-mark": bool,
@@ -62,7 +60,6 @@ _WRITER_TYPES: typ.Final[dict[str, type[object]]] = {
 _HEADING_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
     r"^ {0,3}(#{1,6})(?:[ \t]+.*)?$"
 )
-
 _FENCE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 
 _RANGE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
@@ -187,19 +184,23 @@ def _link_targets(markdown: str, source_path: str) -> set[str]:
 
 
 def _unfenced_lines(lines: cabc.Sequence[str]) -> cabc.Iterator[tuple[int, str]]:
-    """Yield visible lines and indices; e.g. ignore terminal fenced examples."""
-    fence: str | None = None
+    """Yield visible lines; e.g. ignore fences inside HTML comments."""
+    state: str | None = None
     for index, line in enumerate(lines):
-        content = line.rstrip("\r\n")
-        if fence is not None:
-            if _is_fence_closing(content, fence):
-                fence = None
-            continue
-        opening = _fence_opening(content)
-        if opening is not None:
-            fence = opening[0]
-            continue
-        yield index, line
+        state, is_visible = _advance_unfenced_state(state, line.rstrip("\r\n"))
+        if is_visible:
+            yield index, line
+
+
+def _advance_unfenced_state(state: str | None, content: str) -> tuple[str | None, bool]:
+    """Advance Markdown state; e.g. a comment's fence marker is inert."""
+    if state == "comment":
+        return (None, True) if "-->" in content else (state, False)
+    if state is not None:
+        return None if _is_fence_closing(content, state) else state, False
+    if opening := _fence_opening(content):
+        return opening[0], False
+    return ("comment" if content.rfind("<!--") > content.rfind("-->") else None), True
 
 
 def _headings(lines: cabc.Sequence[str]) -> cabc.Iterator[tuple[int, str, int]]:
