@@ -8,6 +8,7 @@ Examples
 from __future__ import annotations
 
 import dataclasses
+import itertools
 import json
 import re
 import typing as typ
@@ -15,14 +16,11 @@ import typing as typ
 from tests.support._adr_contract_support import (
     _MANIFEST_HEADING,
     _NORMALIZATION_RULES,
-    _key_dependency_problems,
-    _key_frame_problems,
     _manifest_table,
     _render_json,
     _strict_utf8,
     _string,
     _string_tuple,
-    _tree_problems,
     _wenmode_range,
     _writer_settings,
 )
@@ -215,6 +213,85 @@ def rule_order_problems(normalization: cabc.Sequence[str]) -> list[str]:
     ):
         problems.append("merge-plain-text must precede normalize-line-endings")
     return problems
+
+
+def _is_plain_text_node(value: object) -> bool:
+    """Identify mergeable nodes; e.g. a text node with only type and value."""
+    match value:
+        case {"type": "text", "value": str(), **extra_fields} if not extra_fields:
+            return True
+        case _:
+            return False
+
+
+def _root_shape_problems(value: object) -> list[str]:
+    """Require the root envelope; e.g. a scalar is not a Markdown tree."""
+    match value:
+        case {"type": "root", "children": list()}:
+            return []
+        case _:
+            return ["JSON root must have type 'root' and a children array"]
+
+
+def _tree_problems(value: object, key_order: cabc.Sequence[str]) -> list[str]:
+    """Check nested JSON; e.g. reversed keys receive a diagnostic."""
+    preferred = {key: index for index, key in enumerate(key_order)}
+    problems = _root_shape_problems(value)
+
+    def visit(item: object, path: str) -> None:
+        """Visit a nested value; for example use `$.children[0]` for its path."""
+        match item:
+            case dict() as mapping:
+                # json.loads guarantees string keys before this private walk.
+                keys = list(typ.cast("dict[str, object]", mapping))
+                problems.extend(_member_order_problems(keys, preferred, path))
+                for key in keys:
+                    visit(mapping[key], f"{path}.{key}")
+            case list() as sequence:
+                plain_nodes = map(_is_plain_text_node, sequence)
+                if any(all(pair) for pair in itertools.pairwise(plain_nodes)):
+                    problems.append(f"{path}: adjacent plain text nodes must be merged")
+                for index, child in enumerate(sequence):
+                    visit(child, f"{path}[{index}]")
+            case float():
+                problems.append(f"{path}: float is outside the contract value domain")
+
+    visit(value, "$")
+    return problems
+
+
+def _member_order_problems(
+    keys: cabc.Sequence[str], preferred: cabc.Mapping[str, int], path: str
+) -> list[str]:
+    """Check one mapping's order; e.g. unknown keys follow known keys."""
+    expected = sorted(keys, key=lambda key: (preferred.get(key, len(preferred)), key))
+    if list(keys) != expected:
+        return [f"{path}: mapping keys are not in contract order"]
+    return []
+
+
+def _key_frame_problems(key_order: cabc.Sequence[str]) -> list[str]:
+    """Check the outer members; e.g. type first and children last."""
+    problems: list[str] = []
+    if not key_order or key_order[0] != "type":
+        problems.append("key-order must start with 'type'")
+    if not key_order or key_order[-1] != "children":
+        problems.append("key-order must end with 'children'")
+    return problems
+
+
+def _key_dependency_problems(key_order: cabc.Sequence[str]) -> list[str]:
+    """Check required member dependencies; e.g. data follows value."""
+    missing = {"value", "data", "children"} - set(key_order)
+    if missing:
+        return [f"key-order is missing required members: {sorted(missing)!r}"]
+    if (
+        not key_order.index("value")
+        < key_order.index("data")
+        < key_order.index("children")
+    ):
+        return ["key-order must place value before data before children"]
+    return []
 
 
 def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[str]:

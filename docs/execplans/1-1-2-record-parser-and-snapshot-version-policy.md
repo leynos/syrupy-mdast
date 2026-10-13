@@ -7,14 +7,14 @@ be kept up to date as work proceeds.
 
 Status: COMPLETE
 
-The affected assessment of head `5057aab` found one DOC-7 edge case: a comment
-opener inside a matched inline-code span starts false comment state and hides a
-real link on the next line. The named control failed on `5057aab` and passes
-with the repair. All 74 focused ADR guard cases and 177 repository tests pass;
-all seven gates passed sequentially, and the local CodeScene delta reports no
-issues. Only roadmap 1.1.2 remains checked in separate PR #73. Candidate-bound
-assessment, hosted review reconciliation, merge, and post-merge evidence remain
-delivery work; earlier hosted results apply only to their recorded heads.
+The DOC-7 multiline inline-code repair passes 75 focused guard cases and 178
+repository tests. All seven Make gates pass sequentially, and CodeScene 1.0.52
+reports no issues for the base-to-candidate delta. The private support module
+is 393 lines; the public test helper and test module remain within 400 lines.
+This closes implementation activity for the candidate. Publication, affected
+assessment, formal review and thread reconciliation, merge, and post-merge
+integration remain delivery work. PR number 73 contains the separate roadmap
+checkbox change.
 
 ## Purpose / big picture
 
@@ -361,6 +361,16 @@ outside its examples.
   Restore only roadmap 1.1.2; final records receive renewed gates before
   publication and candidate-bound committed and hosted assessment.
 
+- [x] (2026-10-13) DOC-7 multiline inline-code follow-up: a matched inline
+  code span can cross a line break, so a literal `<!--` inside it must not
+  start comment state or hide a later real link. The named control fails at
+  `48f5577` (`b-doc7-multiline-inline-red.log`) and passes after the repair;
+  six focused code-span/comment/fence controls pass. The existing tree-order
+  validators moved next to the public writer guard so each Python module stays
+  within 400 lines; no public function or dependency changed. The complete
+  focused suite passes 75 cases, the repository suite passes 178 tests, all
+  seven gates pass sequentially, and CodeScene reports no issues. The private
+  scanner helpers stay within the 400-line file limit.
 - [x] (2026-10-13) DOC-7 inline-code follow-up: a comment opener inside a
   matched inline-code span must not start multiline comment state or hide the
   following real link. The named control fails at `5057aab` and passes after
@@ -730,6 +740,16 @@ outside its examples.
     guard. Both duplicate backlink findings are addressed by this change.
 
 ## Decision log
+
+- DEC-47. Decision: matched inline code spans that cross physical lines must
+  remain literal while the bounded DOC-7 extractor tracks HTML comments. Use
+  the existing combined literal matcher to locate ranges, mask those ranges for
+  comment-state transitions, and keep fenced blocks ahead of inline matching.
+  Preserve the actual comment/fence controls and the 400-line module cap by
+  colocating private JSON tree and key-order diagnostics with the public writer
+  guard that owns them. This relocates private implementations only; it adds no
+  public API, file, dependency, or production behaviour. Date/Author:
+  2026-10-13, implementation agent.
 
 - DEC-46. Decision: before logical-link discovery starts multiline HTML
   comment state, matched inline code delimiters on the line are literal text.
@@ -1329,15 +1349,16 @@ their frozen controls reproduced ordinary failures, and the corresponding
 repairs passed 70 focused cases, 173 repository tests, all seven gates, and
 CodeScene. The subsequent DOC-7 assessment of `1752d24` found that fence
 markers inside multiline HTML comments can corrupt later link discovery. The
-frozen red control passed 13 of 14 link cases and exposed that gap. A later
-assessment of `5057aab` found that a comment opener inside matched inline code
-could hide the following reader link. Both named controls fail on their
-published parent and pass after repair. The current source passes all 15
-focused link controls, 74 ADR guard cases, and 177 repository tests. All seven
-gates pass sequentially and the CodeScene delta reports no issues. The
-state-transition helper keeps `_adr_contract_support.py` at exactly 400 lines.
-Implementation is complete; candidate-bound assessment, formal review
-reconciliation, merge, and post-merge evidence remain pending. The
+frozen red control passed 13 of 14 link cases and exposed that gap. The later
+assessment of `5057aab` found a same-line matched-code comment opener; the
+control failed at `5057aab` and passed at `48f5577`. A focused probe then found
+the equivalent case across a newline, red at `48f5577`; six targeted controls
+pass after the expanded repair. The final candidate passes all 75 focused
+cases, 178 repository tests, all seven sequential gates, and CodeScene 1.0.52
+with no issues. Private JSON tree and key-order checks now sit with the public
+writer guard so all Python modules remain below 400 lines. Implementation is
+complete; publication, fresh candidate-bound assessment, and formal review
+reconciliation remain delivery work. The
 [scope reconciliation](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118750431)
 withdraws the additional testing demands under DOC-2/3/4 and DEC-12; the live
 failed rows and current change-request review still need reconciliation.
@@ -2476,3 +2497,17 @@ the documented interface and does not introduce an import cycle.
   red on the parent and green after repair. The 74-case focused guard suite,
   177-test repository suite, all seven sequential gates, and local CodeScene
   pass. Candidate publication and review/merge lifecycle remain separate.
+
+- 2026-10-13: extend the DOC-7 inline-literal repair after a named multiline
+  code-span witness fails at `48f5577`. The comment opener is inside a complete
+  code span crossing a physical line break, but line-by-line comment tracking
+  hides the later ADR link. The repair uses matched ranges from the existing
+  combined literal matcher, preserves fence handling, and moves private JSON
+  tree/order diagnostics next to their public writer guard to keep file limits.
+  Six targeted controls pass; the first full gate run finds only helper lint
+  limits. Split span selection, masking, and per-line state advancement into
+  small private helpers, bundle line bounds and span state in tuple inputs, and
+  keep the module at 393 lines. The final focused suite passes 75, the full
+  suite passes 178, all seven Make gates pass sequentially, and local CodeScene
+  1.0.52 reports no issues. Restore implementation completion; the new
+  candidate still needs publication and affected assessment.
