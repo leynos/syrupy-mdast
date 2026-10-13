@@ -6,10 +6,10 @@
 - **Scope:** The first stable AST-aware Markdown snapshot contract.
 - **Audience:** Maintainers, implementers, and reviewers of `syrupy-mdast`.
 - **Companion document:** [Development roadmap](roadmap.md).
-- **Last updated:** 2026-07-28.
+- **Last updated:** 2026-10-12.
 
 This document defines the target architecture. Accepted Architecture Decision
-Records (ADRs), if added, take precedence where they conflict with this design.
+Records (ADRs) take precedence where they conflict with this design.
 
 ## 1. Problem and design intent
 
@@ -64,9 +64,12 @@ deletion, and diff lifecycle required by a format-specific serializer.[^3]
 ### 2.3. Constraints
 
 The Python package supports Python 3.12 and later. Its runtime dependencies
-name compatible Syrupy releases and pin the Wenmode release that defines the
-snapshot format. Every Wenmode upgrade is reviewed as a potential snapshot
-migration.
+name compatible Syrupy releases and the bounded Wenmode requirement
+`>=0.15.2,<0.16.0`. Wenmode 0.15.2 is the evidence baseline; the finite probe
+does not establish equal output for every release in the range. Consumers
+should lock test dependencies when they need to reproduce parser output. The
+accepted [versioning policy in ADR-003](adr-003-snapshot-version-policy.md)
+governs requirement and repository-resolved release changes.
 
 Snapshot comparison does not access the network, create child processes, or
 load project-local parser code. The wheel contains only Python package assets;
@@ -111,11 +114,14 @@ extension intended to suppress source-notation noise.
 
 _Table 1: Normative terminology._
 
-Two inputs are equivalent precisely when the same package version and parser
-profile produce byte-identical snapshot payloads. This is a versioned
-Wenmode-native structural contract, not a claim of universal Markdown
-equivalence or unified mdast interoperability. Parser or normalization changes
-that alter existing payloads require release notes and a declared migration.
+Two inputs are equivalent precisely when the same installed syrupy-mdast
+version, Wenmode version, and parser profile produce byte-identical snapshot
+payloads in the same interpreter environment. The
+[normalization contract in ADR-004](adr-004-parser-profile-and-normalization.md)
+defines this v1 boundary; [ADR-003](adr-003-snapshot-version-policy.md)
+governs payload changes and release policy. This is a Wenmode-native structural
+contract, not a claim of universal Markdown equivalence or unified mdast
+interoperability.
 
 ## 5. Architecture
 
@@ -243,13 +249,17 @@ def parse_markdown(source: str) -> dict[str, Any]:
     ``parse_markdown("# Title")`` returns a root containing a depth-one
     heading.
     """
-    return Parser(github, positions=False).parse(source).to_ast()
+    return Parser(github(), positions=False).parse(source).to_ast()
 ```
 
-This function is the Wenmode adapter seam. The production implementation may
-narrow its return type after inspecting Wenmode's published annotations. It
-must not wrap the parser behind a generic backend abstraction until a second
-supported backend creates a real reuse case.
+The exact parser construction is recorded in
+[ADR-004](adr-004-parser-profile-and-normalization.md), whose manifest is the
+single source for the v1 requirement and profile. Wenmode's
+[node-model reference](https://wenmode.lepture.com/references/nodes/) documents
+the shape of its `to_ast()` data.[^6] This function is the Wenmode adapter
+seam. The production implementation may narrow its return type after inspecting
+Wenmode's published annotations. It must not wrap the parser behind a generic
+backend abstraction until a second supported backend creates a real reuse case.
 
 The GitHub profile extends the CommonMark preset and enables tables,
 strikethrough, task lists, extended autolinks, and footnotes.[^2] It also
@@ -257,37 +267,45 @@ inherits CommonMark reference links and images and applies the GitHub
 disallowed-HTML policy.[^5] Frontmatter, math, directives, and Markdown JSX
 (MDX) remain outside v1.
 
-Wenmode is pinned exactly because its AST is the snapshot format. A dependency
-update must run the canonical corpus through both versions and classify every
-payload change before merge. No JavaScript implementation or package is a
-runtime, build, test, or release dependency. A temporary differential test may
-use `mdast-util-from-markdown` as a development oracle while evaluating the
-initial corpus, but it must be optional, unshipped, and absent from normal CI.
+The runtime requirement is `>=0.15.2,<0.16.0`; 0.15.2 is the verified evidence
+baseline, not proof that later allowed releases produce identical payloads.
+Lock test dependencies when parser-output reproducibility is required. A
+requirement or repository-resolved release change follows the dedicated upgrade
+report in ADR-003. No JavaScript implementation or package is a runtime, build,
+test, or release dependency. A temporary differential test may use
+`mdast-util-from-markdown` as a development oracle while evaluating the initial
+corpus, but it must be optional, unshipped, and absent from normal CI.
 
 ## 8. Canonicalization contract
 
 Wenmode's `to_ast()` result is the canonicalization input. The canonicalizer
-walks every array element and object value recursively and applies only these
-transformations:
+walks every array element and object value recursively. The exact rule sequence
+and key-order constant are normative in
+[ADR-004](adr-004-parser-profile-and-normalization.md) and must remain aligned
+with its manifest. Apply these five transformations in order:
 
 1. Remove every object member named `position`, even though positions are
    disabled in the parser.
 2. Remove a `data` member only when its value is an empty plain object.
-3. Normalize carriage-return line feed and bare carriage return to line feed
+3. Merge adjacent sibling text nodes only when each node has exactly `type` and
+   `value` members and `type` is `text`; concatenate their values.
+4. Normalize carriage-return line feed and bare carriage return to line feed
    in every string value.
-4. Emit object members in the preferred order below, followed by unknown
+5. Emit object members in the preferred order below, followed by unknown
    members in Unicode code-point order.
 
 The preferred order is `type`, structural scalar fields, link and footnote
 fields, `value`, `data`, and `children`. The implementation defines the exact
-field sequence as one immutable constant covered by a contract fixture.
-Object-member order improves reviewability but does not change array order.
+field sequence as one immutable constant covered by a contract fixture and
+aligned with ADR-004's `key-order`. Object-member order improves reviewability
+but does not change array order.
 
-The canonicalizer preserves `false`, `0`, empty arrays, empty strings, non-empty
-`data`, and all unknown fields. Wenmode omits fields whose value is `None`; v1
-preserves that omission and does not synthesize schema-specific `null` members.
-This makes Wenmode's public AST shape the source of truth rather than
-maintaining a partial Python copy of another mdast schema.
+The canonicalizer preserves `false`, `0`, empty arrays, empty strings, `null`
+array elements, non-empty `data`, and all unknown fields. Wenmode omits fields
+whose value is `None`; v1 preserves that omission and does not synthesize
+schema-specific `null` members. This makes Wenmode's public AST shape the
+source of truth rather than maintaining a partial Python copy of another mdast
+schema.
 
 Ordinary reference-style links and images are resolved to `link` and `image`
 nodes. Their definition nodes, labels, reference forms, and unused definitions
@@ -432,10 +450,13 @@ classified as harmless representation, intentional policy, or an
 incompatibility requiring a fixture or upstream report. The resulting v1
 fixtures, not the JavaScript tool, become the lasting oracle.
 
-An explicitly versioned ADR records the complete snapshot contract: parser
-profile, normalization policy, comparison contract, snapshot-version policy,
-pinned Wenmode release, and normative fixture decisions. The ADR must be
-accepted before committing any related implementation or fixture change.
+The complete v1 contract is recorded by the accepted
+[normalization ADR-004](adr-004-parser-profile-and-normalization.md) and
+[versioning ADR-003](adr-003-snapshot-version-policy.md). ADR-004 owns the
+parser profile, manifest, normalization and comparison policy, and normative
+fixture decisions; ADR-003 owns snapshot-version and release policy. The guard
+test keeps the design and existing extension constant aligned with the
+manifest; future runtime constants join the guard when implemented.
 
 Parser conformance remains Wenmode's responsibility. This project verifies the
 selected profile, normalization policy, dependency boundary, and observable
@@ -470,25 +491,36 @@ JavaScript packages.
 
 ## 13. Compatibility, distribution, and migration
 
-The wheel declares `syrupy>=5.0.0,<7.0.0` and will declare an exact Wenmode
-release when Wenmode becomes a runtime dependency. Syrupy supplies lifecycle
-behaviour, so the supported range permits reviewed compatible releases; Wenmode
-defines persisted snapshot bytes, so it requires an exact pin. The wheel
-contains no language-runtime binaries, JavaScript source, manifests, lockfiles,
-or installed JavaScript dependencies. Standard Python packaging is the only
-installation path.
+The wheel declares `syrupy>=5.0.0,<7.0.0` and will declare Wenmode
+`>=0.15.2,<0.16.0` when roadmap 1.2.1 adds the runtime dependency. The manifest
+in [ADR-004](adr-004-parser-profile-and-normalization.md) is authoritative for
+the Wenmode requirement; [ADR-003](adr-003-snapshot-version-policy.md) defines
+the versioning and release policy. The policy governs known payload changes.
+Deliberate patch-release changes evaluated with the same installed parser never
+knowingly change payloads; a knowingly adopted payload change requires a minor
+package release before 1.0.0 and a major release from 1.0.0 onward; release
+notes list affected constructs and the review-then-`pytest --snapshot-update`
+step. The contract version increments when the payload definition changes; it
+is a migration signal, not the equivalence key.
 
-The snapshot format version follows the package's semantic versioning:
+Every Wenmode requirement or repository-resolved release change is reviewed in
+a dedicated pull request with the roadmap 3.2.1 report. The report compares the
+canonical corpus, classifies every intervening Wenmode
+[changelog entry](https://wenmode.lepture.com/changelog/)[^7], and adds a
+fixture for each entry that can affect GitHub-profile `to_ast()` output. A move
+is payload-neutral only when the corpus diff is empty and each relevant entry
+is fixture-covered with no change. Any parser warning under `-W error` blocks
+the move. Roadmap 1.2.1 will configure Dependabot to ignore Wenmode when the
+dependency is added; that setting does not freeze downstream resolution.
+Evaluate new releases, Wenmode 1.0, security advisories, and newly supported
+Python minor versions. Ship security fixes promptly under the same version
+rules. A downstream parser refresh can change payloads without a syrupy-mdast
+release, so consumers should lock test dependencies when they need reproducible
+output. No runtime version enforcement mechanism is added.
 
-- Patch releases do not intentionally change canonical payloads.
-- Minor releases may accept previously rejected syntax only when existing
-  accepted inputs retain their interpretation and the migration report is empty.
-- Major releases may change the Wenmode version, parser profile, or
-  normalization contract and must document expected snapshot churn.
-
-Because parser bug fixes can alter AST output, an exact Wenmode pin changes
-only through the upgrade report. A compatible-range declaration is insufficient
-for a dependency that defines persisted snapshots.
+The wheel contains no language-runtime binaries, JavaScript source, manifests,
+lockfiles, or installed JavaScript dependencies. Standard Python packaging is
+the only installation path.
 
 ## 14. Alternatives rejected
 
@@ -507,11 +539,20 @@ _Table 4: Rejected alternatives._
 
 ## 15. Risks and deferred decisions
 
-Wenmode is beta software and may correct parser edge cases. Exact pinning,
-contract fixtures, installed-wheel tests, and a corpus-diff upgrade report make
-that risk visible rather than eliminating it. Its mdast-compatible shape may
-also differ from tools built around unified; the package name and documentation
-must not imply byte-level interoperability.
+Wenmode is beta software and may correct parser edge cases. The bounded
+requirement, contract fixtures, installed-wheel tests, and a corpus-diff
+upgrade report make that risk visible rather than eliminating it. Its
+mdast-compatible shape may also differ from tools built around unified; the
+package name and documentation must not imply byte-level interoperability.
+
+Wenmode 0.15.2's CommonMark type-1 HTML handling for `<script>`, `<style>`, and
+`<textarea>` differs from the [GFM policy][gfm-specification][^8]. The
+maintainer ratified the observed behaviour and decided not to file an upstream
+report; a future upstream correction may change payloads. JSON formatters can
+rewrite snapshot keys and cause failures. Exclude `.mdast.json` files from
+formatters that rewrite JSON. Syrupy's text write mode may produce CRLF on
+Windows even when the serializer returns LF; decide the on-disk line ending
+before the first release whose `serialize()` writes payloads.
 
 In-process parsing has less containment than the rejected child-process design.
 The v1 threat model and input limit keep that trade-off explicit. Benchmarks
@@ -538,9 +579,11 @@ The first stable implementation is acceptable when:
 - the extension compares documented syntax-equivalent Markdown and equivalent
   direct/reference links as equal while detecting every named preserved
   distinction;
+- the accepted ADR-004 parser and normalization contract and ADR-003 versioning
+  policy govern implementation, tests, and release documentation;
 - GFM footnote references and definitions remain structural snapshot nodes;
-- source-tree and installed-wheel tests parse with the exact Wenmode dependency
-  and no Bun, Node.js, TypeScript, or JavaScript package assets;
+- source-tree and installed-wheel tests parse with Wenmode satisfying the
+  bounded requirement and no Bun, Node.js, TypeScript, or JavaScript assets;
 - canonicalization properties pass generated and fixture-based verification;
 - bounded preprocessing stops without complete encoded or escaped copies;
 - concurrent and re-entrant calls use independent parser state;
@@ -563,3 +606,11 @@ The first stable implementation is acceptable when:
       2026-07-28.
 [^5]: [Wenmode security guide](https://wenmode.lepture.com/security/), accessed
       2026-07-28.
+[^6]: [Wenmode node model](https://wenmode.lepture.com/references/nodes/),
+      accessed 2026-10-12.
+[^7]: [Wenmode changelog](https://wenmode.lepture.com/changelog/), accessed
+      2026-10-10.
+[^8]: [GitHub Flavoured Markdown specification][gfm-specification], accessed
+      2026-10-10.
+
+[gfm-specification]: https://github.github.com/gfm/

@@ -1,0 +1,630 @@
+[manifest]
+body = '''[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+'''
+
+[invalid_manifests]
+no-block = '''### Contract manifest
+
+No fence.
+'''
+two-blocks = '''### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+
+### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+wrong-heading = '''### Other contract
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+invalid-toml = '''### Contract manifest
+
+```toml
+[snapshot-contract
+contract-version = 1
+```
+'''
+missing-key = '''### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+extra-key = '''### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+extra = true
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+wrong-type = '''### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = "one"
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+duplicate-heading = '''### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+
+### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+
+[status_examples]
+accepted = "## Status\n\nAccepted (2027-01-01): chosen.\n\tAccepted"
+proposed = "## Status\n\nProposed\n\tProposed"
+proposed-punctuation = "## Status\n\nProposed.\n\tProposed"
+superseded = """## Status
+
+Superseded (2027-01-01) by ADR-005.
+\tSuperseded (2027-01-01) by ADR-005."""
+missing-status = "## Context\n\nNo status.\n\t"
+empty-status = "## Status\n\n## Date\n\t"
+
+[key_order_examples]
+duplicate = "type value data data children"
+position = "type position value data children"
+wrong-first = "depth type value data children"
+wrong-last = "type value data children depth"
+data-after-children = "type value children data"
+
+[writer_examples]
+root-scalar = "42\n"
+non-root = '''{
+  "type": "paragraph",
+  "children": []
+}
+'''
+missing-children = '''{
+  "type": "root"
+}
+'''
+wrong-children = '''{
+  "type": "root",
+  "children": false
+}
+'''
+scalar-values = '''{
+  "type": "root",
+  "children": [
+    true,
+    1,
+    null,
+    "é"
+  ]
+}
+'''
+float-value = '''{
+  "type": "root",
+  "children": [
+    1.5
+  ]
+}
+'''
+misordered = '''{
+  "children": [],
+  "type": "root"
+}
+'''
+misindented = '''{"type": "root", "children": []}
+'''
+adjacent-text = '''{
+  "type": "root",
+  "children": [
+    {
+      "type": "text",
+      "value": "a"
+    },
+    {
+      "type": "text",
+      "value": "b"
+    }
+  ]
+}
+'''
+metadata-text = '''{
+  "type": "root",
+  "children": [
+    {
+      "type": "text",
+      "data": {
+        "escaped": true
+      },
+      "value": "a"
+    },
+    {
+      "type": "text",
+      "value": "b"
+    }
+  ]
+}
+'''
+
+[cases]
+parser = "current called-single called-multiline uncalled-single uncalled-multiline"
+policy = "accepted proposed-policy removed-backlink stale-backlink stale-policy-link linked-relative"
+status = "accepted proposed proposed-punctuation superseded missing-status empty-status"
+manifest = "no-block two-blocks wrong-heading invalid-toml missing-key extra-key wrong-type duplicate-heading"
+writer = "root-scalar non-root missing-children wrong-children scalar-values float-value misordered misindented adjacent-text metadata-text"
+key_order = "duplicate position wrong-first wrong-last data-after-children"
+discovery = "actual quoted backtick-fenced tilde-fenced duplicate unterminated-fence"
+links = "current backtick-fenced tilde-fenced mixed inline-code-only image-only unmatched-backtick inline-code-label html-comment-only unterminated-comment comment-with-backticks-before-real-link code-span-with-comment-opener-before-real-link comment-fence-before-real-link comment-fence-pseudo-link fenced-comment-before-real-link code-span-comment-opener-before-real-link multiline-code-span-comment-opener-before-real-link fenced-comment-multiline-code-span-before-real-link comment-fence-multiline-code-span-before-real-link"
+
+[rules]
+allowed = "remove-position remove-empty-data merge-plain-text normalize-line-endings order-members"
+
+[parser_examples]
+current = "\tclean"
+called-single = "Parser(github(), positions=False)\n\tclean"
+called-multiline = "Parser(\n    github(),\n    positions=False,\n)\n\tclean"
+uncalled-single = "Parser(github, positions=False)\n\tuncalled"
+uncalled-multiline = "Parser(\n    github,\n    positions=False,\n)\n\tuncalled"
+
+[discovery_examples]
+actual = "## Status\n\nAccepted\n\n### Contract manifest\n\trecord"
+quoted = "The note quotes ### Contract manifest as prose.\tunrelated"
+backtick-fenced = "```markdown\n### Contract manifest\n```\tunrelated"
+tilde-fenced = "~~~markdown\n### Contract manifest\n~~~\tunrelated"
+duplicate = "### Contract manifest\n\nfirst section\n\n### Contract manifest\n\nsecond section\trecord"
+unterminated-fence = "```markdown\n### Contract manifest\n\tunrelated"
+
+[link_examples]
+current = "[next](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
+backtick-fenced = "```markdown\n[next](./adr-004-parser-profile-and-normalization.md)\n```\t"
+tilde-fenced = "~~~markdown\n[next](./adr-004-parser-profile-and-normalization.md)\n~~~\t"
+mixed = "~~~markdown\n[next](./adr-004-parser-profile-and-normalization.md)\n~~~\n[next](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
+inline-code-only = "Use `[next](./adr-004-parser-profile-and-normalization.md)` as text.\t"
+image-only = "![diagram](./adr-004-parser-profile-and-normalization.md)\t"
+unmatched-backtick = "A lone ` before [next](./adr-004-parser-profile-and-normalization.md).\tdocs/adr-004-parser-profile-and-normalization.md"
+inline-code-label = "[`next`](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
+html-comment-only = "<!-- [next](./adr-004-parser-profile-and-normalization.md) -->\t"
+unterminated-comment = "<!-- [next](./adr-004-parser-profile-and-normalization.md)\t"
+comment-with-backticks-before-real-link = "<!-- `ignored --> [next](./adr-004-parser-profile-and-normalization.md)`\tdocs/adr-004-parser-profile-and-normalization.md"
+code-span-with-comment-opener-before-real-link = "`<!-- not a comment` [next](./adr-004-parser-profile-and-normalization.md) -->\tdocs/adr-004-parser-profile-and-normalization.md"
+code-span-comment-opener-before-real-link = "`<!-- literal`\n[next](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
+multiline-code-span-comment-opener-before-real-link = "`<!-- literal\nstill literal`\n[next](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
+comment-fence-before-real-link = "<!-- explanatory comment\n```\ncomment ends -->\n[next](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
+comment-fence-pseudo-link = "<!-- explanatory comment\n```\n[next](./adr-004-parser-profile-and-normalization.md)\ncomment ends -->\t"
+fenced-comment-before-real-link = "~~~markdown\n<!-- code only\n~~~\n[next](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
+fenced-comment-multiline-code-span-before-real-link = "~~~text\n<!-- fence literal\n~~~\n`<!-- span literal\ncontinued`\n[next](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
+comment-fence-multiline-code-span-before-real-link = "<!-- explanatory comment\n```\n-->\n`<!-- span literal\ncontinued`\n[next](./adr-004-parser-profile-and-normalization.md)\tdocs/adr-004-parser-profile-and-normalization.md"
+
+[normative]
+paths = "docs/syrupy-mdast-design.md docs/roadmap.md docs/users-guide.md docs/developers-guide.md"
+
+[acceptance]
+source = "https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258"
+
+[citations]
+"## 7. Parser profile and dependency policy" = "normalization"
+"## 8. Canonicalization contract" = "normalization"
+"## 11. Correctness and verification" = "normalization versioning"
+"## 13. Compatibility, distribution, and migration" = "versioning"
+
+[history_valid]
+"docs/adr-004-parser-profile-and-normalization.md" = '''## Status
+
+Superseded by [ADR-005](adr-005-normalization-contract.md).
+
+## Decision
+
+Historical normalization version 1.
+
+### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+"docs/adr-005-normalization-contract.md" = '''## Status
+
+Accepted
+
+## Decision
+
+Current normalization version 2.
+
+### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 2
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+
+[history_self]
+"docs/adr-004-parser-profile-and-normalization.md" = '''## Status
+
+Superseded by [ADR-004](adr-004-parser-profile-and-normalization.md).
+
+## Decision
+
+Historical normalization version 1.
+
+### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 1
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+"docs/adr-005-normalization-contract.md" = '''## Status
+
+Accepted
+
+## Decision
+
+Current normalization version 2.
+
+### Contract manifest
+
+```toml
+[snapshot-contract]
+contract-version = 2
+wenmode = ">=0.15.2,<0.16.0"
+parser = "Parser(github(), positions=False)"
+file-extension = "mdast.json"
+normalization = ["remove-position", "order-members"]
+key-order = ["type", "children"]
+
+[snapshot-contract.json-writer]
+encoding = "utf-8"
+byte-order-mark = false
+ensure-ascii = false
+indent = 2
+item-separator = ","
+key-separator = ": "
+allow-nan = false
+sort-keys = false
+trailing-newline = true
+```
+'''
+
+[manifest_errors]
+no-block = "manifest|snapshot-contract|heading|contract-version"
+two-blocks = "manifest|snapshot-contract|heading|contract-version"
+wrong-heading = "manifest|snapshot-contract|heading|contract-version"
+invalid-toml = "manifest|snapshot-contract|heading|contract-version"
+missing-key = "manifest|snapshot-contract|heading|contract-version"
+extra-key = "manifest|snapshot-contract|heading|contract-version"
+wrong-type = "manifest|snapshot-contract|heading|contract-version"
+duplicate-heading = "ambiguous"
+
+[normalization_examples]
+proposed-policy = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic normalization record.
+
+### Versioning policy
+
+[Versioning policy]({versioning_name})
+'''
+removed-backlink = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic normalization record.
+
+### Versioning policy
+
+[Versioning policy]({versioning_name})
+'''
+stale-backlink = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic normalization record.
+
+### Versioning policy
+
+[Versioning policy]({versioning_name})
+'''
+stale-policy-link = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic normalization record.
+
+### Versioning policy
+
+[Versioning policy](adr-999.md)
+'''
+linked-relative = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic normalization record.
+
+### Versioning policy
+
+[Versioning policy](./{versioning_name}#policy)
+'''
+
+[policy_examples]
+proposed-policy = '''## Status
+
+Proposed
+
+## Context
+
+Synthetic versioning policy.
+
+### Normalization contract
+
+[Normalization contract]({normalization_name})
+'''
+removed-backlink = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic versioning policy.
+
+### Normalization contract
+
+No reciprocal link is present.
+'''
+stale-backlink = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic versioning policy.
+
+### Normalization contract
+
+[Normalization contract](adr-999.md)
+'''
+stale-policy-link = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic versioning policy.
+
+### Normalization contract
+
+[Normalization contract]({normalization_name})
+'''
+linked-relative = '''## Status
+
+Accepted
+
+## Context
+
+Synthetic versioning policy.
+
+### Normalization contract
+
+[Normalization contract](./{normalization_name}#normalization)
+'''

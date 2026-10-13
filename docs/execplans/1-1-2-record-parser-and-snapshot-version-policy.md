@@ -5,7 +5,19 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Outcomes & retrospective`, `Conformance basis`, and `Verification plan` must
 be kept up to date as work proceeds.
 
-Status: IN PROGRESS
+Status: COMPLETE
+
+The affected assessment at published head `01ffc3e` found one remaining DOC-7
+extraction defect: a three-backtick line inside a multiline HTML comment was
+mistaken for a real fence during preliminary masking. The named
+comment/fence/multiline-code-span/link control failed there by ordinary
+assertion and passes in the repaired local candidate. The candidate passes all
+77 focused guard cases, all 180 repository tests, all seven sequential Make
+gates, and a CodeScene delta with no findings across the three eligible Python
+files. The support modules are 400 and 393 lines; the test module is 396.
+Implementation is complete. The repair remains unpublished; hosted assessment,
+review convergence, and merge are delivery work. Preserve DEC-44 and keep
+roadmap completion in PR #73.
 
 ## Purpose / big picture
 
@@ -272,11 +284,142 @@ outside its examples.
   [the hosted assessment][repair-confirmation] confirms both fixes and no
   remaining defect in EP-M1/EP-M2 pre-merge scope. Later candidate evidence
   remains separately recorded in the shared delivery ledger.
-- [ ] EP-M2 delivery: PR A merged and its squash landing SHA recorded before
-  PR B.
-- [ ] EP-M3: guard tests red, then design, roadmap, and guides reconciled
-  (pull request B).
-- [ ] EP-M4: full gate sweep, roadmap tick, retrospective.
+- [x] (2026-10-12) EP-M2 delivery:
+      [PR A](https://github.com/leynos/syrupy-mdast/pull/58)
+  merged into `main` with squash landing
+  `8e553d7875a1458e75f77b06fec399223b8aa99e`. The maintainer explicitly
+  authorized the squash merge and continuation. PR B branches from that
+  verified landing as `1-1-2-guard-snapshot-contract`. Post-merge CI, Act
+  Validation, and main coverage workflows passed on attempt 1 at that landing;
+  the shared delivery ledger retains their run and job evidence.
+- [x] (2026-10-12) EP-M3 guard scaffold: the focused command collected all
+  34 tests and failed all 34 against the frozen typed stubs, with no collection
+  or setup errors. The shared delivery ledger retains `b-stub-red.log` and
+  candidate fingerprints.
+- [x] (2026-10-12) EP-M3 helper and document witness: after two failing-test
+  repairs, 34 of 37 focused cases pass; only the two parser-construction checks
+  and missing design citations fail. `b-document-red.log` establishes
+  DOC-4/DOC-5 red before any reconciliation edit. This is the preserved
+  pre-reconciliation witness; subsequent green evidence follows.
+- [x] (2026-10-12) EP-M3 implementation validation: 37 focused cases and
+  all seven sequential commit gates pass on the reconciled candidate, including
+  140 repository tests. The audit reports no known vulnerabilities; the local
+  unpublished package and Git-sourced lint plugin are outside its PyPI audit.
+  Exact fingerprints and logs are in the shared delivery ledger.
+- [x] (2026-10-12) EP-M3 review repairs and code health: Windows link
+  regression and Unicode writer mutation controls now pass; NumPy public
+  interface documentation and private-operation decomposition preserve the
+  interface. At `cd196f1`, 38 focused cases, 141 repository tests, and all
+  seven local gates pass. Local CodeScene reviews score both helpers at 10.0,
+  with no issue across the complete branch delta. Hosted CI and Act pass on
+  attempt 1, and current CodeScene and security checks pass. The earlier
+  failure is retained for its old candidate in the shared delivery ledger.
+- [x] (2026-10-12) EP-M3 scalar and clarity repairs: at `32fe8e9`, all
+  seven local gates, 41 focused cases, 144 repository tests, the complete local
+  CodeScene delta, and hosted checks pass. The committed CLI review covers all
+  nine paths; its two repeated path-policy suggestions retain DEC-35's invalid
+  disposition. The stale retrospective status is corrected in the validated
+  `21f97af` record refresh; its completed review identifies the additional
+  writer-setting and root-envelope repairs in DEC-39.
+- [x] (2026-10-12) EP-M3 prior local closure: the committed CLI assessment at
+  `85f9cc693899162bb862dac499b9362782511ca2` completes with zero findings
+  across all nine PR B paths against
+  `8e553d7875a1458e75f77b06fec399223b8aa99e`. All seven local gates pass,
+  including 45 focused cases and 148 repository tests; both helpers score 10.0
+  in CodeScene and the full delta has no issues. CI and Act pass on attempt 1;
+  hosted CodeScene and security checks pass.
+- [x] (2026-10-12) EP-M4 renewed implementation closure: the formal-review
+  extraction repair passes 65 focused cases, 168 repository tests, all seven
+  gates, and the CodeScene delta. Tick only roadmap 1.1.2 and retain the
+  retrospective and existing-task handoffs. Final tracked records receive
+  renewed sequential gates and committed assessment; the shared ledger retains
+  their actual candidate. Published affected assessment and review resolution
+  remain separate delivery steps.
+- [x] (2026-10-12) DOC-4 local repair at `6592cf5`: whole-document detection
+  and five construction controls pass 49 focused cases and 152 repository
+  tests; all seven gates, the CodeScene delta, CI, and Act pass. The committed
+  nine-path CLI review identifies the DOC-1 repair below; its two path-policy
+  suggestions retain invalid dispositions. Affected hosted assessment remains
+  pending.
+- [x] (2026-10-12) DOC-1 self-link repair at `b80c1c1`: current, valid, and
+  self-linked histories exercise the same guard, which requires another
+  existing normalization record. All 51 focused cases, 154 repository tests,
+  seven local gates, the CodeScene delta, CI, and Act pass. The nine-path
+  committed review identifies only the consistency and record cleanup in the
+  final sweep.
+- [x] (2026-10-12) Formal-review extraction repair: real manifest headings and
+  reader-visible links share the existing fence grammar. The red witness has
+  eight ordinary failures; the repaired focused suite passes all 65 cases.
+  Publication and both Codex thread confirmations remain delivery work.
+- [x] (2026-10-13) DOC-7 comment/fence/code-span order: a fence marker inside
+  an HTML comment must remain comment text, while comment markers inside a
+  matched multiline code span remain literal. The combined named link witness
+  fails at 01ffc3e by ordinary assertion (expected sibling ADR path, received
+  an empty set). The repaired preliminary scanner now tracks comments and
+  matched code spans before recognizing fence lines; the named witness and all
+  77 focused ADR cases pass, and the private support module is exactly 400
+  lines. An earlier gate batch passed five gates and 180 tests, but exposed
+  duplicate undefined fence helpers in the public module plus scanner
+  complexity limits. Those defects are corrected; freeze the final record and
+  rerun all seven required gates sequentially before restoring implementation
+  completion. The final frozen candidate then passed all seven gates
+  sequentially; `make test` reports 180 passed. The audit found no known
+  vulnerabilities and records two unavailable-on-PyPI exclusions. The lint
+  follow-up separates comment/code-span state resumption, records literal state
+  through the scanner dataclass, and extracts code-span offset collection; the
+  private state-class docstring remains for the 100% interrogate gate. The
+  focused ADR suite passes all 77 cases, all three Python modules are within
+  400 lines, and the exact source passes a CodeScene delta with no findings
+  across all three eligible files. The final-record Markdown checks remain
+  before commit.
+- [ ] PR B delivery: candidate-bound hosted ExecPlan assessment, readiness,
+  formal review reconciliation, separately authorized squash merge, and
+  post-merge CI, Act, main coverage, and A-before-B history witness. Record the
+  actual B landing on PR #72 and in the shared ledger when it exists.
+
+- [x] (2026-10-12) CLI guard follow-up: the 12-case frozen link experiment
+  passes nine cases and reproduces three ordinary assertion failures
+  (`b-comment-red.log`), with no setup errors or source-hash drift. Repair
+  comment masking and independent reciprocal-link controls. The repair passes
+  70 focused cases, 173 repository tests, all seven gates, and CodeScene.
+  Restore only roadmap 1.1.2; final records receive renewed gates before
+  publication and candidate-bound committed and hosted assessment.
+
+- [x] (2026-10-13) DOC-7 multiline inline-code follow-up: a matched inline
+  code span can cross a line break, so a literal `<!--` inside it must not
+  start comment state or hide a later real link. The named control fails at
+  `48f5577` (`b-doc7-multiline-inline-red.log`) and passes after the repair;
+  six focused code-span/comment/fence controls pass. The existing tree-order
+  validators moved next to the public writer guard so each Python module stays
+  within 400 lines; no public function or dependency changed. The complete
+  focused suite passes 75 cases, the repository suite passes 178 tests, all
+  seven gates pass sequentially, and CodeScene reports no issues. The private
+  scanner helpers stay within the 400-line file limit.
+- [x] (2026-10-13) DOC-7 fenced-comment/code-span interaction: the named
+  combined control fails at `f01bfbd` and passes after masking fenced source in
+  the preliminary code-span scan. Candidate `e205b10` passes all 76 focused
+  guard cases and 179 repository tests. The seven gates pass sequentially, and
+  the complete CodeScene 1.0.52 base-to-head delta reports no issues across all
+  three eligible Python files. The support module is exactly 400 lines. The
+  earlier complexity and over-limit attempts remain recorded below; this final
+  refactor introduces no suppression or threshold change.
+- [x] (2026-10-13) DOC-7 inline-code follow-up: a comment opener inside a
+  matched inline-code span must not start multiline comment state or hide the
+  following real link. The named control fails at `5057aab` and passes after
+  the repair; all 74 focused ADR guard cases pass (`b-doc7-inline-*.log`). The
+  repair masks only matched code spans while detecting comment transitions. The
+  complete suite passes 177 tests; all seven gates pass sequentially, and
+  CodeScene reports no issues. The feature module remains exactly 400 lines.
+  Preserve both comment/fence controls, unmatched-backtick behaviour, the
+  twelve-file cap, and DEC-44.
+- [x] (2026-10-13) DOC-7 follow-up: add the reverse control proving that an
+  unclosed comment marker inside a real fenced block cannot suppress a reader
+  link after the fence. The complete repaired source passes 15 focused link
+  controls, all 73 ADR guard cases, 176 repository tests, all seven sequential
+  gates, and CodeScene with no issues. The feature module remains exactly 400
+  lines. Only roadmap 1.1.2 stays checked in the separate checkbox PR #73;
+  candidate-bound assessment, formal review, merge, and post-merge evidence
+  remain delivery work.
 
 ## Surprises & discoveries
 
@@ -396,7 +539,281 @@ outside its examples.
     confirms both. DEC-26 restores those details without changing the contract;
     validation and current-candidate assessment confirmation remain pending.
 
+23. Observation: the first helper implementation passes 32 of 37 focused
+    cases but accepts only bare `Proposed` and overlooks a second manifest
+    heading. Evidence: `b-helper-red.log` records the punctuation and
+    `two-blocks` failures alongside the three planned document discrepancies.
+    Impact: accept status punctuation and reject duplicate section headings
+    outside code fences. Preserve the failing cases before the repair; rerun
+    the focused suite before document reconciliation.
+
+24. The first integrated candidate passed all 37 focused cases, formatting,
+    and type checking, but Ruff rejected 46 style and complexity violations.
+    Manifest decoding, field validation, fence-aware heading discovery, and
+    JSON rendering are now separate private operations in the same support
+    module. Public APIs and named negative cases remain unchanged. Internal
+    type errors are translated to the approved manifest `ValueError` boundary.
+    Parameter names live with the synthetic examples to preserve the 400-line
+    limit; neither lint thresholds nor dependency configuration changed.
+    The later df12 lint pass required assertion diagnostics and match-based
+    dispatch. After those repairs, all seven gates pass with 140 tests. This
+    total is below the earlier 271-test runs for PR #58 because `main`'s test
+    suite changed. No tests were excluded. The audit skips two non-PyPI local
+    packages.
+
+25. The first committed PR B CLI review of `ad3f392` completed over all eight
+    paths and reported four findings representing two defects. A new regression
+    fails under a simulated native Windows path flavour; an in-memory writer
+    mutation passes the old DOC-2 guard incorrectly. DEC-33 repairs logical
+    URL path handling and the Unicode setting assertion without editing the
+    accepted ADRs. Fresh gates and committed reassessment remain pending.
+
+26. The committed reassessment of `18fb0ca` completed over all eight paths
+    and found two duplicate NumPy-docstring requests and two duplicate
+    pathlib-only requests. NumPy format is explicitly required by
+    `.rules/python-00.md`; DEC-34 separates internals to satisfy it within the
+    file-size limit. The cited pathlib-only rule is unsupported for logical
+    Markdown URLs; DEC-35 records its evidence-backed disposition. Current
+    validation and reassessment remain pending.
+
+27. Ruff rejects a wrapper's documented propagated `ValueError` because it
+    sees no explicit raise in the wrapper. Re-export the two documented
+    Markdown functions directly from the internal module, with their full
+    docstrings beside their implementations. This preserves the public API and
+    exception behaviour without duplicate implementations, redundant catches,
+    fabricated raises, or a lint suppression. The focused suite had already
+    passed all 38 cases; the refactor's full gates are renewed after this fix.
+
+28. PR B #72 is published as draft at `164c869`; all Actions jobs pass, but
+    CodeScene's new-code health and advisory gates fail. Local CodeScene 1.0.52
+    corroborates `_manifest_table` and `key_order_problems` complexity 9 at
+    threshold 9, plus private-module mean complexity 4.60 at threshold 4.
+    DEC-36 repairs those routines within the existing 12-file scope. The CLI
+    reassessment separately hit its quota; its required sampled cooldown ends
+    at 2026-10-12 03:21:58 UTC. No early retry or account/configuration change
+    is authorized by that notice. Hosted and local review evidence remain
+    candidate-specific.
+
+29. The first CodeScene repair passes all seven gates and 38 focused cases;
+    the private module reaches health 10.0, but the public module's new private
+    helpers produce mean complexity 5.14 at threshold 4. Colocate those private
+    validators with the existing private schema operations (DEC-34/DEC-36),
+    preserving their bodies and public API. Both source paths stay measured by
+    file reviews and the complete branch delta; no configuration or scope
+    exclusion is introduced.
+
+30. After the recorded 89-minute cooldown, the committed CLI review completed
+    at `80f4978`, covering all nine PR B paths against PR A's merged base.
+    It identified float acceptance and terminal fences without a closer. A
+    canonical-order float control exposes the valid scalar-domain gap; the
+    first control was misordered and rejected for an unrelated reason, so it
+    was corrected before accepting the red witness. The second focused run
+    reports two ordinary assertion failures, with no collection/setup errors.
+    The fence request is invalid against CommonMark's EOF-closing rule and
+    DOC-2's existing contract (DEC-37); it becomes a positive control. The
+    repaired tree walk rejects floats while a separate positive control retains
+    booleans, integers, null, and Unicode strings. Validation and committed CLI
+    reassessment remain pending for these repairs.
+    The 41-case focused suite passes, but the first full lint run reports
+    `_tree_problems` complexity 9 above limit 8. Classify each node's
+    mergeability once and inspect pairs of those flags, preserving the
+    adjacency rule while removing duplicated classification and a branch.
+    The structure lint still reports 9 after that simplification. Remove the
+    redundant mapping-key filter: the sole caller walks `json.loads` output,
+    whose object keys are already strings. A documented cast preserves that
+    established boundary without silently dropping a key. Renew the gates;
+    no threshold is changed. The third run confirms the lint still counts
+    nine control-flow paths; expression simplification alone does not reduce
+    that count. Extract the actual member-order diagnostic into one cohesive
+    private validator, leaving the recursive walk to traverse values and apply
+    independent checks. This validator remains local to ADR test support.
+
+31. The scalar repair at `5e8d0d7` passes 41 focused cases, all seven local
+    gates including 144 repository tests, both local helper health reviews at
+    10.0, the complete nine-path CodeScene delta, and hosted checks. Its
+    committed CLI assessment completes across all nine paths and raises five
+    fixture-efficiency, wording, and module-documentation concerns. Parse the
+    immutable synthetic TOML inventory once per test worker; keep ADR document
+    reads fresh. Reuse the already-discovered normalization document, clarify
+    the test-count sentence, remove broken compound spacing, and document the
+    private module's purpose, ownership, and usage. No new helper, file, runtime
+    behaviour, or dependency is needed. Renew gates and reassessment after these
+    bounded edits.
+
+32. At `52b3314`, the committed CLI review completes across all nine paths;
+    hosted Actions, CodeScene, and security checks pass. The next two clarity
+    edits identify PR #58 directly in the test-count paragraph and express the
+    exact plain-text predicate with a mapping pattern plus a two-key guard.
+    The third suggestion would remove the independent DOC-2 rule oracle and is
+    invalid (DEC-38). The existing metadata-bearing text control still prevents
+    merging text nodes with extra fields. Renew validation and reassessment for
+    these bounded edits. The first focused suite passes all 41 cases, but
+    Ruff rejects the literal field count as a magic value. Bind remaining
+    mapping fields and require that mapping to be empty, expressing the exact
+    plain-text shape without a numeric constant or extra schema definition.
+
+33. The review of `32fe8e9` repeats two overlapping path-library suggestions
+    already rejected by DEC-35; the reviewed resolver and repository rules have
+    not changed. Its valid third finding identifies an out-of-date Outcomes
+    paragraph. Update that paragraph to show completed scalar validation and
+    reassessment, preserving the separate pending record-refresh review and
+    EP-M4 completion work. All hosted checks pass at the reviewed candidate.
+
+34. The `21f97af` committed review completes across all nine paths and reports
+    two pairs of duplicate findings: `allow-nan = true` is accepted because
+    the guard checks only its type, and canonical non-root examples pass.
+    Four canonical root-shape controls fail with ordinary assertions; a
+    controlled in-memory `allow-nan` mutation passes the old guard after the
+    baseline passed. Add the bounded checks in DEC-39 and preserve those red
+    witnesses. The reviewed candidate's hosted checks all pass; the new repair
+    still needs its own validation and reassessment.
+
+35. The candidate-bound hosted assessment of `534241c` identifies one valid
+    DOC-4 gap: per-line matching misses multiline uncalled `github` presets.
+    Its independent inspection confirms the Windows regression's validity and
+    finds no other in-scope omission. Reopen implementation status and the exact
+    1.1.2 checkbox while repairing the guard. Add current-document, single-line,
+    and multiline called/uncalled controls through the existing fixture
+    inventory. The red scaffold retains per-line scanning to expose the gap
+    before whole-document matching is introduced. That exact five-case run
+    passes four controls and fails only `uncalled-multiline`, with an ordinary
+    assertion and no setup/collection errors (`b-doc4-red.log`). Replace it
+    with whole-document `finditer` and derive line numbers from match offsets.
+    The reply and scope evidence
+    are preserved on PR #72 and in the shared ledger.
+
+36. The committed review of `6592cf5` repeats two unsupported path-policy
+    suggestions and identifies a valid DOC-1 self-link gap. A superseded record
+    can satisfy the existing-record check with its own path. Reject self-only
+    links and exercise valid and invalid synthetic histories; retain the real
+    document case. DOC-1 does not require every supersession to point to a
+    higher version, so that broader proposed requirement is not adopted. The
+    existing Windows red witness still validates the native-path simulation;
+    no applicable rule bans pytest monkeypatching. CodeScene, CI, Act, and
+    security checks pass at the reviewed candidate. The three history controls
+    reproduce the defect: current and valid histories pass; the self-linked
+    history fails because the old guard does not raise (`b-history-red.log`).
+    Excluding the current path from eligible records is the bounded repair.
+    The green focused suite passes 51 cases; Ruff initially rejects 13 local
+    variables in the citation test after fixture extraction. Store headings
+    directly as fixture keys and inline two immediate document-read bindings,
+    preserving the same citations while meeting the existing local-variable
+    limit. Fresh gates must validate that cleanup.
+
+37. The final-record review of `d5200dc` completes across all nine paths with
+    two trivial findings. Remove `_writer_settings`' redundant value filter:
+    exact key equality and the preceding exact-type loop establish the typed
+    dictionary copy. Retain those checks and every writer field. The repeated
+    claim that the Windows patch cannot detect native-path regressions remains
+    invalid: the original native-Path implementation failed the same preserved
+    assertion. This bounded cleanup needs renewed gates and committed review;
+    it changes no public API, manifest field, or runtime behaviour.
+
+38. The committed review of `82ebd78` identifies one valid handoff-label
+    defect: Surprise 7 belongs to narrow failure translation (2.2.2), whereas
+    the native Syrupy lifecycle and on-disk line ending belong to 2.3.1.
+    Clarify those separate handoffs. Its repository-key suggestion cites a
+    nonexistent global pathlib rule: direct `docs/adr-*.md` filenames form
+    logical POSIX keys, and the filesystem reads already use `pathlib`.
+    Its metadata suggestion attaches the wrong manifest to a UNIT-3 control.
+    That independent minimal manifest declares only `type` and `children`, so
+    unknown `data` precedes `value` alphabetically. DOC-6 checks normative
+    examples with the accepted manifest; this unit control does not claim v1
+    payload bytes. Preserve the valid synthetic control and record both invalid
+    dispositions rather than changing its authority boundary.
+
+39. Formal review at `1b55ead` identifies two valid Codex P2 findings: raw
+    substring discovery mistakes quoted/fenced text for manifest headings, and
+    regex link extraction counts fenced pseudo-links as reader-visible links.
+    Reuse the existing fence-aware heading scanner and one shared unfenced-line
+    traversal. Move the existing pure logical-link resolver into the private
+    feature module to preserve the test file's 400-line cap while adding named
+    extraction controls. Preserve duplicate real headings so manifest parsing
+    still reports ambiguity. No file, public API, or dependency is added.
+    CodeRabbit's separate Testing (Overall) error and Property / Proof warning
+    receive focused reconciliation against DOC-2/3/4 and DEC-12; neither row is
+    ignored or waived by green CI or the earlier assessment. The substantive
+    [scope reply](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118750431)
+    withdraws both testing demands because they extend the approved contract;
+    it explicitly leaves the two Codex repairs, live failed rows, and formal
+    change request unresolved. Record that scope disposition and reconcile
+    actual review state after the repairs are published. The frozen red run
+    collects 22 extraction/manifest controls: 14 pass and eight fail by ordinary
+    assertions (`b-extraction-red.log`). Four discovery failures are quoted,
+    backtick-fenced, tilde-fenced, and unterminated-fence cases; four link
+    failures are fenced, inline-code-only, or image-only lookalikes. All eight
+    malformed-manifest controls already pass, including duplicate real headings.
+    The repair shares `_unfenced_lines` with `_headings` and logical links, and
+    excludes matched inline code spans and images. CommonMark 0.31.2 §6.1's
+    exact backtick delimiter runs[^commonmark-code-spans] and example 484's empty
+    link text[^commonmark-empty-links] were checked against primary HTML. Mask
+    inline code with a space to preserve the outer reader link without joining
+    surrounding tokens. This remains a bounded ADR-link extractor, not a full
+    Markdown parser. The complete repaired suite passes 65 focused cases and
+    168 repository tests; all seven gates and the nine-path CodeScene delta
+    pass (`b-extraction-*.out` and the shared ledger). Restore the exact task
+    checkbox only after those results; final record edits receive renewed gates.
+
+40. The committed review of `337d210` reports four findings. The roadmap
+    claim is invalid: DEC-19 declines a report on the known, ratified GFM
+    divergence; roadmap 3.2.1 conditionally classifies future regressions
+    requiring a report. Preserve that approved wording. The comment-only link
+    defect is valid, as are both duplicate findings about live backlink
+    mutations depending on bare filenames. Reopen implementation activity and
+    roadmap 1.1.2 while repairing those two underlying guard issues. Keep the
+    accepted ADRs and ready PR unchanged. The frozen 12-case link experiment
+    passes nine cases and fails three by ordinary assertions: closed and
+    unterminated comments count as links, while a backtick in a comment hides
+    a real link after the comment. All nine file hashes remain unchanged
+    across the experiment (`b-comment-red.log` and freeze inventory). The
+    repaired suite passes 70 focused cases and 173 repository tests; all seven
+    gates and CodeScene pass with identical frozen hashes. Synthetic policy
+    pairs also verify valid `./` sibling links with fragments through the same
+    guard. Both duplicate backlink findings are addressed by this change.
+
+A new current-head DOC-7 control reproduces an ordinary assertion failure: a
+three-backtick line inside a multiline HTML comment is incorrectly masked as a
+fence, preventing discovery of a later multiline code span and reader-visible
+ADR link. The assessment confirms this is an existing extraction obligation,
+not a request for full Markdown parsing or additional property tests.
+
 ## Decision log
+
+- DEC-49. Decision: retain a private `_active_code_span_indexes` helper for
+  the single responsibility of selecting spans that intersect a source line.
+  This keeps `_scan_unfenced_line` below the CodeScene complexity threshold
+  without disabling rules or weakening the DOC-7 scanner. Fence-opening lines
+  remain literal during masking, and error messages retain their exact text.
+  Keep the module at or below 400 lines and preserve the existing API and
+  fixture contract. Date/Author: 2026-10-13, implementation agent.
+
+- DEC-48. Decision: preliminary matched-code-span discovery must respect
+  actual fenced regions. Mask non-newline fence contents and delimiters with an
+  offset-preserving sentinel before applying the combined comment/code matcher;
+  the matcher cannot consume across that sentinel. This keeps an unclosed
+  comment in a fence from suppressing a later multiline inline-code span and a
+  reader-visible ADR link. Preserve existing fence/comment precedence,
+  unmatched-backtick behaviour, path resolution, helper API, dependencies, and
+  file/scope caps. Date/Author: 2026-10-13, implementation agent.
+
+- DEC-47. Decision: matched inline code spans that cross physical lines must
+  remain literal while the bounded DOC-7 extractor tracks HTML comments. Use
+  the existing combined literal matcher to locate ranges, mask those ranges for
+  comment-state transitions, and keep fenced blocks ahead of inline matching.
+  Preserve the actual comment/fence controls and the 400-line module cap by
+  colocating private JSON tree and key-order diagnostics with the public writer
+  guard that owns them. This relocates private implementations only; it adds no
+  public API, file, dependency, or production behaviour. Date/Author:
+  2026-10-13, implementation agent.
+
+- DEC-46. Decision: before logical-link discovery starts multiline HTML
+  comment state, matched inline code delimiters on the line are literal text.
+  Preserve actual comments, unmatched-backtick behavior, and both established
+  fence/comment precedence controls by reusing the current combined literal
+  matcher to mask only matched code spans during state detection. Keep the
+  implementation feature-local and within the existing API, dependency,
+  400-line, and twelve-file bounds. Date/Author: 2026-10-13, implementation
+  agent.
 
 - DEC-1. Original decision (superseded by DEC-24): the combined ADR is
   `docs/adr-003-parser-profile-and-snapshot-version-policy.md`, titled
@@ -788,37 +1205,278 @@ outside its examples.
   changes neither the accepted contract nor its required outcomes. Date/Author:
   2026-10-11, implementation agent, verified local findings.
 
+- DEC-29. Decision: preserve the approved text-only helper interfaces while
+  clarifying two verification descriptions. DOC-7 follows ADR-004's versioning
+  link to ADR-003 and checks the reciprocal normalization link in ADR-003.
+  UNIT-1 expects the pure `adr_status(markdown)` helper to reject missing or
+  empty status sections; filename context belongs to the document-reading test
+  caller. No filename parameter or file I/O is added to the helper. Rationale:
+  the published descriptions misplaced the reciprocal heading and requested
+  filename knowledge unavailable to the approved one-argument interface. These
+  corrections preserve the status, manifest, and reciprocal-link obligations.
+  Date/Author: 2026-10-12, implementation agent.
+
+- DEC-30. Decision: keep hand-written manifest examples and malformed
+  UNIT-2 inputs in `tests/support/adr_contract_examples.toml`. The guard test
+  reads this test-support data through `REPO_ROOT`; helper functions remain
+  text-only and perform no I/O. Rationale: embedding the examples made the test
+  module exceed the repository's 400-line limit. Moving data out follows
+  AGENTS.md without weakening the negative controls. This is parser test data,
+  not the Markdown contract corpus or canonical snapshot fixtures owned by
+  roadmap 1.1.3. The combined two-PR scope is 11 distinct files, within the
+  approved 12-file tolerance. Counting the roadmap once corrects the earlier
+  duplicate count. Date/Author: 2026-10-12, implementation agent.
+
+- DEC-31. Decision: share `section_body(markdown, heading)` in the pure ADR
+  test-support module instead of keeping a second heading extractor in the
+  guard module. The manifest parser and document checks use the same bounded
+  Markdown section convention. The function returns section text or raises
+  `ValueError` for a missing heading; document-reading callers add filename
+  context. Rationale: the DOC-7 negative controls expanded the guard beyond 400
+  lines, and sharing the existing text-only extraction avoids duplication. Its
+  scope is these ADR/document contract tests, not a general Markdown parser or
+  runtime API. No file access or dependency is added. Date/Author: 2026-10-12,
+  implementation agent.
+
+- DEC-32. Decision: preserve the roadmap's existing layout when applying
+  the approved replacements. `mapsplice replace` previews correctly change each
+  selected task but also insert blank lines in neighbouring task lists,
+  matching the renderer-preservation issue described in
+  [mapsplice issue 24](https://github.com/leynos/mapsplice/issues/24). After
+  inspecting the previews, apply only the approved fragments as minimal
+  task-text patches; do not copy the unrelated spacing changes. Task numbers,
+  `Requires` references, and checkbox states remain unchanged. No new product
+  issue is created. Rationale: the installed renderer's formatting must not
+  widen DEC-3/DEC-21/DEC-24's approved roadmap scope. Date/Author: 2026-10-12,
+  implementation agent.
+
+- DEC-33. Decision: resolve Markdown link strings with `PurePosixPath` and
+  lexical POSIX normalization, preserving full repository keys and `..`
+  handling independently of the native filesystem. A simulated Windows `Path`
+  regression first fails with backslash keys, then exercises the repair. This
+  avoids filesystem lookup for logical document URLs. Directly assert the
+  accepted writer's `ensure-ascii = false` value because ASCII examples and a
+  type comparison alone do not detect its mutation. The first milestone CLI
+  review reported each defect twice; these two repairs address all four
+  findings. Date/Author: 2026-10-12, implementation agent.
+
+- DEC-34. Decision: move the pure private parsing and validation operations
+  into `tests/support/_adr_contract_support.py`, preserving the seven public
+  functions and typed record in `adr_contract.py`. This creates room for the
+  required NumPy Parameters, Returns, Raises, and Attributes documentation
+  without exceeding 400 lines in either module. The combined two-PR scope is
+  now 12 distinct files, exactly the approved tolerance. No further file is
+  permitted without escalation. The internal module is reused only within the
+  ADR test-support feature; it performs no I/O and adds no dependency.
+  Date/Author: 2026-10-12, implementation agent.
+
+- DEC-35. Decision: retain lexical POSIX normalization for Markdown URL
+  strings. The reassessment's duplicate pathlib-only findings quote a rule not
+  present in the repository; scripting standards require `pathlib.Path` for
+  filesystem interactions, while this operation has no filesystem access.
+  `PurePosixPath` fixes native separator selection, and `posixpath.normpath`
+  correctly preserves the required `..` normalization. Read-only verification
+  and the passing Windows regression support this disposition. Replacing the
+  standard normalizer with a custom component algorithm would add unnecessary
+  code and verification obligations. Date/Author: 2026-10-12, implementation
+  agent.
+
+- DEC-36. Decision: repair CodeScene's current code-health failures through
+  cohesive decomposition and simpler validation. Separate manifest selection,
+  TOML decoding, and root-table schema checks; separate key framing from member
+  dependencies; and separate fence production from language filtering.
+  Container validators check their complete element/key type before a justified
+  cast. Public APIs, diagnostic order, and accepted contract values remain
+  unchanged. The new private routines are local to the same ADR support
+  feature. Do not change rule weights, thresholds, suppressions, dependencies,
+  or file scope. Date/Author: 2026-10-12, implementation agent.
+
+- DEC-37. Decision: enforce the ADR-004 scalar domain by diagnosing decoded
+  JSON floats, including nested values. Keep booleans, integers, strings, and
+  null accepted. Preserve terminal fenced blocks closed implicitly by EOF:
+  [CommonMark 0.31.2 §4.5](https://spec.commonmark.org/0.31.2/#fenced-code-blocks)
+  explicitly permits that syntax, and DOC-2 does not impose an explicit
+  closing delimiter. Verify that behavior as a positive typed-manifest case,
+  rather than narrowing the approved contract in response to an invalid CLI
+  finding. Move the existing key-order case inventory beside the other TOML
+  inventories to accommodate the controls within the 400-line test-module cap;
+  this remains the same finite test scope. The primary specification was
+  retrieved through Firecrawl on 2026-10-12 (HTTP 200). Date/Author:
+  2026-10-12, implementation agent.
+
+- DEC-38. Decision: retain the test's independent normalization-rule allow-list
+  and subset assertion. DOC-2 requires identifiers drawn from DEC-6's five
+  ratified rules. The private `_NORMALIZATION_RULES` is part of `read_manifest`
+  validation under test, so deriving the oracle from that same implementation
+  would let joint helper/manifest drift pass. The repeated literals implement
+  distinct authority boundaries, not an accidental duplicate helper. A code
+  comment records this purpose; read-only verification confirms the trace
+  links. The repository style rules require public-behaviour tests but do not
+  assert a separate independent-oracle policy. Date/Author: 2026-10-12,
+  implementation agent.
+
+- DEC-39. Decision: compare all parsed writer settings with the independent
+  synthetic v1 fixture, alongside the existing key/type checks. This covers
+  `allow-nan` and other settings that positive examples cannot expose. Validate
+  the root envelope required by design §8: a mapping with `type == "root"` and a
+  `children` array. The new `_root_shape_problems` helper owns only that
+  envelope; the existing recursive checker owns member order, plain-text
+  adjacency, and scalar-domain diagnostics. No equivalent validator exists in
+  current production or test-support code; the existing `ast-shape` error type
+  does not validate values. Keep this helper private to ADR test support, allow
+  scalar children in the finite writer controls, and leave full node-schema
+  validation to the planned runtime implementation. No new file, dependency, or
+  production abstraction is introduced. Date/Author: 2026-10-12, implementation
+  agent.
+
+- DEC-40. Decision: search each entire allowlisted document for DOC-4's exact
+  pattern, derive diagnostic lines from match offsets, and test both
+  single-line and multiline constructions through the same detection path. Move
+  the five ratified rule identifiers to the independent TOML fixture to
+  accommodate the controls within the 400-line test cap; the oracle remains
+  independent of the manifest validator (DEC-38). No helper, public API,
+  dependency, or file is added. Reopen the implementation record and exact task
+  checkbox until the repair is validated. Date/Author: 2026-10-12,
+  implementation agent.
+
+- DEC-41. Decision: a Superseded normalization record must link to a different
+  existing normalization record. Exclude its own path from eligible targets and
+  add current-document, valid-history, and self-linked-history controls through
+  the same DOC-1 assertions. Do not impose a universal higher-version link
+  rule: DOC-1 does not state one, and ADR-004 requires it specifically for
+  payload changes. Existing literal document metadata may move to the
+  independent TOML fixture to preserve the 400-line code cap; no file, helper,
+  public API, or dependency is added. Retain DEC-35 and the Windows red witness
+  for the two invalid path suggestions. Date/Author: 2026-10-12, implementation
+  agent.
+
+- DEC-42. Decision: repair the two formal-review Markdown extraction defects
+  with one private fence-aware traversal reused by heading discovery and
+  logical ADR links. Keep these helpers feature-local; the manifest API remains
+  seven functions and one record. A quoted or fenced heading is not a manifest
+  section; duplicate real headings remain discoverable and fail existing
+  ambiguity validation. Add named current/positive/negative controls through
+  the actual discovery and link paths, and preserve scope and code-size caps.
+  Reopen the exact implementation checkbox until repaired and validated. Date/
+  Author: 2026-10-12, implementation agent.
+
+- DEC-43. Decision: exclude HTML comments and matched inline code spans in
+  one leftmost literal matcher before discovering logical reader links. Add
+  named negative comment controls and positive controls for comment/code
+  delimiter interaction. Replace reciprocal-link negative mutations of live
+  prose with independent synthetic documents passed through the same guard;
+  retain freshly read accepted ADRs as the positive baseline. Valid sibling
+  links with `./` and fragments must resolve normally. No new file, public API,
+  dependency, or production behaviour is introduced; retain the 400-line code
+  cap and 12-file combined scope. Date/Author: 2026-10-12, implementation agent.
+- DEC-44. Decision: keep the roadmap completion checkbox in separate PR #73,
+  as requested, so PR #72 first lands the parser-contract reconciliation and
+  guard needed by that completion claim. Leave item 1.1.2 unchecked in this
+  branch; merge #73 only after #72 lands, then rebase and reassess #73 against
+  the updated base. Date/Author: 2026-10-13, implementation agent.
+- DEC-45. Decision: in logical-link discovery, a standalone fence delimiter
+  inside a multiline HTML comment must not start a Markdown code fence and hide
+  later reader-visible links. Conversely, comment delimiters inside a real
+  fenced block must not start comment state that suppresses links after the
+  closing fence. Reuse the feature-local stateful traversal and preserve the
+  accepted-link, API, dependency, and 12-file boundaries. Date/Author:
+  2026-10-13, implementation agent.
+
+- DEC-50. Decision: preliminary fence masking must share Markdown lexical
+  precedence with comment and matched inline-code recognition. Fence markers
+  inside an HTML comment remain literal; comment markers inside an actual fence
+  or a matched inline-code span remain inert. Preserve source offsets,
+  unmatched backtick behaviour, POSIX link resolution, and all existing
+  controls. Add the named combined regression through the existing link guard.
+  Keep the existing files, public API, dependencies, 400-line per-module limit,
+  twelve-file combined scope, and DEC-44 checkbox split. Place existing private
+  JSON rendering beside its sole public writer consumer and keep fenced-block
+  selection defined with its public interface, preserving their behaviour and
+  signatures, to leave room for the bounded scanner repair. Date/Author:
+  2026-10-13, implementation agent.
+
 ## Outcomes & retrospective
 
-The combined draft was published at `aa3ba1e` with six passing local gates, 271
-tests, a zero-finding local CLI review, and passing hosted Actions. That is
-historical evidence for the combined record, not validation of this split.
-DEC-24 now separates versioning and normalization and records the accepted A
-and G decisions. DEC-25 records explicit acceptance of both complete rewritten
-texts; PR A merge still gates PR B. The exact 1.1.2 roadmap item remains
-unchecked. The shared delivery ledger and evidence are under
-`/tmp/syrupy-mdast-1-1-2-release-check/`. All six sequential gates passed the
-split on 2026-10-11, including 271 tests. Final gate, committed CLI review, and
-publication evidence are recorded there for their actual candidates. No
-formal/symbolic proof artefact changes. The acceptance candidate `8a88cd4`
-passes local and hosted gates; its assessment identified two documentation
-repairs recorded in DEC-26. At `60a92e2`, those repairs, reference links, and
-evidence-scope clarifications pass all six gates, 271 tests, the committed CLI
-review, and hosted checks. The
-[candidate-bound assessment][repair-confirmation] confirms no remaining
-in-scope defect. This is historical candidate evidence; the shared ledger
-retains later validation and review state. PR A remains unmerged, and PR B
-remains pending.
+The maintainer accepted A (no payload version marker), G (merge plain text),
+and both complete written records. ADR-003 owns versioning; ADR-004 owns the
+parser profile and normalization manifest. The accepted requirement remains
+`>=0.15.2,<0.16.0`. [PR A #58](https://github.com/leynos/syrupy-mdast/pull/58)
+merged into `main` on 2026-10-12 as `8e553d7875a1458e75f77b06fec399223b8aa99e`,
+before any PR B guard change was committed. Its post-merge CI, Act, and main
+coverage workflows passed. The preceding split and acceptance gates, assessment
+repairs, and review results remain historical evidence for their recorded
+candidates in the shared ledger.
 
-At completion, record both pull requests' merge SHAs and these handoffs:
-Surprise 7 to roadmap 2.2.2; on-disk line endings to 2.3.1; the Dependabot
-ignore and bounded-requirement guard to 1.2.1; adapter construction to 1.2.2;
-canonicalizer invariants and merge-before-normalize to 2.1.2; writer settings
-and strict UTF-8 pre-check to 2.2.1; and range/lockfile upgrade reporting to
-3.2.1. No formal proof artefact is introduced or changed (DEC-12).
-Final-candidate quality gates and local CLI review use the shared delivery
-ledger; those results do not establish hosted assessment, maintainer
-acceptance, or merge.
+The
+[hosted assessment](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6117871792)
+of `534241c` found a DOC-4 multiline gap. Its
+[follow-up](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118585797)
+cleared the repaired implementation at `1b55ead`, with 51 guard cases and 154
+repository tests. Later formal reviews exposed Markdown extraction defects;
+their frozen controls reproduced ordinary failures, and the corresponding
+repairs passed 70 focused cases, 173 repository tests, all seven gates, and
+CodeScene. The subsequent DOC-7 assessment of `1752d24` found that fence
+markers inside multiline HTML comments can corrupt later link discovery. The
+frozen red control passed 13 of 14 link cases and exposed that gap. The later
+assessment of `5057aab` found a same-line matched-code comment opener; the
+control failed at `5057aab` and passed at `48f5577`. A focused probe then found
+the equivalent case across a newline, red at `48f5577`; six targeted controls
+pass after the expanded repair. Earlier candidate `f01bfbd` passed 75 focused
+cases, 178 repository tests, all seven sequential gates, and CodeScene 1.0.52
+with no issues. Private JSON tree and key-order checks now sit with the public
+writer guard so all Python modules remain below 400 lines. The affected
+assessment of `f01bfbd` exposed a combined fence/comment/code-span interaction.
+The named control fails on that published candidate and passes after
+offset-preserving fence masking. The final local candidate `e205b10` passes 76
+focused guard cases, all 179 repository tests, all seven sequential gates, and
+the full CodeScene 1.0.52 delta with no issues. The three Python modules are
+400, 334, and 396 lines. Implementation activity is complete; publication,
+current hosted checks, affected reassessment, formal review convergence, and
+merge remain delivery work. The roadmap checkbox stays in the separate PR #73.
+The
+[scope reconciliation](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118750431)
+withdraws the additional testing demands under DOC-2/3/4 and DEC-12; the live
+failed rows and current change-request review still need reconciliation.
+
+[PR B #72](https://github.com/leynos/syrupy-mdast/pull/72) implements DOC-1
+through DOC-7 and UNIT-1 through UNIT-3 and reconciles the four required
+documents. It includes the multiline and self-link controls, actual-heading
+discovery, and reader-link controls. The final record and exact checkbox update
+are gated before publication; their candidate-bound evidence belongs in the
+shared ledger. Earlier zero-finding committed reviews and hosted green results
+remain historical evidence for their actual heads, rather than being attributed
+to this later repair.
+
+Red witnesses cover the frozen stubs, pre-reconciliation DOC-4/DOC-5 failures,
+Windows path separation, the scalar domain, malformed root envelopes, and
+in-memory writer-setting mutations. The fixture inventory remains synthetic
+unit-control data. It is not roadmap 1.1.3's Markdown corpus. Writer controls
+check the root envelope and allowed scalar domain without claiming full
+node-schema validation. The test's rule oracle remains independent of the
+manifest validator (DEC-38). No formal or symbolic proof is introduced or
+changed; these finite examples do not prove universal parser equivalence
+(DEC-12). The audit reports no known vulnerabilities but excludes the local
+project and Git-sourced lint plugin, which are unavailable on PyPI.
+
+The handoffs remain with their existing roadmap tasks: corpus construction to
+1.1.3; bounded dependency declaration, licence, Dependabot ignore, and manifest
+equality to 1.2.1; fresh adapter construction and parser-state isolation to
+1.2.2; canonicalizer invariants and merge-before-normalize to 2.1.2; writer
+settings and strict UTF-8 pre-check to 2.2.1; Surprise 7's narrow failure
+translation to 2.2.2; the native Syrupy lifecycle and on-disk line endings to
+2.3.1; and requirement/lockfile upgrade reporting to 3.2.1. No future task is
+marked complete by this delivery. The two PRs touch exactly twelve distinct
+files; PR B changes nine, with all three Python modules within the 400-line
+cap. No runtime dependency, production parser, corpus, or snapshot change is
+included.
+
+PR B's squash landing is pending separate merge authorization and review
+convergence. Its actual landing SHA, post-merge workflows, and the main-history
+ordering witness will be recorded on PR #72 and in
+`/tmp/syrupy-mdast-1-1-2-release-check/delivery-ledger.md`. Implementation
+completion does not establish hosted assessment clearance, formal approval,
+merge, or integration success. The `pr-babysitting` lifecycle owns those
+remaining delivery gates using this same ledger.
 
 ## Context and orientation
 
@@ -1018,11 +1676,11 @@ and UNIT-1 to UNIT-3 remain pending on pull request B.
 
 **DOC-1: exactly one current normalization-contract ADR.** Statement: among
 `docs/adr-*.md` files containing `### Contract manifest`, exactly one is
-Accepted; others are Superseded with a link naming an existing normalization
-record. Their manifest `contract-version` values run 1 to N without gaps, with
-the accepted record holding N. Method: explicit assertions. Artefact:
-`test_exactly_one_normalization_contract_adr_is_accepted`. Discovery remains
-valid across future normalization supersession. Non-vacuity: the set is
+Accepted; others are Superseded with a link naming a different existing
+normalization record. Their manifest `contract-version` values run 1 to N
+without gaps, with the accepted record holding N. Method: explicit assertions.
+Artefact: `test_exactly_one_normalization_contract_adr_is_accepted`. Discovery
+remains valid across future normalization supersession. Non-vacuity: the set is
 non-empty and includes ADR-004. Versioning ADR-003 deliberately has no manifest
 and is checked separately by DOC-7. Negative controls: UNIT-1.
 
@@ -1089,9 +1747,9 @@ mis-ordered and a mis-indented example to the same checker.
 
 **DOC-7: accepted policy and reciprocal record links.** Statement: the current
 normalization record's `### Versioning policy` links an existing Accepted
-versioning ADR. Its `### Normalization contract` links the same current
-normalization record discovered by DOC-1. Method: standard-library Markdown
-link extraction and status assertions. Artefact:
+versioning ADR. That versioning record's `### Normalization contract` links the
+same current normalization record discovered by DOC-1. Method: standard-library
+Markdown link extraction and status assertions. Artefact:
 `test_version_policy_adr_is_accepted_and_linked`. Do not discover versioning
 records by looking for a duplicate manifest. Negative controls: a Proposed
 policy record and removed or stale cross-links must fail the same checker. Both
@@ -1104,7 +1762,9 @@ Markdown strings:
 
 1. UNIT-1: `adr_status` returns `Accepted`, `Proposed`, and
    `Superseded (2027-01-01) by ADR-005.` for the three forms, and raises
-   `ValueError` naming the file when `## Status` is missing or empty.
+   `ValueError` when `## Status` is missing or empty. The document-reading test
+   caller supplies the filename in its failure context; the pure helper
+   receives Markdown text, not a filename (DEC-29).
 2. UNIT-2: `read_manifest` returns the dataclass for a well-formed block, and
    raises `ValueError` for no block, two blocks, a block under the wrong
    heading, invalid TOML, a missing key, an extra key, and a wrong type.
@@ -1282,13 +1942,14 @@ complete the retrospective, set this plan to `COMPLETE`.
   design text; no production file touched; roadmap edits equal DEC-3 and
   DEC-21's and DEC-24's approved scope.
 - Recovery: tests and documents are independent files; revert per file.
-- Remaining gaps: roadmap tick and retrospective.
+- Remaining gaps at this milestone: the roadmap checkbox is tracked separately
+  in PR #73 under DEC-44; the EP-M4 retrospective is recorded below.
 - Compatibility decision: none.
 
 ### EP-M4: sweep and close (pull request B)
 
-- Outcome: all gates pass; roadmap 1.1.2 ticked (DEC-3 edit 1); this plan
-  `COMPLETE` with retrospective and handoffs.
+- Outcome: implementation gates pass; this plan is `COMPLETE` with retrospective
+  and handoffs. The roadmap checkbox remains in PR #73 under DEC-44.
 - Acceptance evidence: gate logs, and, on `main` after pull request B merges,
   the following command lists pull request A's squash commit below pull request
   B's:
@@ -1381,9 +2042,25 @@ Quality criteria:
 
 Red-Green-Refactor record (fill in during EP-M3):
 
-- Red: the focused command; expected failures listed under EP-M3.
-- Green: the same command; all pass.
-- Refactor: Constraint 10's full sequence.
+- Red: `uv run pytest -v tests/test_snapshot_contract_adr.py` collected 34
+  tests and reported 34 ordinary assertion failures against typed stubs on
+  2026-10-12 (`b-stub-red.log`). The separate DOC-4/DOC-5 witness after helper
+  implementation is recorded in `b-document-red.log`: 34 passing helper and
+  document cases, with only DOC-4/DOC-5 failing.
+- Green: the focused command passes all 37 cases after the four-document
+  reconciliation (`b-df12-repair-focused.log`, 2026-10-12). Subsequent Windows,
+  scalar-domain, writer-setting, and root-envelope controls pass all 45 cases
+  (`b-root-focused.log`); the `allow-nan` mutation is rejected in
+  `b-allow-nan-fixed.log`. DOC-4's multiline witness passes four controls and
+  fails the uncalled multiline case before repair; DOC-1's history witness
+  passes current and valid histories and fails the self-link case before
+  repair. Their repairs pass 51 focused and 154 full-suite cases
+  (`b-history-clean-*.log`).
+- Refactor: helper decomposition, explicit assertion diagnostics, and match
+  dispatch preserve all cases. Constraint 10's sequence plus `make audit` passes
+  (`b-df12-repair-*.log`); that historical suite reports 140 tests. Later
+  bounded decomposition and review repairs pass all seven gates and 148 tests at
+  `85f9cc6`; final-record candidate evidence is retained separately.
 
 No pytest-bdd feature file is part of this plan (DEC-12).
 
@@ -1689,6 +2366,7 @@ class SnapshotContractManifest:
 def adr_status(markdown: str) -> str: ...
 def read_manifest(markdown: str) -> SnapshotContractManifest: ...
 def fenced_blocks(markdown: str, language: str) -> list[str]: ...
+def section_body(markdown: str, heading: str) -> str: ...
 def key_order_problems(key_order: cabc.Sequence[str]) -> list[str]: ...
 def rule_order_problems(normalization: cabc.Sequence[str]) -> list[str]: ...
 def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[str]: ...
@@ -1696,7 +2374,12 @@ def writer_problems(document: str, manifest: SnapshotContractManifest) -> list[s
 
 `tests/test_snapshot_contract_adr.py` owns all file reads (through
 `tests.support.make_contract.REPO_ROOT`) and holds DOC-1 to DOC-7 and UNIT-1 to
-UNIT-3.
+UNIT-3. Hand-written manifest and malformed-input examples are stored in
+`tests/support/adr_contract_examples.toml` to keep the test module within 400
+lines (DEC-30); this is test-support data, not the future contract corpus.
+Private parsing and validation operations live in
+`tests/support/_adr_contract_support.py` (DEC-34); the public module retains
+the documented interface and does not introduce an import cycle.
 
 ## Revision notes
 
@@ -1787,3 +2470,136 @@ UNIT-3.
 
 [repair-confirmation]:
   https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6114244769
+
+- 2026-10-12: record PR A's authorized squash landing and begin EP-M3 on
+  `1-1-2-guard-snapshot-contract` from the updated `main`.
+
+- 2026-10-12: published PR B #72 as draft after PR A's landing. Preserved
+  the red-to-green witnesses, fixed two valid local review defects, documented
+  the public interfaces, and repaired CodeScene within the 12-file tolerance. At
+  `cd196f1`, all seven local gates, 38 focused cases, 141 full-suite cases,
+  hosted Actions, CodeScene, and security checks pass. Effect on remaining
+  work: honor the sampled CLI cooldown, close EP-M3 on completed assessment,
+  then perform EP-M4 and hosted delivery assessment.
+
+- 2026-10-12: close EP-M3 on the zero-finding nine-path review at `85f9cc6`,
+  complete the exact 1.1.2 implementation item and retrospective, and retain
+  hosted assessment, review, B merge authority, and post-merge evidence as
+  separate pending delivery work. Final tracked records are gated before
+  publication; the shared ledger records their actual candidate.
+
+- 2026-10-12: repair the hosted DOC-4 gap at `6592cf5` with five constructor
+  controls, 49 focused and 152 full-suite passes, and green local and hosted
+  gates. Its committed review exposes the narrower DOC-1 self-link defect;
+  retain implementation status as in progress while exercising that repair.
+
+- 2026-10-12: validate the DOC-1 self-link repair at `b80c1c1` with 51 focused
+  and 154 full-suite passes and green hosted checks. Apply the last committed
+  review's three bounded cleanup findings in the final sweep: coherent EP-M4
+  wording, POSIX filename extraction, and a compiled closing-fence pattern.
+  Affected hosted reassessment and B delivery remain separate pending work.
+
+- 2026-10-12: complete EP-M4 implementation activity after the final cleanup
+  passes 51 focused cases, 154 repository tests, all seven gates, and
+  CodeScene. Restore only roadmap 1.1.2's checkbox; gate and assess the final
+  record before its hosted reassessment and later delivery transitions.
+
+- 2026-10-12: the committed final-record review at `d5200dc` completes with
+  two trivial findings and green hosted checks. Remove the redundant writer
+  filter after exact schema validation; retain the evidence-backed Windows
+  regression disposition. Revalidate this bounded cleanup before publication
+  and affected hosted assessment.
+
+- 2026-10-12: clarify the final handoff label after the `82ebd78` review;
+  retain invalid dispositions for the logical-key pathlib claim and the
+  synthetic metadata control's alleged v1 ordering. Source and test hashes
+  remain unchanged; renew the required gates for this record edit.
+
+- 2026-10-12: the ready PR's formal review finds two Markdown extraction
+  defects. Reopen implementation status and only roadmap 1.1.2, retain the
+  ready PR, and reconcile pre-merge testing rows against the approved
+  verification scope. The earlier clear assessment remains evidence for its
+  original head.
+
+[^commonmark-code-spans]: <https://spec.commonmark.org/0.31.2/#code-spans>
+[^commonmark-empty-links]: <https://spec.commonmark.org/0.31.2/#example-484>
+
+- 2026-10-12: close the renewed implementation activity after the extraction
+  repair passes 65 guard cases, 168 repository tests, all seven gates, and
+  CodeScene. Restore only roadmap 1.1.2. Keep published candidate assessment,
+  thread confirmation, pre-merge reconciliation, B authorization, and landing
+  evidence in the delivery loop.
+
+- 2026-10-12: reopen implementation activity for the committed review's
+  comment-only link defect and two duplicate backlink-control findings.
+  Preserve roadmap 3.2.1: its future conditional regression-report category
+  does not contradict DEC-19's declined report on the known GFM divergence.
+  Repair within the existing scope, then renew gates and committed review.
+
+- 2026-10-12: close the bounded comment/backlink repair after 70 focused
+  cases, 173 repository tests, all seven gates, and CodeScene pass. Restore
+  only roadmap 1.1.2 and gate the final record. Published assessment, thread
+  confirmation, pre-merge reconciliation, B merge authority, and landing
+  evidence remain separate delivery obligations.
+
+- 2026-10-13: reopen implementation activity for the affected DOC-7 finding
+  at head `1752d24`. A fence marker in a multiline comment must not mask a
+  later reader link, while comment-looking text inside a real fence must remain
+  inert. The repaired guard passes both directions, all 15 link controls, 73
+  ADR guard cases, and 176 repository tests. The helper is exactly 400 lines;
+  `check-fmt`, `typecheck`, `lint`, `test`, `audit`, `markdownlint`, and
+  `nixie` pass sequentially. Final-record validation, publication,
+  candidate-bound assessment, and review reconciliation remain delivery work.
+
+- 2026-10-13: the first complete gate run after the DOC-7 repair passed, but
+  CodeScene flagged nested state logic in `_unfenced_lines`. Move per-line
+  transitions into `_advance_unfenced_state`; the new uncommitted CodeScene
+  delta is clear. Rerun the complete sequential gates on this refactor and the
+  final plan record before publication.
+
+- 2026-10-13: reopen implementation activity after the `5057aab` affected
+  assessment found that a comment opener inside a matched inline-code span can
+  hide a following reader link. Add a named red control and repair within
+  DEC-46; prior validation remains evidence for `5057aab` only.
+
+- 2026-10-13: the focused DOC-7 witness is red at `5057aab` and green after
+  masking matched inline code only during comment-state detection. All 74 ADR
+  guard tests pass, including prior comment/fence interactions. Run the full
+  suite and seven gates before restoring implementation closure.
+
+- 2026-10-13: repair the affected assessment finding on `5057aab`: matched
+  inline code now stays inert while HTML comment transitions are detected, so a
+  literal comment opener cannot hide a later reader link. The frozen control is
+  red on the parent and green after repair. The 74-case focused guard suite,
+  177-test repository suite, all seven sequential gates, and local CodeScene
+  pass. Candidate publication and review/merge lifecycle remain separate.
+
+- 2026-10-13: extend the DOC-7 inline-literal repair after a named multiline
+  code-span witness fails at `48f5577`. The comment opener is inside a complete
+  code span crossing a physical line break, but line-by-line comment tracking
+  hides the later ADR link. The repair uses matched ranges from the existing
+  combined literal matcher, preserves fence handling, and moves private JSON
+  tree/order diagnostics next to their public writer guard to keep file limits.
+  Six targeted controls pass; the first full gate run finds only helper lint
+  limits. Split span selection, masking, and per-line state advancement into
+  small private helpers, bundle line bounds and span state in tuple inputs, and
+  keep the module at 393 lines. The final focused suite passes 75, the full
+  suite passes 178, all seven Make gates pass sequentially, and local CodeScene
+  1.0.52 reports no issues. Restore implementation completion; the new
+  candidate still needs publication and affected assessment.
+
+- 2026-10-13: reopen and close DOC-7 after the `f01bfbd` assessment identified
+  a fenced comment marker consuming later code-span discovery. The exact named
+  witness fails on published `f01bfbd` and passes after fence masking. The 76
+  focused cases, 179 repository tests, and all seven sequential Make gates pass
+  on the frozen candidate. Local CodeScene, publication, affected reassessment,
+  formal review convergence, and merge remain delivery work.
+
+- 2026-10-13: the CodeScene-driven scanner refactor initially exceeded the
+  400-line limit; a subsequent gate run also exposed four Ruff
+  `raise-vanilla-args` findings. The final private span selector and compact
+  fence helper preserve the scanner threshold and file cap, while named
+  exception messages satisfy Ruff. Candidate `e205b10` passes the seven Make
+  gates sequentially, all 179 tests, and CodeScene 1.0.52 with no findings.
+  Implementation activity is complete. The shared delivery ledger records the
+  full gate logs and candidate-bound publication and review follow-up.

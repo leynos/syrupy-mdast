@@ -120,10 +120,68 @@ package's annotations from installed distributions.
 
 ### Upgrade Wenmode
 
-1. Keep Wenmode exactly pinned.
-2. Run the canonical corpus against the pinned and candidate versions.
-3. Classify every snapshot payload difference before merge.
-4. Record any required snapshot migration and release-note work.
+Follow the accepted
+[snapshot-version policy](adr-003-snapshot-version-policy.md) and the manifest
+in [ADR-004](adr-004-parser-profile-and-normalization.md). Every change to the
+Wenmode requirement or repository-resolved release belongs in a dedicated pull
+request with the roadmap's 3.2.1 upgrade report. Run the mandatory corpus
+against the current repository-resolved parser and candidate, classify every
+payload difference and each intervening changelog entry as an addition, parser
+fix, intentional migration, or regression, and add a fixture for every entry
+that can affect GitHub-profile `to_ast()` output. A move is payload-neutral
+only when the corpus diff is empty and every relevant changelog entry has a
+fixture with no change. Block a move if the parser emits any warning under
+`-W error`.
+
+Roadmap 1.2.1 will configure Dependabot to ignore Wenmode when the dependency
+is added because its changes need this review; that setting does not freeze
+downstream resolution. Evaluate new releases, Wenmode 1.0, security advisories,
+and newly supported Python minor versions. Ship security fixes promptly under
+the version policy. Deliberate patch-release changes evaluated with the same
+installed parser never knowingly change payloads. A payload-definition change
+increments the contract version and requires a minor package release before 1.0
+or a major release from 1.0 onward. Before the first payload-writing release,
+contract corrections may be dated amendments in ADR-004; after it, a changed
+payload definition requires a new normalization ADR that supersedes ADR-004.
+
+### Snapshot contract ADRs
+
+ADR-004 is the single source for the machine-readable snapshot manifest;
+ADR-003 owns package and snapshot-version policy. The
+`tests/test_snapshot_contract_adr.py` guard checks the accepted records, parser
+construction, writer examples, and reciprocal links. When implementation adds a
+code constant from ADR-004, extend this guard to require equality with the
+corresponding manifest value. Keep requirement, parser construction, key order,
+normalization order, and writer settings aligned without maintaining a second
+manifest in code or documentation.
+
+### ADR manifest parser for contract tests
+
+`tests/support/adr_contract.py` provides a typed manifest and seven pure
+functions, including fence-aware `section_body` extraction and manifest
+validation. Private Markdown extraction, manifest schema, and JSON
+serialization helpers live in `tests/support/_adr_contract_support.py`; writer
+tree and key-order diagnostics sit beside their public guard. This support
+remains internal to the ADR test-support feature and is not a runtime
+interface. The guard reuses private fence-aware traversal for manifest-heading
+discovery and logical ADR-link resolution. These feature-local helpers ignore
+fenced examples and preserve real duplicate headings for ambiguity validation.
+Fence discovery tracks multiline HTML comments outside real fences, while
+comment markers inside a real fence remain inert. Before code-span discovery,
+fenced source is masked with offset-preserving sentinels so its comment markers
+cannot consume later inline spans. Matched inline code stays literal when
+comment state is detected across line breaks, and unmatched backticks do not
+start a span. Link discovery excludes matched inline code spans, HTML comments,
+and images; reciprocal-link controls use independent synthetic documents
+alongside the freshly read accepted ADRs. These helpers do not implement a full
+Markdown parser. The JSON checker requires an AST root envelope and checks
+recursive member ordering and the scalar domain; it is not a full node-schema
+validator. Both modules read no files; the guard test owns repository I/O and
+obtains its root from the shared `REPO_ROOT` helper.
+`tests/support/adr_contract_examples.toml` supplies synthetic parser examples
+for status, malformed manifests, key order, and writer checks. These examples
+exercise the guard implementation and are not the normative Markdown contract
+corpus.
 
 ### Verify a wheel
 

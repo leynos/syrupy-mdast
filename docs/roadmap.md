@@ -29,15 +29,17 @@ outcome bounds every parser, serializer, and compatibility decision. See the
   - Remove the generated `hello` API and document the compatibility policy.
   - Success: import and API-stability checks expose only the names defined in
     design §6.
-- [ ] 1.1.2. Record the parser-profile and snapshot-version policy in an ADR.
+- [ ] 1.1.2. Record the parser profile and snapshot-version policy in two
+      linked ADRs.
   - Requires 1.1.1.
   - Record the parser profile, normalization policy, comparison contract,
-    snapshot-version policy, exact Wenmode release, and normative fixture
-    decisions as one versioned contract.
+    snapshot-version policy, bounded Wenmode requirement
+    `>=0.15.2,<0.16.0`, and normative fixture decisions across the two
+    versioned records.
   - Record resolved ordinary references, structural footnotes, omitted
     nullable fields, and Wenmode's GitHub HTML policy.
   - See design §§7, 13, and 15.
-  - Success: the explicitly versioned ADR is accepted before any related
+  - Success: both linked, versioned ADRs are accepted before any related
     implementation or fixture change is committed.
 - [ ] 1.1.3. Create the canonical Markdown contract corpus.
   - Requires 1.1.2.
@@ -52,20 +54,26 @@ outcome bounds every parser, serializer, and compatibility decision. See the
 
 ### 1.2. Prove the Python-only dependency boundary
 
-This step answers whether editable and installed use the same exact Wenmode
-contract without cross-runtime assets. It replaces the previous Bun package
-boundary before parsing logic depends on it.
+This step answers whether editable and installed use the same fixed Wenmode
+parser contract within the approved bounded requirement, without cross-runtime
+assets. It replaces the previous Bun package boundary before parsing logic
+depends on it.
 
-- [ ] 1.2.1. Add the exact Wenmode runtime dependency.
+- [ ] 1.2.1. Declare the bounded Wenmode runtime dependency.
   - Requires 1.1.3.
-  - Pin the reviewed Wenmode release in `pyproject.toml` and record its licence.
+  - Declare `>=0.15.2,<0.16.0` in `pyproject.toml` and record the licence.
+  - Require the declaration to match ADR-004's manifest, enforced by
+    `tests/test_snapshot_contract_adr.py`.
+  - Add a Dependabot `ignore` entry for `wenmode`, required by
+    `tests/test_dependabot_config_contract.py`.
   - Confirm the wheel contains no Bun, Node.js, TypeScript, JavaScript manifest,
     lockfile, or installed JavaScript package assets.
-  - Success: an isolated Python installation imports the selected Wenmode
+  - Success: an isolated Python installation imports a permitted Wenmode
     release without a JavaScript runtime or network access at parse time.
 - [ ] 1.2.2. Define the narrow internal Wenmode adapter seam.
   - Requires 1.2.1.
-  - Construct a fresh `Parser(github, positions=False)` for every adapter call.
+  - Construct a fresh `Parser(github(), positions=False)` for every adapter
+    call; this construction equals ADR-004's manifest `parser` value.
   - Return Wenmode's public `to_ast()` data without a speculative pluggable
     backend abstraction.
   - Success: sequential documents do not leak ordinary reference or footnote
@@ -94,15 +102,16 @@ Python extension is safe to expose. See design §§7-8 and §11.
 
 - [ ] 2.1.1. Implement GitHub-profile Markdown parsing.
   - Requires 1.1.2, 1.2.2, and 1.2.3.
-  - Parse strings through `Parser(github, positions=False)` and obtain ordinary
-    Python data through `to_ast()`.
+  - Parse strings through `Parser(github(), positions=False)` and obtain
+    ordinary Python data through `to_ast()`.
   - Validate that the result is a root mapping with a children array.
   - Success: the contract corpus produces expected CommonMark, GFM, and
     footnote nodes without file, network, shell, or child-process access.
 - [ ] 2.1.2. Implement recursive canonicalization with generated invariants.
   - Requires 2.1.1.
-  - Remove `position`, remove only empty plain-object `data`, normalize CRLF and
-    CR in strings, and order keys by the normative sequence.
+  - Define the key-order constant and normalization rule sequence from the
+    corresponding ADR-004 manifest values; the guard test requires exact
+    equality with `key-order` and `normalization`.
   - Preserve unknown fields, false values, zeroes, empty strings, empty arrays,
     non-empty `data`, and array order; do not synthesize omitted `null` fields.
   - Verify idempotence, position invariance, and line-ending invariance with
@@ -122,10 +131,12 @@ and 12.
 
 - [ ] 2.2.1. Implement the canonical JSON writer.
   - Requires 2.1.2.
-  - Re-serialize valid trees as UTF-8, two-space JSON with unescaped Unicode
-    and one final newline.
+  - Re-serialize valid trees using the writer settings in ADR-004's manifest:
+    UTF-8, two-space JSON with unescaped Unicode and one final newline.
+  - Require writer settings to equal the manifest's `json-writer` table.
   - Keep JSON serialization behind a narrow adapter that accepts only a
-    validated canonical tree.
+    validated canonical tree, and check strict UTF-8 encoding before the
+    payload reaches Syrupy.
   - Define the shared `MAX_INPUT_BYTES = 1_048_576` limit, count strict UTF-8
     bytes in fixed-size source slices, and stop before Wenmode as soon as the
     limit is exceeded.
@@ -167,6 +178,8 @@ and diff lifecycle without a parallel snapshot mechanism. See design §§6 and 1
   - Keep the extension as a thin Syrupy adapter that delegates parsing,
     canonicalization, failure translation, and serialization to the internal
     application pipeline.
+  - Decide the on-disk line ending before the first release whose
+    `serialize()` writes payloads.
   - Success: create, compare, update, and delete operations use Syrupy's native
     single-file lifecycle, producing one readable text `.mdast.json` snapshot
     per assertion and readable JSON diffs.
@@ -191,15 +204,15 @@ worker nor crash or process isolation. See design §§10-11 and §16.
     CommonMark and GFM assertions.
   - Inspect the wheel to exclude JavaScript source, manifests, lockfiles, and
     package directories.
-  - Success: the suite parses with the exact Wenmode dependency and no
-    repository-relative or cross-runtime asset.
+  - Success: the suite parses with a Wenmode release permitted by the bounded
+    requirement and no repository-relative or cross-runtime asset.
 - [ ] 2.4.2. Add the combinatorial compatibility suite.
   - Requires 2.4.1.
   - Cover CommonMark and GFM, LF/CRLF/CR, documented errors, parser isolation,
     same-process contention and re-entrancy, serial pytest and pytest-xdist, and
     the supported Python and Syrupy matrix.
-  - Exercise the pinned Wenmode release and candidate upgrades against the same
-    mandatory fixtures.
+  - Exercise the 0.15.2 evidence baseline and candidate Wenmode releases against
+    the same mandatory fixtures.
   - Use pairwise reduction only after the combinations in design §11 remain
     explicit.
   - Success: each supported combination completes a real assertion or produces
@@ -240,17 +253,23 @@ rewrite snapshots. See design §§4, 13, and 15.
 
 - [ ] 3.2.1. Add a Wenmode-upgrade contract report.
   - Requires 1.1.2 and phase 2.
-  - Run the canonical corpus against the pinned and candidate Wenmode releases.
+  - Run the canonical corpus against the repository-resolved Wenmode baseline
+    and candidate release.
   - Classify payload differences as additions, parser fixes, intentional
-    migrations, or regressions requiring an upstream report.
-  - Success: CI attaches or prints a focused payload diff for every proposed
-    Wenmode update.
+    migrations, or regressions requiring an upstream report, and classify each
+    intervening changelog entry; add a fixture for every entry that can affect
+    GitHub-profile `to_ast()` output.
+  - Success: a move is payload-neutral only when the corpus diff is empty and
+    every relevant changelog entry is fixture-covered with no change; the
+    report blocks parser warnings under `-W error` and CI attaches or prints a
+    focused payload diff for every proposed Wenmode update.
 - [ ] 3.2.2. Establish release and audit gates.
   - Requires 3.2.1.
   - Audit the Python dependency graph, inspect wheel contents, validate licence
     notices, and reject unreviewed canonical-output changes.
-  - Success: a release cannot loosen the Wenmode pin, introduce an undeclared
-    cross-runtime asset, or ship an unclassified snapshot change.
+  - Success: a release cannot change the bounded Wenmode requirement without
+    the dedicated upgrade report, introduce an undeclared cross-runtime asset,
+    or ship an unclassified snapshot change.
 
 ### 3.3. Measure the in-process implementation
 
