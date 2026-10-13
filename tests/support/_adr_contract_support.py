@@ -61,7 +61,6 @@ _HEADING_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
     r"^ {0,3}(#{1,6})(?:[ \t]+.*)?$"
 )
 _FENCE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
-
 _RANGE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
     r">=(\d+)\.(\d+)\.(\d+),<(\d+)\.(\d+)\.(\d+)"
 )
@@ -200,6 +199,7 @@ def _advance_unfenced_state(state: str | None, content: str) -> tuple[str | None
         return None if _is_fence_closing(content, state) else state, False
     if opening := _fence_opening(content):
         return opening[0], False
+    content = _INLINE_LITERAL_PATTERN.sub(lambda m: " " if m[1] else m[0], content)
     return ("comment" if content.rfind("<!--") > content.rfind("-->") else None), True
 
 

@@ -7,17 +7,14 @@ be kept up to date as work proceeds.
 
 Status: COMPLETE
 
-The affected assessment of head `1752d24` found one remaining DOC-7
-link-extraction gap: a fence marker inside a multiline HTML comment can hide a
-real ADR link. The red control reproduced it with 13 of 14 link cases passing.
-The repair covers both comment/fence delimiter directions, passes all 15
-focused link controls and all 73 ADR guard cases, and isolates fence-state
-transitions in `_advance_unfenced_state`. The complete repository suite passes
-176 tests, all seven sequential gates pass, and the current CodeScene delta
-reports no issues; the helper remains exactly 400 lines. The final plan record
-receives fresh Markdown gates before publication. Candidate-bound assessment,
-formal review reconciliation, merge, and post-merge evidence remain delivery
-work. The roadmap checkbox stays in the separate follow-up PR #73.
+The affected assessment of head `5057aab` found one DOC-7 edge case: a comment
+opener inside a matched inline-code span starts false comment state and hides a
+real link on the next line. The named control failed on `5057aab` and passes
+with the repair. All 74 focused ADR guard cases and 177 repository tests pass;
+all seven gates passed sequentially, and the local CodeScene delta reports no
+issues. Only roadmap 1.1.2 remains checked in separate PR #73. Candidate-bound
+assessment, hosted review reconciliation, merge, and post-merge evidence remain
+delivery work; earlier hosted results apply only to their recorded heads.
 
 ## Purpose / big picture
 
@@ -364,6 +361,15 @@ outside its examples.
   Restore only roadmap 1.1.2; final records receive renewed gates before
   publication and candidate-bound committed and hosted assessment.
 
+- [x] (2026-10-13) DOC-7 inline-code follow-up: a comment opener inside a
+  matched inline-code span must not start multiline comment state or hide the
+  following real link. The named control fails at `5057aab` and passes after
+  the repair; all 74 focused ADR guard cases pass (`b-doc7-inline-*.log`). The
+  repair masks only matched code spans while detecting comment transitions. The
+  complete suite passes 177 tests; all seven gates pass sequentially, and
+  CodeScene reports no issues. The feature module remains exactly 400 lines.
+  Preserve both comment/fence controls, unmatched-backtick behaviour, the
+  twelve-file cap, and DEC-44.
 - [x] (2026-10-13) DOC-7 follow-up: add the reverse control proving that an
   unclosed comment marker inside a real fenced block cannot suppress a reader
   link after the fence. The complete repaired source passes 15 focused link
@@ -724,6 +730,15 @@ outside its examples.
     guard. Both duplicate backlink findings are addressed by this change.
 
 ## Decision log
+
+- DEC-46. Decision: before logical-link discovery starts multiline HTML
+  comment state, matched inline code delimiters on the line are literal text.
+  Preserve actual comments, unmatched-backtick behavior, and both established
+  fence/comment precedence controls by reusing the current combined literal
+  matcher to mask only matched code spans during state detection. Keep the
+  implementation feature-local and within the existing API, dependency,
+  400-line, and twelve-file bounds. Date/Author: 2026-10-13, implementation
+  agent.
 
 - DEC-1. Original decision (superseded by DEC-24): the combined ADR is
   `docs/adr-003-parser-profile-and-snapshot-version-policy.md`, titled
@@ -1314,13 +1329,15 @@ their frozen controls reproduced ordinary failures, and the corresponding
 repairs passed 70 focused cases, 173 repository tests, all seven gates, and
 CodeScene. The subsequent DOC-7 assessment of `1752d24` found that fence
 markers inside multiline HTML comments can corrupt later link discovery. The
-frozen red control passed 13 of 14 link cases and exposed that gap. The latest
-repair passes all 15 focused link controls and 73 ADR guard cases; the complete
-suite passes 176 tests, all seven sequential gates pass, and the CodeScene
-delta is clear. The state-transition helper keeps `_adr_contract_support.py` at
-exactly 400 lines. Only final Markdown record gates remain before this
-candidate is committed and published. Assessment, formal review reconciliation,
-merge, and post-merge evidence remain pending. The
+frozen red control passed 13 of 14 link cases and exposed that gap. A later
+assessment of `5057aab` found that a comment opener inside matched inline code
+could hide the following reader link. Both named controls fail on their
+published parent and pass after repair. The current source passes all 15
+focused link controls, 74 ADR guard cases, and 177 repository tests. All seven
+gates pass sequentially and the CodeScene delta reports no issues. The
+state-transition helper keeps `_adr_contract_support.py` at exactly 400 lines.
+Implementation is complete; candidate-bound assessment, formal review
+reconciliation, merge, and post-merge evidence remain pending. The
 [scope reconciliation](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118750431)
 withdraws the additional testing demands under DOC-2/3/4 and DEC-12; the live
 failed rows and current change-request review still need reconciliation.
@@ -2442,3 +2459,20 @@ the documented interface and does not introduce an import cycle.
   transitions into `_advance_unfenced_state`; the new uncommitted CodeScene
   delta is clear. Rerun the complete sequential gates on this refactor and the
   final plan record before publication.
+
+- 2026-10-13: reopen implementation activity after the `5057aab` affected
+  assessment found that a comment opener inside a matched inline-code span can
+  hide a following reader link. Add a named red control and repair within
+  DEC-46; prior validation remains evidence for `5057aab` only.
+
+- 2026-10-13: the focused DOC-7 witness is red at `5057aab` and green after
+  masking matched inline code only during comment-state detection. All 74 ADR
+  guard tests pass, including prior comment/fence interactions. Run the full
+  suite and seven gates before restoring implementation closure.
+
+- 2026-10-13: repair the affected assessment finding on `5057aab`: matched
+  inline code now stays inert while HTML comment transitions are detected, so a
+  literal comment opener cannot hide a later reader link. The frozen control is
+  red on the parent and green after repair. The 74-case focused guard suite,
+  177-test repository suite, all seven sequential gates, and local CodeScene
+  pass. Candidate publication and review/merge lifecycle remain separate.
