@@ -24,7 +24,7 @@ if typ.TYPE_CHECKING:
 _MANIFEST_HEADING: typ.Final[str] = "### Contract manifest"
 _LINK_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"(?<!!)\[([^\]]*)\]\(([^)]+)\)")
 _INLINE_LITERAL_PATTERN: typ.Final[re.Pattern[str]] = re.compile(
-    r"(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)|<!--[\s\S]*?(?:-->|$)"
+    r"(?<!`)(`+)(?!`)(?:(?!\x00)[\s\S])*?(?<!`)\1(?!`)|<!--(?:(?!\x00)[\s\S])*?(?:-->|$)"
 )
 _FENCE_CLOSE_PATTERN: typ.Final[re.Pattern[str]] = re.compile(r"^ {0,3}([`~]+)[ \t]*$")
 
@@ -181,11 +181,26 @@ def _link_targets(markdown: str, source_path: str) -> set[str]:
     }
 
 
+def _mask_fenced_source(lines: cabc.Sequence[str]) -> str:
+    """Keep fence literals from consuming later spans; e.g. preserve offsets."""
+    fence: str | None = None
+    masked_lines = []
+    for line in lines:
+        content = line.rstrip("\r\n")
+        is_fenced = fence is not None
+        if fence is None and (opening := _fence_opening(content)):
+            fence, is_fenced = opening[0], True
+        elif fence is not None and _is_fence_closing(content, fence):
+            fence = None
+        masked_lines.append(re.sub(r"[^\r\n]", "\x00", line) if is_fenced else line)
+    return "".join(masked_lines)
+
+
 def _unfenced_lines(
     lines: cabc.Sequence[str],
 ) -> cabc.Iterator[tuple[int, str, bool]]:
     """Yield lines outside fences and comments; e.g. retain a multiline code span."""
-    source = "".join(lines)
+    source = _mask_fenced_source(lines)
     code_spans = [
         (match.start(), match.end())
         for match in _INLINE_LITERAL_PATTERN.finditer(source)
@@ -212,17 +227,12 @@ def _scan_unfenced_line(
     span_context: tuple[list[tuple[int, int]], set[int]],
 ) -> tuple[str | None, bool, bool]:
     """Advance one line; e.g. mask a code-span opener before comment parsing."""
-    offset, line_end = line_bounds
     code_spans, ignored = span_context
-    active = _active_code_span_indexes(code_spans, ignored, offset, line_end)
-    inside_code = any(code_spans[index][0] < offset for index in active)
+    active = _active_code_span_indexes(code_spans, ignored, line_bounds)
+    inside_code = any(code_spans[index][0] < line_bounds[0] for index in active)
     content = line.rstrip("\r\n")
-    if state is None and _fence_opening(content):
-        state, is_visible = _advance_unfenced_state(state, content)
-        ignored.update(active)
-        return state, is_visible, inside_code
     if state is None:
-        content = _mask_code_spans(line, line_bounds, span_context, active)
+        content = _mask_code_spans(line, line_bounds, code_spans, active)
     state, is_visible = _advance_unfenced_state(state, content)
     if state is not None:
         ignored.update(active)
@@ -230,28 +240,27 @@ def _scan_unfenced_line(
 
 
 def _active_code_span_indexes(
-    code_spans: list[tuple[int, int]],
-    ignored: set[int],
-    line_start: int,
-    line_end: int,
+    spans: list[tuple[int, int]], ignored: set[int], bounds: tuple[int, int]
 ) -> list[int]:
-    """Return active spans intersecting a line; e.g. find a cross-line span."""
+    """Return spans intersecting a line; e.g. find multiline code."""
     return [
         index
-        for index, (start, end) in enumerate(code_spans)
-        if index not in ignored and start < line_end and line_start < end
+        for index, (start, end) in enumerate(spans)
+        if index not in ignored and start < bounds[1] and bounds[0] < end
     ]
 
 
 def _mask_code_spans(
     line: str,
     line_bounds: tuple[int, int],
-    span_context: tuple[list[tuple[int, int]], set[int]],
+    code_spans: list[tuple[int, int]],
     active: list[int],
 ) -> str:
     """Mask code-span text before comment parsing, preserving line endings."""
+    content = line.rstrip("\r\n")
+    if _fence_opening(content):
+        return content
     offset, line_end = line_bounds
-    code_spans, _ = span_context
     characters = list(line)
     for index in active:
         start, end = code_spans[index]
@@ -380,9 +389,7 @@ def _string_tuple(value: object, name: str) -> tuple[str, ...]:
 def _fence_opening(line: str) -> tuple[str, str] | None:
     """Find a fence; e.g. `````toml`` returns its marker and language."""
     match = _FENCE_PATTERN.match(line)
-    if match is None:
-        return None
-    return match.group(1), match.group(2).strip()
+    return (match.group(1), match.group(2).strip()) if match else None
 
 
 def _is_fence_closing(line: str, marker: str) -> bool:

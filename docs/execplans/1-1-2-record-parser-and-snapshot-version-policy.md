@@ -5,16 +5,18 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Outcomes & retrospective`, `Conformance basis`, and `Verification plan` must
 be kept up to date as work proceeds.
 
-Status: COMPLETE
+Status: IN PROGRESS
 
-The DOC-7 multiline inline-code repair passes 75 focused guard cases and 178
-repository tests. All seven Make gates pass sequentially, and CodeScene 1.0.52
-reports no issues for the base-to-candidate delta. The private support module
-is 393 lines; the public test helper and test module remain within 400 lines.
-This closes implementation activity for the candidate. Publication, affected
-assessment, formal review and thread reconciliation, merge, and post-merge
-integration remain delivery work. PR number 73 contains the separate roadmap
-checkbox change.
+The affected assessment at `f01bfbd` found one DOC-7 interaction defect: an
+unclosed comment marker inside fenced content can hide a later multiline code
+span and real link. A named combined control fails at the published candidate
+and passes after offset-preserving fence masking. The 76-case focused guard
+suite and 179 repository tests pass. The initial full base-to-candidate
+CodeScene delta found scanner complexity and module-average regressions. A
+cohesive span-selection refactor clears the local delta; its first formatted
+version exceeded the 400-line module limit. The final compact refactor and all
+sequential gates remain pending before implementation closure. PR #73 contains
+the separate roadmap checkbox change.
 
 ## Purpose / big picture
 
@@ -371,6 +373,12 @@ outside its examples.
   focused suite passes 75 cases, the repository suite passes 178 tests, all
   seven gates pass sequentially, and CodeScene reports no issues. The private
   scanner helpers stay within the 400-line file limit.
+- [ ] (2026-10-13) DOC-7 fenced-comment/code-span interaction: the named
+  combined control fails at `f01bfbd` and passes after masking fenced source in
+  the preliminary code-span scan. The 76-case focused suite and 179 repository
+  tests pass. All seven gates passed before the CodeScene-driven refactor; the
+  first refactor cleared CodeScene but exceeded the file cap. Rerun the seven
+  gates and CodeScene on the final under-cap candidate before closure.
 - [x] (2026-10-13) DOC-7 inline-code follow-up: a comment opener inside a
   matched inline-code span must not start multiline comment state or hide the
   following real link. The named control fails at `5057aab` and passes after
@@ -740,6 +748,23 @@ outside its examples.
     guard. Both duplicate backlink findings are addressed by this change.
 
 ## Decision log
+
+- DEC-49. Decision: retain a private `_active_code_span_indexes` helper for
+  the single responsibility of selecting spans that intersect a source line.
+  This keeps `_scan_unfenced_line` below the CodeScene complexity threshold
+  without disabling rules or weakening the DOC-7 scanner. Fence-opening lines
+  remain literal during masking, and error messages retain their exact text.
+  Keep the module at or below 400 lines and preserve the existing API and
+  fixture contract. Date/Author: 2026-10-13, implementation agent.
+
+- DEC-48. Decision: preliminary matched-code-span discovery must respect
+  actual fenced regions. Mask non-newline fence contents and delimiters with an
+  offset-preserving sentinel before applying the combined comment/code matcher;
+  the matcher cannot consume across that sentinel. This keeps an unclosed
+  comment in a fence from suppressing a later multiline inline-code span and a
+  reader-visible ADR link. Preserve existing fence/comment precedence,
+  unmatched-backtick behaviour, path resolution, helper API, dependencies, and
+  file/scope caps. Date/Author: 2026-10-13, implementation agent.
 
 - DEC-47. Decision: matched inline code spans that cross physical lines must
   remain literal while the bounded DOC-7 extractor tracks HTML comments. Use
@@ -1353,12 +1378,15 @@ frozen red control passed 13 of 14 link cases and exposed that gap. The later
 assessment of `5057aab` found a same-line matched-code comment opener; the
 control failed at `5057aab` and passed at `48f5577`. A focused probe then found
 the equivalent case across a newline, red at `48f5577`; six targeted controls
-pass after the expanded repair. The final candidate passes all 75 focused
+pass after the expanded repair. Earlier candidate `f01bfbd` passed 75 focused
 cases, 178 repository tests, all seven sequential gates, and CodeScene 1.0.52
 with no issues. Private JSON tree and key-order checks now sit with the public
-writer guard so all Python modules remain below 400 lines. Implementation is
-complete; publication, fresh candidate-bound assessment, and formal review
-reconciliation remain delivery work. The
+writer guard so all Python modules remain below 400 lines. Its affected
+assessment exposed a combined fence/comment/code-span interaction. The new
+named control fails on the published candidate and passes after
+offset-preserving fence masking; the full suite and gates remain pending.
+Implementation activity is reopened before publication, affected assessment,
+and formal review reconciliation. The
 [scope reconciliation](https://github.com/leynos/syrupy-mdast/pull/72#issuecomment-6118750431)
 withdraws the additional testing demands under DOC-2/3/4 and DEC-12; the live
 failed rows and current change-request review still need reconciliation.
@@ -2511,3 +2539,17 @@ the documented interface and does not introduce an import cycle.
   suite passes 178, all seven Make gates pass sequentially, and local CodeScene
   1.0.52 reports no issues. Restore implementation completion; the new
   candidate still needs publication and affected assessment.
+
+- 2026-10-13: reopen and close DOC-7 after the `f01bfbd` assessment identified
+  a fenced comment marker consuming later code-span discovery. The exact named
+  witness fails on published `f01bfbd` and passes after fence masking. The 76
+  focused cases, 179 repository tests, and all seven sequential Make gates pass
+  on the frozen candidate. Local CodeScene, publication, affected reassessment,
+  formal review convergence, and merge remain delivery work.
+
+- 2026-10-13: the first committed DOC-7 candidate passed all seven Make gates,
+  but its base-to-head CodeScene delta flagged scanner complexity and module
+  average. The first cohesive extraction cleared CodeScene and preserved all 76
+  focused cases, but formatted to 406 lines. Reopen implementation activity and
+  compact the final source without suppressions, then rerun the complete
+  sequential gate set and CodeScene before publication.

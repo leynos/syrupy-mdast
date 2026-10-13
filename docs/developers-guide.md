@@ -167,15 +167,17 @@ interface. The guard reuses private fence-aware traversal for manifest-heading
 discovery and logical ADR-link resolution. These feature-local helpers ignore
 fenced examples and preserve real duplicate headings for ambiguity validation.
 Fence discovery tracks multiline HTML comments outside real fences, while
-comment markers inside a real fence remain inert. Matched inline code stays
-literal when comment state is detected across line breaks, and unmatched
-backticks do not start a span. Link discovery excludes matched inline code
-spans, HTML comments, and images; reciprocal-link controls use independent
-synthetic documents alongside the freshly read accepted ADRs. These helpers do
-not implement a full Markdown parser. The JSON checker requires an AST root
-envelope and checks recursive member ordering and the scalar domain; it is not
-a full node-schema validator. Both modules read no files; the guard test owns
-repository I/O and obtains its root from the shared `REPO_ROOT` helper.
+comment markers inside a real fence remain inert. Before code-span discovery,
+fenced source is masked with offset-preserving sentinels so its comment markers
+cannot consume later inline spans. Matched inline code stays literal when
+comment state is detected across line breaks, and unmatched backticks do not
+start a span. Link discovery excludes matched inline code spans, HTML comments,
+and images; reciprocal-link controls use independent synthetic documents
+alongside the freshly read accepted ADRs. These helpers do not implement a full
+Markdown parser. The JSON checker requires an AST root envelope and checks
+recursive member ordering and the scalar domain; it is not a full node-schema
+validator. Both modules read no files; the guard test owns repository I/O and
+obtains its root from the shared `REPO_ROOT` helper.
 `tests/support/adr_contract_examples.toml` supplies synthetic parser examples
 for status, malformed manifests, key order, and writer checks. These examples
 exercise the guard implementation and are not the normative Markdown contract
