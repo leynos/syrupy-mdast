@@ -10,10 +10,11 @@ Status: COMPLETE
 Implementation activity is complete after the formal-review extraction repair:
 real manifest headings and reader links share the fence grammar, with named
 positive and negative controls. The repaired source passes 65 focused cases,
-168 repository tests, all seven gates, and CodeScene. Only roadmap 1.1.2 is
-checked. Final-record gates, committed review, published checks, affected
-assessment, and actual thread/pre-merge reconciliation remain candidate-bound
-delivery work in the shared ledger. The PR stays ready; B merge authorization
+168 repository tests, all seven gates, and CodeScene. The task checkbox is
+deferred to the separate follow-up PR #73, after this PR lands the parser
+reconciliation and guard. Final-record gates, committed review, published
+checks, affected assessment, and actual thread/pre-merge reconciliation remain
+candidate-bound delivery work in the shared ledger. The PR stays ready; merge
 and post-merge integration remain separate.
 
 ## Purpose / big picture
@@ -1267,6 +1268,11 @@ outside its examples.
   links with `./` and fragments must resolve normally. No new file, public API,
   dependency, or production behaviour is introduced; retain the 400-line code
   cap and 12-file combined scope. Date/Author: 2026-10-12, implementation agent.
+- DEC-44. Decision: keep the roadmap completion checkbox in separate PR #73,
+  as requested, so PR #72 first lands the parser-contract reconciliation and
+  guard needed by that completion claim. Leave item 1.1.2 unchecked in this
+  branch; merge #73 only after #72 lands, then rebase and reassess #73 against
+  the updated base. Date/Author: 2026-10-13, implementation agent.
 
 ## Outcomes & retrospective
 
