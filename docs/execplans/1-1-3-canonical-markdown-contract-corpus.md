@@ -145,6 +145,13 @@ is not a reason to cancel, duplicate, or bypass a gate.
       `/tmp/ty-syrupy-mdast-113-targeted.out` and
       `/tmp/ruff-syrupy-mdast-113-targeted-after-ty.out`. The four Python files
       now total 1196 lines; the full hook rerun remains scheduled.
+- [x] (2026-10-14) Pass the full commit gates after the `ty` repair and commit
+      the seed corpus as `08c10f0`. Formatting, lint, type checking, 162 tests,
+      Markdown lint, and Mermaid validation passed. The dependency audit found
+      no known vulnerabilities; `df12-python-lints` and `syrupy-mdast` were
+      unavailable on PyPI and could not be audited. EP-M1 remains blocked by
+      D5 because the four Python files total 1196 lines against the 600-line
+      tolerance.
 - [ ] EP-M1: establish the corpus format and focused seed cases.
 - [ ] EP-M2: complete every normative fixture and integrity assertion.
 - [ ] EP-M3: reconcile documentation, validate, and mark 1.1.3 done.
@@ -218,12 +225,15 @@ The plan and six-perspective review are complete, and the requested baseline
 gates passed. Explicit implementation approval arrived on 2026-10-14. EP-M1 has
 a typed loader, seed fixtures, and 59 passing focused tests. A lint repair
 split the loader into a fourth Python file; the four files total 1196 lines and
-still exceed the approved tolerance. The latest full hook passed formatting,
-Ruff, docstring coverage, both Pylint passes, ambrleaks, and Skylos, then found
-three redundant casts in `ty`. Targeted `ty` and Ruff checks pass after
-removing them; the full hook rerun is scheduled. Full milestone gates and
-commit remain blocked on D5. No milestone is complete and no runtime behaviour
-has been delivered. The draft PR metadata records publication separately.
+still exceed the approved tolerance. After removing three redundant casts, the
+full commit gates passed, including 162 tests, and the seed corpus was
+committed as `08c10f0`. The audit found no known vulnerabilities, but could not
+audit `df12-python-lints` or `syrupy-mdast` because they are unavailable on
+PyPI. D5 still blocks EP-M1: maintainer direction is needed to revise the size
+tolerance or to direct a design review that brings the implementation below 600
+lines without reducing the normative matrix. No milestone is complete and no
+runtime behaviour has been delivered. The draft PR metadata records publication
+separately.
 
 At completion, record fixture counts by obligation, named negative-control
 results, command logs, final commit, and the documentation reconciliation.
