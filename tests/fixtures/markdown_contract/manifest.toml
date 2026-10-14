@@ -1,0 +1,118 @@
+corpus_version = 1
+contract_version = 1
+wenmode_evidence_version = "0.15.2"
+
+[[cases]]
+id = "emphasis-asterisk"
+rules = ["NF-1"]
+reason = "Asterisk emphasis is equal to underscore emphasis."
+kind = "markdown"
+input = "sources/emphasis-asterisk.txt"
+expected = "expected/emphasis.json"
+line_endings = "lf"
+
+[[cases]]
+id = "emphasis-underscore"
+rules = ["NF-1"]
+reason = "Underscore emphasis removes delimiter spelling as a distinction."
+kind = "markdown"
+input = "sources/emphasis-underscore.txt"
+expected = "expected/emphasis.json"
+line_endings = "lf"
+
+[[cases]]
+id = "strong-asterisk"
+rules = ["NF-1"]
+reason = "Asterisk strong emphasis is equal to underscore strong emphasis."
+kind = "markdown"
+input = "sources/strong-asterisk.txt"
+expected = "expected/strong.json"
+line_endings = "lf"
+
+[[cases]]
+id = "strong-underscore"
+rules = ["NF-1"]
+reason = "Underscore strong emphasis removes delimiter spelling as a distinction."
+kind = "markdown"
+input = "sources/strong-underscore.txt"
+expected = "expected/strong.json"
+line_endings = "lf"
+
+[[cases]]
+id = "break-soft"
+rules = ["NF-10"]
+reason = "A single source newline remains a soft text line break."
+kind = "markdown"
+input = "sources/break-soft.txt"
+expected = "expected/break-soft.json"
+line_endings = "lf"
+
+[[cases]]
+id = "break-hard-spaces"
+rules = ["NF-10"]
+reason = "Two trailing spaces produce a structural hard-break node."
+kind = "markdown"
+input = "sources/break-hard-spaces.txt"
+expected = "expected/break-hard.json"
+line_endings = "lf"
+
+[[cases]]
+id = "break-hard-backslash"
+rules = ["NF-10"]
+reason = "A backslash hard break has the same node structure as two spaces."
+kind = "markdown"
+input = "sources/break-hard-backslash.txt"
+expected = "expected/break-hard.json"
+line_endings = "lf"
+
+[[cases]]
+id = "line-endings-lf"
+rules = ["NF-8", "normalize-line-endings"]
+reason = "LF source line endings establish the shared paragraph expectation."
+kind = "markdown"
+input = "sources/line-endings-lf.txt"
+expected = "expected/line-endings-paragraph.json"
+line_endings = "lf"
+
+[[cases]]
+id = "line-endings-crlf"
+rules = ["NF-8", "normalize-line-endings"]
+reason = "CRLF source bytes normalize to the LF paragraph expectation."
+kind = "markdown"
+input = "sources/line-endings-crlf.txt"
+expected = "expected/line-endings-paragraph.json"
+line_endings = "crlf"
+
+[[cases]]
+id = "line-endings-cr"
+rules = ["NF-8", "normalize-line-endings"]
+reason = "Bare CR source bytes normalize to the LF paragraph expectation."
+kind = "markdown"
+input = "sources/line-endings-cr.txt"
+expected = "expected/line-endings-paragraph.json"
+line_endings = "cr"
+
+[[relations]]
+id = "emphasis-delimiters"
+relation = "equal"
+cases = ["emphasis-asterisk", "emphasis-underscore"]
+
+[[relations]]
+id = "strong-delimiters"
+relation = "equal"
+cases = ["strong-asterisk", "strong-underscore"]
+
+[[relations]]
+id = "hard-break-spellings"
+relation = "equal"
+cases = ["break-hard-spaces", "break-hard-backslash"]
+
+[[relations]]
+id = "soft-and-hard-breaks"
+relation = "distinct"
+cases = ["break-soft", "break-hard-spaces"]
+
+[[relations]]
+id = "paragraph-line-endings"
+relation = "equal"
+cases = ["line-endings-lf", "line-endings-crlf", "line-endings-cr"]

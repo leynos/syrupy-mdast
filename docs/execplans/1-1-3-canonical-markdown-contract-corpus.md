@@ -4,15 +4,16 @@
 # Create the canonical Markdown contract corpus
 
 
-Status: DRAFT — awaiting explicit approval before implementation.
+Status: BLOCKED — EP-M1 exceeds the 600-line size tolerance; maintainer
+direction needed.
 
 Roadmap task: **1.1.3**. Prerequisite: **1.1.2**, completed at baseline
 `c19afee8ed735dffa6262cf0b2e0a9ca0a5a0551`.
 
 This execution plan is a living document. Keep its constraints, tolerances,
 risks, progress, discoveries, decisions, conformance basis, verification plan,
-and outcomes current at every milestone. Publication of this plan does not
-approve its implementation.
+and outcomes current at every milestone. Publication of the initial plan did
+not itself approve implementation.
 
 ## Purpose / big picture
 
@@ -35,7 +36,7 @@ than regenerate them from the implementation under test.
 
 
 - Obtain explicit approval of this plan before changing fixtures, tests, or
-  implementation. This planning pull request changes documentation only.
+  implementation. The initial planning revision changed documentation only.
 - Accepted [ADR-004](../adr-004-parser-profile-and-normalization.md) governs
   parser construction, normalization, and normative fixtures (NF-1 to NF-13).
   [ADR-003](../adr-003-snapshot-version-policy.md) governs versioning. Preserve
@@ -99,6 +100,10 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - **Parser provenance (medium impact, medium likelihood).** Wenmode 0.15.2 is
   ADR-004's evidence baseline, not a claim about every allowed 0.15.x release.
   Distinguish authored canonical expectations from observed raw parser output.
+- **Implementation size (medium impact, unresolved).** The initial loader and
+  test modules already exceed the plan's total Python-line ceiling. Resolve
+  this before adding the complete matrix so maintainability does not depend on
+  compressing required assertions into opaque helpers.
 
 ## Progress
 
@@ -114,7 +119,32 @@ is not a reason to cancel, duplicate, or bypass a gate.
   and reconcile source-witness, newline, schema, and red-stage findings.
 - [x] (2026-10-13 22:57Z) Validate the documentation-only plan: formatting,
   type checking, linting, 103 tests, Markdown, and Mermaid all passed.
-- [ ] Receive explicit plan approval.
+- [x] (2026-10-14 11:39Z) Receive explicit implementation approval through the
+      request to use this ExecPlan; verify PR #74, the exact candidate, and the
+      trusted-author execution boundary.
+- [x] (2026-10-14 11:55Z) Stop EP-M1 at the size tolerance: three new Python
+      files total 813 lines against the 600-line ceiling. Focused tests passed,
+      but full milestone gates and commit remain pending.
+- [x] (2026-10-14) Repair the reported Python lint failures by splitting the
+      manifest loader from shared test records and path helpers, documenting
+      helper returns and exceptions, and narrowing regex/assertion checks.
+      Targeted Ruff reports zero diagnostics, 58 focused tests pass, and
+      `make fmt` completes. Logs: `/tmp/ruff-syrupy-mdast-113-targeted.json`
+      and `/tmp/pytest-syrupy-mdast-113-targeted-after-lint.out`. The four
+      Python files now total 1140 lines; D5 remains unresolved, so full
+      milestone gates and commit remain pending.
+- [x] (2026-10-14) Fix the follow-up df12 Pylint findings with assertion
+      messages, structural matching, smaller semantic checks, and Python 3.12
+      type aliases. Targeted Ruff has zero diagnostics, targeted df12 Pylint is
+      10/10, and 59 focused tests pass. Logs: `/tmp/ruff-syrupy-mdast-113-targeted.json`,
+      `/tmp/pylint-df12-syrupy-mdast-113-targeted.out`, and
+      `/tmp/pytest-syrupy-mdast-113-targeted-after-df12.out`. The four Python
+      files now total 1198 lines; D5 remains unresolved.
+- [x] (2026-10-14) Remove three redundant casts reported by the full `ty`
+      check. Targeted `ty` and Ruff checks now pass for the loader. Logs:
+      `/tmp/ty-syrupy-mdast-113-targeted.out` and
+      `/tmp/ruff-syrupy-mdast-113-targeted-after-ty.out`. The four Python files
+      now total 1196 lines; the full hook rerun remains scheduled.
 - [ ] EP-M1: establish the corpus format and focused seed cases.
 - [ ] EP-M2: complete every normative fixture and integrity assertion.
 - [ ] EP-M3: reconcile documentation, validate, and mark 1.1.3 done.
@@ -136,6 +166,10 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - `docs/repository-layout.md`, referenced by repository guidance, does not
   exist at this baseline. Use `docs/contents.md` and the paths below; do not
   expand this task into a repository-documentation rewrite.
+- The first EP-M1 implementation pass totals 813 Python lines across
+  `tests/support/markdown_contract.py` (273), `tests/test_markdown_contract.py`
+  (223), and `tests/test_markdown_contract_loading.py` (317). This exceeds the
+  600-line tolerance before the full fixture matrix is added.
 - Firecrawl's initial structured extraction of the GFM specification omitted
   reference details and misstated code-span whitespace. Reading the full
   primary text resolved this: line endings become spaces in code spans, and
@@ -168,14 +202,28 @@ is not a reason to cancel, duplicate, or bypass a gate.
   corpus format and reuse policy there and in the developer guide. No new ADR
   is required for a test-data organization choice that changes no contract. Any
   actual semantic departure requires a separate accepted decision.
+- **D5 — implementation size tolerance reached.** 2026-10-14. The three new
+  Python files total 813 lines, exceeding the 600-line cap while remaining
+  below the four-file cap. Stop before expanding EP-M1. Options are to approve
+  a revised line ceiling while retaining every acceptance obligation, or to
+  direct a design review that brings the implementation under 600 lines without
+  trimming the normative matrix. A larger ceiling accepts more maintenance
+  surface; compression risks hiding distinctions unless every case remains
+  directly reviewable. Do not proceed until the maintainer selects a path.
 
 ## Outcomes & retrospective
 
 
 The plan and six-perspective review are complete, and the requested baseline
-gates passed. No implementation, corpus verification, or runtime behaviour has
-been delivered. Explicit approval and all implementation milestones remain
-outstanding. The draft PR metadata records publication separately.
+gates passed. Explicit implementation approval arrived on 2026-10-14. EP-M1 has
+a typed loader, seed fixtures, and 59 passing focused tests. A lint repair
+split the loader into a fourth Python file; the four files total 1196 lines and
+still exceed the approved tolerance. The latest full hook passed formatting,
+Ruff, docstring coverage, both Pylint passes, ambrleaks, and Skylos, then found
+three redundant casts in `ty`. Targeted `ty` and Ruff checks pass after
+removing them; the full hook rerun is scheduled. Full milestone gates and
+commit remain blocked on D5. No milestone is complete and no runtime behaviour
+has been delivered. The draft PR metadata records publication separately.
 
 At completion, record fixture counts by obligation, named negative-control
 results, command logs, final commit, and the documentation reconciliation.
@@ -423,6 +471,17 @@ named tests; Git honours the narrow attributes. ADR-004's finite Wenmode probe
 is historical evidence for 0.15.2, not a live integration result in this task.
 Do not verify those third-party implementations or use a current upstream
 release as an oracle for a different version.
+
+EP-M1 partial evidence on 2026-10-14: the focused red run failed all three
+tests with the deliberate `NotImplementedError` stub, then the focused green
+run passed 55 tests. The expanded tests cover metadata errors, source-byte
+preservation, newline classification and corruption, seed relationships, and
+writer shape. The raw Wenmode 0.15.2 probe passed all thirteen ADR checks; it
+confirmed AST shapes only and did not execute canonicalization. Logs are
+`/tmp/pytest-syrupy-mdast-1-1-3-EP-M1-red-attempt2.out`,
+`/tmp/pytest-syrupy-mdast-1-1-3-EP-M1-green-attempt3.out`, and
+`/tmp/wenmode-syrupy-mdast-113-adr004-probe-attempt2.out`. Full M1 gates have
+not run and no M1 commit exists because D5 requires maintainer direction.
 
 - **A-COVERAGE — complete finite coverage.** In
   `tests/test_markdown_contract.py`, explicitly require every matrix subcase,
@@ -760,3 +819,11 @@ instructions. The implementation scope and approval gate are unchanged.
 Revision note (2026-10-13): record successful baseline validation and expert
 review completion. Publication is recorded in the draft PR metadata, approval
 remains outstanding, and all implementation milestones remain unstarted.
+
+Revision note (2026-10-14): the user explicitly approved implementation by
+requesting this plan through the `sdlc-implementation` workflow. The plan is
+now in progress; implementation remains bounded by its existing tolerances.
+
+Revision note (2026-10-14): EP-M1 reached the 600-line Python implementation
+tolerance at 813 lines. The plan is blocked pending direction; focused evidence
+is recorded, and no full gates or implementation commit were produced.
