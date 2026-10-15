@@ -4,8 +4,8 @@
 # Create the canonical Markdown contract corpus
 
 
-Status: IN PROGRESS — the maintainer granted an exception to the 600-line total
-cap on 2026-10-15; EP-M1 and EP-M2 are complete, and EP-M3 remains.
+Status: COMPLETE — the maintainer granted an exception to the 600-line total
+cap on 2026-10-15; EP-M1, EP-M2, and EP-M3 are complete.
 
 Roadmap task: **1.1.3**. Prerequisite: **1.1.2**, completed at baseline
 `c19afee8ed735dffa6262cf0b2e0a9ca0a5a0551`.
@@ -228,7 +228,37 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - [x] EP-M1: establish the corpus format and focused seed cases; pass the
   required milestone review before advancing.
 - [x] EP-M2: complete every normative fixture and integrity assertion.
-- [ ] EP-M3: reconcile documentation, validate, and mark 1.1.3 done.
+- [x] EP-M3: reconcile documentation, validate, and mark 1.1.3 done.
+- [x] (2026-10-15) Reconcile design §§7–8 with the accepted parser call and
+  five-rule sequence; add the corpus workflow and integrity boundary to the
+  developer guide and link the corpus from the contents and user guides. No new
+  decision beyond ADR-004 was needed. At that point the roadmap checkbox was
+  withheld pending final M3 review and validation.
+- [x] (2026-10-15) Fresh CodeRabbit CLI 0.9.0 review of 187 paths found two
+  low-severity documentation issues: `list-tight` needed to explain its
+  deliberate source/golden reuse, and the checked roadmap item conflicted with
+  the open M3 status. The reason now documents the deliberate reuse, and the
+  roadmap check was withheld until the final M3 gates and review passed.
+- [x] (2026-10-15) Disposition CodeRabbit's numeric-reference finding. The
+  CommonMark 0.31.2 §2.5 rule says invalid Unicode code points become U+FFFD,
+  but accepted ADR-004 NF-13 records Wenmode 0.15.2 leaving the surrogate and
+  out-of-range references literal. Preserve the independent expected results;
+  changing them would revise the accepted parser contract. The two manifest
+  reasons now identify that provenance. Final M3 gates and review were pending
+  at that point.
+- [x] (2026-10-15) Add the requested `table-cell-base` semantic marker for
+  value `"1"`; the existing distinct relation alone only proved that the
+  expected payload differs from `table-cell-changed`. The assertion index now
+  has 72 markers. The final M3 gates and review subsequently passed.
+- [x] (2026-10-15) Complete EP-M3 after the marker repair: all seven gates
+  pass with 265 tests; fresh CodeRabbit CLI 0.9.0 review returns zero findings
+  across 187 paths. The audit found no known vulnerabilities;
+  `df12-python-lints` and `syrupy-mdast` are unavailable on PyPI. Gate logs use
+  the `m3-table-marker.out` suffix; review output is
+  `/tmp/coderabbit-syrupy-mdast-m3-table-marker-LlVaJL/review.out`. The
+  numeric-reference suggestion was dispositioned against the accepted
+  Wenmode-specific NF-13 contract. The final documentation close-out includes
+  the roadmap checkbox and this completion record.
 
 ## Surprises & discoveries
 
@@ -324,26 +354,32 @@ is not a reason to cancel, duplicate, or bypass a gate.
 ## Outcomes & retrospective
 
 
-The plan and six-perspective review are complete, and the requested baseline
-gates passed. Explicit implementation approval arrived on 2026-10-14. EP-M1 has
-a typed loader, seed fixtures, and 59 passing focused tests. A lint repair
-split the loader into a fourth Python file; the four files total 1196 lines. D6
-waives the 600-line cap for this plan while retaining file-count and per-file
-limits. After removing three redundant casts, the full commit gates passed,
-including 162 tests, and the seed corpus was committed as `08c10f0`. The audit
-found no known vulnerabilities, but could not audit `df12-python-lints` or
-`syrupy-mdast` because they are unavailable on PyPI. EP-M1's implementation,
-gates, and CLI review are complete. EP-M2 now has 99 named cases; its latest
-CodeRabbit findings are repaired, with full gates and review reassessment
-pending. The previous seven-gate run passed with 264 tests. EP-M3's
-documentation reconciliation remains outstanding. No runtime behaviour has been
-delivered. The draft PR metadata records publication separately.
+The plan and six-perspective review are complete, and explicit implementation
+approval arrived on 2026-10-14. EP-M1 added a typed loader and seed fixtures;
+its commit `08c10f0` passed the full gates with 162 tests. EP-M2 added 99 cases
+(92 Markdown and seven synthetic), 75 hand-authored expected trees, 34 exact
+relations, and 71 semantic markers across 20 rules and 22 node types. Its
+commit is `97179f5`; the full gates passed with 264 tests, fresh CodeRabbit
+review found no issues across 182 paths, and the audit found no known
+vulnerabilities. EP-M3 adds the 72nd semantic marker and reconciles the design,
+contributor and user guidance, documentation index, and roadmap. Its final
+candidate passes all seven gates with 265 tests; fresh CodeRabbit CLI 0.9.0
+review returned zero findings across 187 paths. The audit found no known
+vulnerabilities, but `df12-python-lints` and `syrupy-mdast` remain unavailable
+on PyPI. The 600-line total cap is waived for this plan; the four-file and
+400-line per-file limits remain. Representative negative controls reject a
+missing required case, partner-golden substitution, retained `position`, a
+mutated writer-shaped golden, weakened source witnesses, and a CRLF declaration
+with LF bytes. The numeric-reference outputs follow accepted ADR-004 NF-13
+observations for Wenmode 0.15.2 despite CommonMark's U+FFFD requirement for
+invalid Unicode values. No runtime behaviour has been delivered; valid `str`
+input still raises `NotImplementedError`, and parser/canonicalizer conformance
+remains deferred.
 
-At completion, record fixture counts by obligation, named negative-control
-results, command logs, final commit, and the documentation reconciliation.
-Explain that passing corpus integrity tests are not parser-conformance proof.
-Do not set this plan to `COMPLETE` while a normative fixture, acceptance gate,
-or upstream-document reconciliation remains outstanding.
+The completion record preserves the finite matrix counts, representative
+negative controls, gate logs, and documentation reconciliation. Passing corpus
+integrity tests validate the authored examples; they are not parser-conformance
+proof. All normative fixtures and documentation obligations are complete.
 
 ## Context and orientation
 
@@ -396,15 +432,18 @@ ADR-003 and ADR-004 (accepted 2026-10-11). The roadmap records 1.1.2 complete.
 Use these selective trace identifiers:
 
 - **R-CORPUS:** roadmap 1.1.3's equivalences, distinctions, ordinary-reference
-  forms, and complete design §8 coverage → EP-M1/EP-M2 → A-COVERAGE/A-CASES.
+  forms, and complete design §8 coverage → EP-M1/EP-M2 → A-COVERAGE/A-CASES; the
+  [corpus README](../tests/fixtures/markdown_contract/README.md) is the
+  reader-facing fixture index.
 - **R-NORMALIZE:** design §8 as amended by ADR-004's five ordered rules →
   EP-M2 → A-SYNTHETIC and A-GOLDEN.
 - **R-PRESERVE:** design §8's preserved values, order, omissions, footnotes,
   and HTML plus NF-1–NF-13 → EP-M2 → A-CASES/A-SYNTHETIC.
 - **R-BOUNDARY:** design §§2–5 and roadmap dependency order → every milestone
   → unchanged production API/dependency contracts and explicit deferred tests.
-- **R-MAINTAIN:** repository documentation and completion requirements → EP-M3
-  → A-DOCS and the gated roadmap checkbox.
+- **R-MAINTAIN:** design §8, contributor and user guidance, the documentation
+  index, corpus README, and roadmap completion requirements → EP-M3 → A-DOCS
+  and the gated roadmap checkbox.
 
 ### Normative fixture matrix
 
@@ -946,5 +985,15 @@ is recorded, and no full gates or implementation commit were produced.
 
 Revision note (2026-10-15): the maintainer granted an exception to the total
 600-line cap for this plan. The four-file maximum, per-file line limit, and
-scope-review trigger remain. The seed corpus is committed and its full local
-gates passed; EP-M1's CLI review and the full normative matrix remain.
+scope-review trigger remain. At that point, the seed corpus was committed and
+its full local gates had passed; EP-M1's CLI review and the full normative
+matrix were still outstanding.
+
+Revision note (2026-10-15): EP-M2 is complete and committed as `97179f5` with
+99 cases, 75 authored expected trees, 34 exact relations, 71 semantic markers,
+264 passing tests, and a zero-finding review across 182 paths. EP-M3 adds the
+72nd semantic marker, reconciles the accepted five-rule contract and user and
+contributor documentation, and records the CommonMark/Wenmode numeric-reference
+disposition. Final gates passed with 265 tests, and fresh CodeRabbit review
+returned zero findings across 187 paths. The roadmap checkbox is checked;
+runtime conformance remains deferred.

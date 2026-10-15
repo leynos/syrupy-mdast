@@ -105,6 +105,35 @@ V1 uses Python dependencies only. Bun, Node.js, TypeScript, JavaScript
 manifests, lockfiles, and installed JavaScript package assets are not runtime,
 build, test, or wheel dependencies.
 
+### Maintain the canonical contract corpus
+
+The test-only
+[canonical Markdown contract corpus](../tests/fixtures/markdown_contract/README.md)
+contains the reviewed examples for ADR-004. `manifest.toml` orders cases and
+relations; `sources/` preserves raw Markdown bytes in `.txt` files;
+`synthetic/` holds AST-shaped inputs; `expected/` contains hand-authored JSON;
+and `assertions/contract-assertions.json` indexes rules, relations, node types,
+preferred member order, and focused semantic markers.
+
+Run the focused integrity suite with:
+
+```bash
+uv run pytest -v tests/test_markdown_contract.py tests/test_markdown_contract_loading.py
+```
+
+Its loader and integrity tests are test support only: they validate metadata,
+source bytes, expected payloads, and relationships without parsing Markdown or
+canonicalizing trees. Passing this suite proves fixture integrity, not parser
+conformance.
+
+When changing a case, review the manifest, source or synthetic input, source
+witness, expected payload, relation membership, assertion index, and focused
+test assertions together. Preserve source bytes and declared line endings;
+never regenerate expected JSON from the parser or canonicalizer under test.
+Future parser and canonicalizer tests must consume these authored expectations
+as independent results and verify runtime conformance at their implementation
+seams.
+
 ### V1 public contract
 
 The package-level public surface is deliberately limited to `MarkdownAstError`

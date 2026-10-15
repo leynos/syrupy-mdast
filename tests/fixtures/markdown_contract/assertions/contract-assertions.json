@@ -815,6 +815,10 @@
         "right"
       ]
     },
+    "table-cell-base": {
+      "type": "text",
+      "value": "1"
+    },
     "table-cell-changed": {
       "type": "text",
       "value": "2"

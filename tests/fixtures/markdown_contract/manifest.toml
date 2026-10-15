@@ -725,7 +725,7 @@ line_endings = "lf"
 [[cases]]
 id = "list-tight"
 rules = ["NF-10"]
-reason = "The list tight case shows that the named structural or whitespace distinction remains observable."
+reason = "This case deliberately reuses list-unordered's source and golden so list-tightness compares one tight-list representation with list-loose."
 witness = "- a\n- b\n"
 kind = "markdown"
 input = "sources/list-unordered.txt"
@@ -922,7 +922,7 @@ line_endings = "lf"
 [[cases]]
 id = "numeric-reference-surrogate"
 rules = ["NF-13"]
-reason = "The numeric reference surrogate case shows that numeric reference boundaries produce replacement or literal text as specified."
+reason = "ADR-004 NF-13 records Wenmode 0.15.2 retaining this surrogate reference as literal text."
 witness = "&#xD800;\n"
 kind = "markdown"
 input = "sources/numeric-reference-surrogate.txt"
@@ -932,7 +932,7 @@ line_endings = "lf"
 [[cases]]
 id = "numeric-reference-out-of-range"
 rules = ["NF-13"]
-reason = "The numeric reference out of range case shows that numeric reference boundaries produce replacement or literal text as specified."
+reason = "ADR-004 NF-13 records Wenmode 0.15.2 retaining this out-of-range reference as literal text."
 witness = "&#x110000;\n"
 kind = "markdown"
 input = "sources/numeric-reference-out-of-range.txt"

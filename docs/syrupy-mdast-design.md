@@ -243,7 +243,7 @@ def parse_markdown(source: str) -> dict[str, Any]:
     ``parse_markdown("# Title")`` returns a root containing a depth-one
     heading.
     """
-    return Parser(github, positions=False).parse(source).to_ast()
+    return Parser(github(), positions=False).parse(source).to_ast()
 ```
 
 This function is the Wenmode adapter seam. The production implementation may
@@ -267,27 +267,39 @@ initial corpus, but it must be optional, unshipped, and absent from normal CI.
 ## 8. Canonicalization contract
 
 Wenmode's `to_ast()` result is the canonicalization input. The canonicalizer
-walks every array element and object value recursively and applies only these
-transformations:
+walks mappings and lists recursively, including values nested in `data`, and
+applies only these transformations in order:
 
-1. Remove every object member named `position`, even though positions are
-   disabled in the parser.
-2. Remove a `data` member only when its value is an empty plain object.
-3. Normalize carriage-return line feed and bare carriage return to line feed
-   in every string value.
-4. Emit object members in the preferred order below, followed by unknown
-   members in Unicode code-point order.
+1. `remove-position`: remove every object member named `position`, even though
+   positions are disabled in the parser.
+2. `remove-empty-data`: remove a `data` member only when its value is an empty
+   mapping.
+3. `merge-plain-text`: merge adjacent sibling mappings only when their exact
+   members are `type` and `value`, `type` is `text`, and `value` is a string.
+   Concatenate each run of two or more values; any extra member prevents a
+   merge.
+4. `normalize-line-endings`: replace CRLF, then bare CR, with LF in every
+   string value, not in member names.
+5. `order-members`: emit members in the preferred order below, followed by
+   unknown members in Unicode code-point order.
+
+The
+[canonical Markdown contract corpus](../tests/fixtures/markdown_contract/README.md)
+contains the normative examples and hand-authored expected payloads. Its
+integrity tests validate fixture bytes and relationships; they do not run a
+parser or canonicalizer and therefore do not establish runtime conformance.
 
 The preferred order is `type`, structural scalar fields, link and footnote
-fields, `value`, `data`, and `children`. The implementation defines the exact
-field sequence as one immutable constant covered by a contract fixture.
-Object-member order improves reviewability but does not change array order.
+fields, `value`, `data`, and `children`. The exact sequence is recorded in the
+corpus assertion index and covered by its integrity tests. Object-member order
+improves reviewability but does not change array order.
 
 The canonicalizer preserves `false`, `0`, empty arrays, empty strings, non-empty
-`data`, and all unknown fields. Wenmode omits fields whose value is `None`; v1
-preserves that omission and does not synthesize schema-specific `null` members.
-This makes Wenmode's public AST shape the source of truth rather than
-maintaining a partial Python copy of another mdast schema.
+`data`, all unknown fields, and `null` array elements. Wenmode omits fields
+whose value is `None`; v1 preserves that omission and does not synthesize
+schema-specific `null` members. This makes Wenmode's public AST shape the
+source of truth rather than maintaining a partial Python copy of another mdast
+schema.
 
 Ordinary reference-style links and images are resolved to `link` and `image`
 nodes. Their definition nodes, labels, reference forms, and unused definitions

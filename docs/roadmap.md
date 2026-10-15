@@ -39,7 +39,7 @@ outcome bounds every parser, serializer, and compatibility decision. See the
   - See design §§7, 13, and 15.
   - Success: the explicitly versioned ADR is accepted before any related
     implementation or fixture change is committed.
-- [ ] 1.1.3. Create the canonical Markdown contract corpus.
+- [x] 1.1.3. Create the canonical Markdown contract corpus.
   - Requires 1.1.2.
   - Pair syntax-equivalent emphasis, line-ending, and direct/reference-link
     inputs.
@@ -49,6 +49,11 @@ outcome bounds every parser, serializer, and compatibility decision. See the
     references.
   - Success: every normalization and preservation rule in design §8 maps to a
     focused, reviewer-readable fixture.
+  - Outcome: 99 cases and hand-authored expected payloads are documented in
+    the [canonical Markdown contract corpus](../tests/fixtures/markdown_contract/README.md).
+    Its integrity tests validate the authored fixtures; parser and
+    canonicalizer conformance remain implementation work in later roadmap
+    tasks.
 
 ### 1.2. Prove the Python-only dependency boundary
 
@@ -65,7 +70,8 @@ boundary before parsing logic depends on it.
     release without a JavaScript runtime or network access at parse time.
 - [ ] 1.2.2. Define the narrow internal Wenmode adapter seam.
   - Requires 1.2.1.
-  - Construct a fresh `Parser(github, positions=False)` for every adapter call.
+  - Construct a fresh `Parser(github(), positions=False)` for every adapter
+    call.
   - Return Wenmode's public `to_ast()` data without a speculative pluggable
     backend abstraction.
   - Success: sequential documents do not leak ordinary reference or footnote
@@ -94,7 +100,7 @@ Python extension is safe to expose. See design §§7-8 and §11.
 
 - [ ] 2.1.1. Implement GitHub-profile Markdown parsing.
   - Requires 1.1.2, 1.2.2, and 1.2.3.
-  - Parse strings through `Parser(github, positions=False)` and obtain ordinary
+  - Parse strings through `Parser(github(), positions=False)`; obtain ordinary
     Python data through `to_ast()`.
   - Validate that the result is a root mapping with a children array.
   - Success: the contract corpus produces expected CommonMark, GFM, and
