@@ -56,20 +56,17 @@ def _read_manifest(root: Path) -> dict[str, object]:
     Raises
     ------
     ValueError
-        If the file is missing, invalid UTF-8, or invalid TOML.
+        If the file is missing, is a directory, or contains invalid UTF-8/TOML.
 
     Examples
     --------
     ``_read_manifest(root)`` returns its TOML table after UTF-8 decoding.
     """
     manifest_path = root / "manifest.toml"
-    if not manifest_path.is_file():
-        message = f"manifest.toml is missing from corpus root {root}"
-        raise ValueError(message)
     try:
         manifest_text = manifest_path.read_bytes().decode("utf-8")
-    except FileNotFoundError as error:
-        message = f"manifest.toml is missing from corpus root {root}"
+    except (FileNotFoundError, IsADirectoryError) as error:
+        message = f"manifest.toml is not a readable file in corpus root {root}"
         raise ValueError(message) from error
     except UnicodeDecodeError as error:
         message = f"manifest.toml is not valid UTF-8: {error}"

@@ -1,13 +1,21 @@
-"""Typed test support for the authored Markdown contract corpus."""
+"""Load and validate the authored Markdown contract corpus for tests.
+
+This module provides ordered manifest records, byte-preserving source reads,
+and strict JSON-golden decoding. For example,
+``load_corpus(Path("tests/fixtures/markdown_contract"))`` returns the cases
+and relations for focused integrity assertions.
+"""
 
 import collections.abc as cabc
 import dataclasses
+import json
 import typing as typ
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
 type CaseKind = typ.Literal["markdown", "synthetic"]
 type LineEndings = typ.Literal["lf", "crlf", "cr", "none"]
 type RelationKind = typ.Literal["equal", "distinct"]
+type JSONValue = str | int | bool | list[JSONValue] | dict[str, JSONValue] | None
 
 RULE_IDS = frozenset(f"NF-{number}" for number in range(1, 14)) | frozenset({
     "remove-position",
@@ -82,6 +90,70 @@ def read_source(path: Path) -> str:
     the CRLF pair and the final bare CR in the decoded string.
     """
     return path.read_bytes().decode("utf-8")
+
+
+def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    """Reject JSON objects that repeat a member instead of hiding duplicates."""
+    members: dict[str, object] = {}
+    for key, value in pairs:
+        if key in members:
+            message = f"duplicate JSON object member {key!r}"
+            raise ValueError(message)
+        members[key] = value
+    return members
+
+
+def _assert_json_scalars(value: object, location: str) -> None:
+    """Reject unsupported JSON scalar values recursively."""
+    match value:
+        case list() as items:
+            for index, item in enumerate(items):
+                _assert_json_scalars(item, f"{location}[{index}]")
+        case dict() as members:
+            for key, member in members.items():
+                _assert_json_scalars(key, f"{location} object key")
+                _assert_json_scalars(member, f"{location}.{key}")
+        case _:
+            _assert_json_scalar(value, location)
+
+
+def _assert_json_scalar(value: object, location: str) -> None:
+    """Reject floats and invalid Unicode scalar strings."""
+    match value:
+        case None | bool() | int():
+            return
+        case float():
+            message = f"{location} contains a forbidden floating-point value"
+            raise TypeError(message)
+        case str() as text:
+            try:
+                text.encode("utf-8")
+            except UnicodeEncodeError as error:
+                message = f"{location} contains an invalid Unicode scalar"
+                raise ValueError(message) from error
+            return
+        case _:
+            message = f"{location} contains an unsupported JSON value"
+            raise TypeError(message)
+
+
+def read_expected_payload(path: Path) -> JSONValue:
+    """Decode one authored golden with strict text and scalar validation.
+
+    Returns
+    -------
+    JSONValue
+        The decoded root tree after duplicate-member and scalar checks.
+
+    Examples
+    --------
+    A duplicate member raises ``ValueError``; a floating-point value raises
+    ``TypeError``.
+    """
+    payload_text = path.read_bytes().decode("utf-8")
+    payload = json.loads(payload_text, object_pairs_hook=_unique_json_object)
+    _assert_json_scalars(payload, path.name)
+    return typ.cast("JSONValue", payload)
 
 
 def _table(value: object, location: str) -> dict[str, object]:

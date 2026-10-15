@@ -112,8 +112,8 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - [x] (2026-10-13 22:46Z) Read repository guidance; verify clean baseline and
   completed prerequisite 1.1.2.
 - [x] (2026-10-13 22:48Z) Obtain two Wyvern reconnaissance reports, shared
-      through
-  context pack `pk_gadsijjx`; establish absent parser and corpus infrastructure.
+      through context pack `pk_gadsijjx`; establish absent parser and corpus
+      infrastructure.
 - [x] (2026-10-13 22:50Z) Check primary format documentation using Firecrawl;
   resolve reference terminology and parser-level code-span whitespace rules.
 - [x] (2026-10-13 22:55Z) Complete all six community-of-experts perspectives
@@ -156,7 +156,28 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - [x] (2026-10-15 16:22Z) Receive the maintainer's explicit exception to the
       600-total-line cap for this plan. The four-file maximum, 400-line limit
       per Python file, and 100-named-case scope-review threshold remain active.
-- [ ] EP-M1: establish the corpus format and focused seed cases; complete its
+- [x] (2026-10-15) Triage the CodeRabbit CLI 0.9.0 review of all 23 paths. Two
+      duplicate findings correctly requested assertions for the authored
+      emphasis and strong child values; those assertions are now in the
+      candidate. The array-error finding is not applicable: the plan requires
+      contextual `ValueError` for its listed invalid IDs, paths, kinds, and
+      relations, while wrong field types retain contextual `TypeError`.
+- [x] (2026-10-15) Pass all seven deterministic gates after the M1 semantic
+      review fixes; 169 tests passed. The audit found no known vulnerabilities,
+      but could not query `df12-python-lints` or `syrupy-mdast` on PyPI. The
+      next CodeRabbit review found four distinct issues: the support module
+      needed a usage docstring; the manifest version test needed byte reads; a
+      directory-valued manifest path needed the contextual error path and a
+      negative test; and this progress list needed consistent wrapping. Its two
+      notes about the path pre-check conflicted; the candidate removes the
+      check and handles the directory read error without claiming the original
+      check was defective. The full seven-gate rerun passed with 170 tests, and
+      fresh CodeRabbit CLI 0.9.0 review returned zero findings across all 23
+      changed paths. The audit found no known vulnerabilities; its two PyPI
+      omissions remain recorded. Review output:
+      `/tmp/coderabbit-review-UpB3UD/review.out`; the seven gate logs use the
+      branch-scoped filenames in `/tmp`.
+- [x] EP-M1: establish the corpus format and focused seed cases; pass the
       required milestone review before advancing.
 - [ ] EP-M2: complete every normative fixture and integrity assertion.
 - [ ] EP-M3: reconcile documentation, validate, and mark 1.1.3 done.

@@ -91,6 +91,14 @@ def test_load_corpus_rejects_a_missing_manifest(tmp_path: Path) -> None:
         load_corpus(tmp_path)
 
 
+def test_load_corpus_rejects_a_manifest_directory(tmp_path: Path) -> None:
+    """A directory at the manifest path receives the contextual file error."""
+    (tmp_path / "manifest.toml").mkdir()
+
+    with pytest.raises(ValueError, match=r"manifest.toml"):
+        load_corpus(tmp_path)
+
+
 def test_load_corpus_rejects_an_unknown_relation(tmp_path: Path) -> None:
     """Relation metadata accepts only the two normative relation kinds."""
     _write_minimal_corpus(
