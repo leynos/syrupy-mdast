@@ -1,0 +1,1009 @@
+{
+  "node_types": [
+    "blockquote",
+    "break",
+    "code",
+    "delete",
+    "emphasis",
+    "footnoteDefinition",
+    "footnoteReference",
+    "heading",
+    "html",
+    "image",
+    "inlineCode",
+    "link",
+    "list",
+    "listItem",
+    "paragraph",
+    "root",
+    "strong",
+    "table",
+    "tableCell",
+    "tableRow",
+    "text",
+    "thematicBreak"
+  ],
+  "preferred_member_order": [
+    "type",
+    "depth",
+    "ordered",
+    "start",
+    "spread",
+    "checked",
+    "align",
+    "lang",
+    "meta",
+    "url",
+    "title",
+    "alt",
+    "identifier",
+    "label",
+    "value",
+    "data",
+    "children"
+  ],
+  "case_rules": {
+    "emphasis-asterisk": [
+      "NF-1"
+    ],
+    "emphasis-underscore": [
+      "NF-1"
+    ],
+    "strong-asterisk": [
+      "NF-1"
+    ],
+    "strong-underscore": [
+      "NF-1"
+    ],
+    "break-soft": [
+      "NF-10"
+    ],
+    "break-hard-spaces": [
+      "NF-10"
+    ],
+    "break-hard-backslash": [
+      "NF-10"
+    ],
+    "code-fenced-base": [
+      "NF-10"
+    ],
+    "code-fenced-whitespace": [
+      "NF-10"
+    ],
+    "code-fenced-language": [
+      "NF-10"
+    ],
+    "code-fenced-meta": [
+      "NF-10"
+    ],
+    "inline-code-base": [
+      "NF-10"
+    ],
+    "inline-code-whitespace": [
+      "NF-10"
+    ],
+    "list-ordered-start-one": [
+      "NF-10"
+    ],
+    "list-ordered-start-three": [
+      "NF-10"
+    ],
+    "list-tight": [
+      "NF-10"
+    ],
+    "list-loose": [
+      "NF-10"
+    ],
+    "list-task-checked": [
+      "NF-10"
+    ],
+    "list-task-unchecked": [
+      "NF-10"
+    ],
+    "list-item-order-swapped": [
+      "NF-10"
+    ],
+    "link-direct": [
+      "NF-2"
+    ],
+    "link-full-reference-before": [
+      "NF-2"
+    ],
+    "link-full-reference-after": [
+      "NF-2"
+    ],
+    "link-collapsed-reference": [
+      "NF-2"
+    ],
+    "link-shortcut-reference": [
+      "NF-2"
+    ],
+    "link-casefold-reference": [
+      "NF-2"
+    ],
+    "link-distinct-url": [
+      "NF-2"
+    ],
+    "link-distinct-title": [
+      "NF-2"
+    ],
+    "link-distinct-child": [
+      "NF-2"
+    ],
+    "link-unresolved-full": [
+      "NF-2"
+    ],
+    "link-unresolved-collapsed": [
+      "NF-2"
+    ],
+    "link-unresolved-shortcut": [
+      "NF-2"
+    ],
+    "link-unused-definition": [
+      "NF-2"
+    ],
+    "image-direct": [
+      "NF-2"
+    ],
+    "image-full-reference-forward": [
+      "NF-2"
+    ],
+    "image-collapsed-reference": [
+      "NF-2"
+    ],
+    "image-shortcut-reference": [
+      "NF-2"
+    ],
+    "image-unresolved-reference": [
+      "NF-2"
+    ],
+    "image-unused-definition": [
+      "NF-2"
+    ],
+    "link-title-absent": [
+      "NF-2",
+      "NF-4"
+    ],
+    "image-title-absent": [
+      "NF-2",
+      "NF-4"
+    ],
+    "footnote-case-upper": [
+      "NF-3"
+    ],
+    "footnote-case-lower": [
+      "NF-3"
+    ],
+    "footnote-definition-before": [
+      "NF-3"
+    ],
+    "footnote-definition-after": [
+      "NF-3"
+    ],
+    "footnote-unused-definition": [
+      "NF-3"
+    ],
+    "footnote-repeated-reference": [
+      "NF-3"
+    ],
+    "footnote-undefined-reference": [
+      "NF-3"
+    ],
+    "footnote-distinct-identifier": [
+      "NF-3"
+    ],
+    "footnote-distinct-body": [
+      "NF-3"
+    ],
+    "code-indented-omissions": [
+      "NF-4",
+      "NF-10"
+    ],
+    "list-unordered": [
+      "NF-4",
+      "NF-10"
+    ],
+    "list-non-task-item": [
+      "NF-4",
+      "NF-10"
+    ],
+    "table-unaligned": [
+      "NF-5",
+      "NF-10"
+    ],
+    "table-left": [
+      "NF-5",
+      "NF-10"
+    ],
+    "table-centre": [
+      "NF-5",
+      "NF-10"
+    ],
+    "table-right": [
+      "NF-5",
+      "NF-10"
+    ],
+    "table-cell-base": [
+      "NF-5",
+      "NF-10"
+    ],
+    "table-cell-changed": [
+      "NF-5",
+      "NF-10"
+    ],
+    "html-spelling-lowercase": [
+      "NF-6",
+      "NF-10"
+    ],
+    "html-spelling-uppercase": [
+      "NF-6",
+      "NF-10"
+    ],
+    "html-allowed": [
+      "NF-6",
+      "NF-10"
+    ],
+    "html-filtered-title": [
+      "NF-6",
+      "NF-10"
+    ],
+    "html-filtered-iframe": [
+      "NF-6",
+      "NF-10"
+    ],
+    "html-type1-script": [
+      "NF-6",
+      "NF-7",
+      "NF-10"
+    ],
+    "html-type1-style": [
+      "NF-6",
+      "NF-7",
+      "NF-10"
+    ],
+    "html-type1-textarea": [
+      "NF-6",
+      "NF-7",
+      "NF-10"
+    ],
+    "line-endings-lf": [
+      "NF-8",
+      "normalize-line-endings"
+    ],
+    "line-endings-crlf": [
+      "NF-8",
+      "normalize-line-endings"
+    ],
+    "line-endings-cr": [
+      "NF-8",
+      "normalize-line-endings"
+    ],
+    "line-endings-title-lf": [
+      "NF-8",
+      "normalize-line-endings"
+    ],
+    "line-endings-title-crlf": [
+      "NF-8",
+      "normalize-line-endings"
+    ],
+    "line-endings-title-cr": [
+      "NF-8",
+      "normalize-line-endings"
+    ],
+    "line-endings-hard-crlf": [
+      "NF-8",
+      "NF-10",
+      "normalize-line-endings"
+    ],
+    "line-endings-hard-cr": [
+      "NF-8",
+      "NF-10",
+      "normalize-line-endings"
+    ],
+    "line-endings-code-lf": [
+      "NF-8",
+      "NF-10",
+      "normalize-line-endings"
+    ],
+    "line-endings-code-crlf": [
+      "NF-8",
+      "NF-10",
+      "normalize-line-endings"
+    ],
+    "line-endings-code-cr": [
+      "NF-8",
+      "NF-10",
+      "normalize-line-endings"
+    ],
+    "position-removal-exposes-text": [
+      "NF-9",
+      "remove-position",
+      "merge-plain-text"
+    ],
+    "plain-entity-literal": [
+      "NF-11",
+      "merge-plain-text"
+    ],
+    "plain-entity-reference": [
+      "NF-11",
+      "merge-plain-text"
+    ],
+    "plain-asterisk-literal": [
+      "NF-11",
+      "merge-plain-text"
+    ],
+    "plain-asterisk-escaped": [
+      "NF-11",
+      "merge-plain-text"
+    ],
+    "plain-text-metadata-boundary": [
+      "NF-11",
+      "merge-plain-text"
+    ],
+    "plain-text-cross-sibling-crlf": [
+      "NF-11",
+      "merge-plain-text",
+      "normalize-line-endings"
+    ],
+    "key-order-codepoint": [
+      "NF-12",
+      "order-members"
+    ],
+    "all-node-document": [
+      "NF-12",
+      "order-members"
+    ],
+    "node-strikethrough": [
+      "NF-12",
+      "order-members"
+    ],
+    "node-autolink": [
+      "NF-12",
+      "order-members"
+    ],
+    "node-heading": [
+      "NF-12",
+      "order-members"
+    ],
+    "node-blockquote": [
+      "NF-12",
+      "order-members"
+    ],
+    "node-thematic-break": [
+      "NF-12",
+      "order-members"
+    ],
+    "numeric-reference-zero": [
+      "NF-13"
+    ],
+    "numeric-reference-surrogate": [
+      "NF-13"
+    ],
+    "numeric-reference-out-of-range": [
+      "NF-13"
+    ],
+    "numeric-reference-non-ascii": [
+      "NF-13"
+    ],
+    "data-removal-exposes-text": [
+      "NF-9",
+      "remove-position",
+      "remove-empty-data",
+      "merge-plain-text",
+      "preserve-values"
+    ],
+    "preserve-falsy-values": [
+      "preserve-values"
+    ],
+    "writer-format": [
+      "writer-format",
+      "order-members"
+    ]
+  },
+  "relations": {
+    "emphasis-delimiters": {
+      "relation": "equal",
+      "cases": [
+        "emphasis-asterisk",
+        "emphasis-underscore"
+      ]
+    },
+    "strong-delimiters": {
+      "relation": "equal",
+      "cases": [
+        "strong-asterisk",
+        "strong-underscore"
+      ]
+    },
+    "hard-break-spellings": {
+      "relation": "equal",
+      "cases": [
+        "break-hard-spaces",
+        "break-hard-backslash"
+      ]
+    },
+    "soft-and-hard-breaks": {
+      "relation": "distinct",
+      "cases": [
+        "break-soft",
+        "break-hard-spaces"
+      ]
+    },
+    "paragraph-line-endings": {
+      "relation": "equal",
+      "cases": [
+        "line-endings-lf",
+        "line-endings-crlf",
+        "line-endings-cr"
+      ]
+    },
+    "link-equivalent-forms": {
+      "relation": "equal",
+      "cases": [
+        "link-direct",
+        "link-full-reference-before",
+        "link-full-reference-after",
+        "link-collapsed-reference",
+        "link-shortcut-reference",
+        "link-casefold-reference"
+      ]
+    },
+    "link-unresolved-forms": {
+      "relation": "distinct",
+      "cases": [
+        "link-unresolved-full",
+        "link-unresolved-collapsed",
+        "link-unresolved-shortcut"
+      ]
+    },
+    "link-destination-change": {
+      "relation": "distinct",
+      "cases": [
+        "link-direct",
+        "link-distinct-url"
+      ]
+    },
+    "link-title-change": {
+      "relation": "distinct",
+      "cases": [
+        "link-direct",
+        "link-distinct-title"
+      ]
+    },
+    "link-child-change": {
+      "relation": "distinct",
+      "cases": [
+        "link-direct",
+        "link-distinct-child"
+      ]
+    },
+    "link-title-omission": {
+      "relation": "distinct",
+      "cases": [
+        "link-direct",
+        "link-title-absent"
+      ]
+    },
+    "image-reference-forms": {
+      "relation": "equal",
+      "cases": [
+        "image-direct",
+        "image-full-reference-forward",
+        "image-collapsed-reference",
+        "image-shortcut-reference"
+      ]
+    },
+    "image-title-omission": {
+      "relation": "distinct",
+      "cases": [
+        "image-direct",
+        "image-title-absent"
+      ]
+    },
+    "footnote-casefold": {
+      "relation": "equal",
+      "cases": [
+        "footnote-case-upper",
+        "footnote-case-lower"
+      ]
+    },
+    "footnote-definition-order": {
+      "relation": "distinct",
+      "cases": [
+        "footnote-definition-before",
+        "footnote-definition-after"
+      ]
+    },
+    "footnote-identifier-change": {
+      "relation": "distinct",
+      "cases": [
+        "footnote-definition-before",
+        "footnote-distinct-identifier"
+      ]
+    },
+    "footnote-body-change": {
+      "relation": "distinct",
+      "cases": [
+        "footnote-definition-before",
+        "footnote-distinct-body"
+      ]
+    },
+    "line-endings-hard-breaks": {
+      "relation": "equal",
+      "cases": [
+        "break-hard-spaces",
+        "line-endings-hard-crlf",
+        "line-endings-hard-cr"
+      ]
+    },
+    "line-endings-code-values": {
+      "relation": "equal",
+      "cases": [
+        "line-endings-code-lf",
+        "line-endings-code-crlf",
+        "line-endings-code-cr"
+      ]
+    },
+    "line-endings-title-values": {
+      "relation": "equal",
+      "cases": [
+        "line-endings-title-lf",
+        "line-endings-title-crlf",
+        "line-endings-title-cr"
+      ]
+    },
+    "table-alignments": {
+      "relation": "distinct",
+      "cases": [
+        "table-left",
+        "table-centre",
+        "table-right"
+      ]
+    },
+    "table-cell-content": {
+      "relation": "distinct",
+      "cases": [
+        "table-cell-base",
+        "table-cell-changed"
+      ]
+    },
+    "html-raw-spelling": {
+      "relation": "distinct",
+      "cases": [
+        "html-spelling-lowercase",
+        "html-spelling-uppercase"
+      ]
+    },
+    "html-filtering": {
+      "relation": "distinct",
+      "cases": [
+        "html-allowed",
+        "html-filtered-iframe"
+      ]
+    },
+    "fenced-code-whitespace": {
+      "relation": "distinct",
+      "cases": [
+        "code-fenced-base",
+        "code-fenced-whitespace"
+      ]
+    },
+    "fenced-code-language": {
+      "relation": "distinct",
+      "cases": [
+        "code-fenced-base",
+        "code-fenced-language"
+      ]
+    },
+    "fenced-code-meta": {
+      "relation": "distinct",
+      "cases": [
+        "code-fenced-base",
+        "code-fenced-meta"
+      ]
+    },
+    "inline-code-whitespace": {
+      "relation": "distinct",
+      "cases": [
+        "inline-code-base",
+        "inline-code-whitespace"
+      ]
+    },
+    "list-start-number": {
+      "relation": "distinct",
+      "cases": [
+        "list-ordered-start-one",
+        "list-ordered-start-three"
+      ]
+    },
+    "list-item-order": {
+      "relation": "distinct",
+      "cases": [
+        "list-unordered",
+        "list-item-order-swapped"
+      ]
+    },
+    "list-task-state": {
+      "relation": "distinct",
+      "cases": [
+        "list-task-checked",
+        "list-task-unchecked"
+      ]
+    },
+    "list-tightness": {
+      "relation": "distinct",
+      "cases": [
+        "list-tight",
+        "list-loose"
+      ]
+    },
+    "plain-entity-spelling": {
+      "relation": "equal",
+      "cases": [
+        "plain-entity-literal",
+        "plain-entity-reference"
+      ]
+    },
+    "plain-backslash-escape": {
+      "relation": "equal",
+      "cases": [
+        "plain-asterisk-literal",
+        "plain-asterisk-escaped"
+      ]
+    }
+  },
+  "semantic_markers": {
+    "emphasis-asterisk": {
+      "type": "emphasis",
+      "children": [
+        {
+          "type": "text",
+          "value": "a"
+        }
+      ]
+    },
+    "strong-asterisk": {
+      "type": "strong",
+      "children": [
+        {
+          "type": "text",
+          "value": "b"
+        }
+      ]
+    },
+    "break-soft": {
+      "type": "text",
+      "value": "a\nb"
+    },
+    "break-hard-spaces": {
+      "type": "break"
+    },
+    "line-endings-lf": {
+      "type": "text",
+      "value": "first\nsecond"
+    },
+    "link-direct": {
+      "type": "link",
+      "url": "/u",
+      "title": "t",
+      "children": [
+        {
+          "type": "text",
+          "value": "x"
+        }
+      ]
+    },
+    "link-distinct-url": {
+      "type": "link",
+      "url": "/v",
+      "title": "t"
+    },
+    "link-distinct-title": {
+      "type": "link",
+      "url": "/u",
+      "title": "other"
+    },
+    "link-distinct-child": {
+      "type": "link",
+      "children": [
+        {
+          "type": "text",
+          "value": "y"
+        }
+      ]
+    },
+    "link-title-absent": {
+      "type": "link",
+      "url": "/u",
+      "children": [
+        {
+          "type": "text",
+          "value": "x"
+        }
+      ]
+    },
+    "link-unresolved-full": {
+      "type": "text",
+      "value": "[x][missing]"
+    },
+    "link-unresolved-collapsed": {
+      "type": "text",
+      "value": "[x][]"
+    },
+    "link-unresolved-shortcut": {
+      "type": "text",
+      "value": "[x]"
+    },
+    "link-unused-definition": {
+      "type": "text",
+      "value": "plain"
+    },
+    "image-direct": {
+      "type": "image",
+      "url": "/p",
+      "title": "t",
+      "alt": "alt"
+    },
+    "image-title-absent": {
+      "type": "image",
+      "url": "/p",
+      "alt": "alt"
+    },
+    "image-unresolved-reference": {
+      "type": "text",
+      "value": "![alt][missing]"
+    },
+    "image-unused-definition": {
+      "type": "text",
+      "value": "plain"
+    },
+    "footnote-case-upper": {
+      "type": "footnoteReference",
+      "identifier": "f",
+      "label": "f"
+    },
+    "footnote-definition-before": {
+      "type": "footnoteDefinition",
+      "identifier": "f",
+      "label": "f"
+    },
+    "footnote-unused-definition": {
+      "type": "footnoteDefinition",
+      "identifier": "unused"
+    },
+    "footnote-repeated-reference": {
+      "type": "footnoteReference",
+      "identifier": "f"
+    },
+    "footnote-undefined-reference": {
+      "type": "text",
+      "value": "ref[^missing]"
+    },
+    "footnote-distinct-identifier": {
+      "type": "footnoteDefinition",
+      "identifier": "g"
+    },
+    "footnote-distinct-body": {
+      "type": "text",
+      "value": "other"
+    },
+    "table-unaligned": {
+      "type": "table",
+      "align": [
+        null,
+        null
+      ]
+    },
+    "table-left": {
+      "type": "table",
+      "align": [
+        "left",
+        "left"
+      ]
+    },
+    "table-centre": {
+      "type": "table",
+      "align": [
+        "center",
+        "center"
+      ]
+    },
+    "table-right": {
+      "type": "table",
+      "align": [
+        "right",
+        "right"
+      ]
+    },
+    "table-cell-changed": {
+      "type": "text",
+      "value": "2"
+    },
+    "html-spelling-lowercase": {
+      "type": "html",
+      "value": "<div>\nx\n</div>\n"
+    },
+    "html-spelling-uppercase": {
+      "type": "html",
+      "value": "<DIV>\nx\n</DIV>\n"
+    },
+    "html-allowed": {
+      "type": "html",
+      "value": "<div>\nhi\n</div>\n"
+    },
+    "html-filtered-title": {
+      "type": "html",
+      "value": "&lt;title>t&lt;/title>\n",
+      "data": {
+        "escaped": true
+      }
+    },
+    "html-filtered-iframe": {
+      "type": "html",
+      "value": "&lt;iframe src=a>&lt;/iframe>\n",
+      "data": {
+        "escaped": true
+      }
+    },
+    "html-type1-script": {
+      "type": "html",
+      "value": "<script>x</script>\n"
+    },
+    "html-type1-style": {
+      "type": "html",
+      "value": "<style>p{}</style>\n"
+    },
+    "html-type1-textarea": {
+      "type": "html",
+      "value": "<textarea>\nq\n</textarea>\n"
+    },
+    "line-endings-code-lf": {
+      "type": "code",
+      "value": "x\n"
+    },
+    "line-endings-title-lf": {
+      "type": "link",
+      "title": "a\nb"
+    },
+    "code-indented-omissions": {
+      "type": "code",
+      "value": "i\n"
+    },
+    "code-fenced-base": {
+      "type": "code",
+      "value": "  c \n",
+      "lang": "py",
+      "meta": "m"
+    },
+    "code-fenced-whitespace": {
+      "type": "code",
+      "value": " c\n"
+    },
+    "code-fenced-language": {
+      "type": "code",
+      "lang": "js"
+    },
+    "code-fenced-meta": {
+      "type": "code",
+      "meta": "other"
+    },
+    "inline-code-base": {
+      "type": "inlineCode",
+      "value": "a b"
+    },
+    "inline-code-whitespace": {
+      "type": "inlineCode",
+      "value": "a  b"
+    },
+    "list-unordered": {
+      "type": "list",
+      "ordered": false,
+      "spread": false
+    },
+    "list-ordered-start-one": {
+      "type": "list",
+      "ordered": true,
+      "start": 1
+    },
+    "list-ordered-start-three": {
+      "type": "list",
+      "start": 3
+    },
+    "list-loose": {
+      "type": "list",
+      "spread": true
+    },
+    "list-task-checked": {
+      "type": "listItem",
+      "checked": true
+    },
+    "list-task-unchecked": {
+      "type": "listItem",
+      "checked": false
+    },
+    "list-non-task-item": {
+      "type": "listItem",
+      "spread": false
+    },
+    "plain-entity-literal": {
+      "type": "text",
+      "value": "a & b"
+    },
+    "plain-asterisk-literal": {
+      "type": "text",
+      "value": "a*b"
+    },
+    "plain-text-cross-sibling-crlf": {
+      "type": "text",
+      "value": "a\nb"
+    },
+    "plain-text-metadata-boundary": {
+      "type": "paragraph",
+      "children": [
+        {"type": "text", "value": "ab"},
+        {"type": "text", "value": "c", "data": {"escaped": true}},
+        {"type": "text", "value": "d"},
+        {"type": "strong", "children": [{"type": "text", "value": "e"}]},
+        {"type": "text", "value": "f"}
+      ]
+    },
+    "key-order-codepoint": {
+      "type": "root",
+      "data": {
+        "line\rkey": "kept",
+        "z": "last"
+      }
+    },
+    "node-strikethrough": {
+      "type": "delete",
+      "children": [
+        {
+          "type": "text",
+          "value": "gone"
+        }
+      ]
+    },
+    "node-autolink": {
+      "type": "link",
+      "url": "http://www.x.y"
+    },
+    "node-heading": {
+      "type": "heading",
+      "depth": 1
+    },
+    "node-blockquote": {
+      "type": "blockquote"
+    },
+    "node-thematic-break": {
+      "type": "thematicBreak"
+    },
+    "numeric-reference-zero": {
+      "type": "text",
+      "value": "�"
+    },
+    "numeric-reference-surrogate": {
+      "type": "text",
+      "value": "&#xD800;"
+    },
+    "numeric-reference-out-of-range": {
+      "type": "text",
+      "value": "&#x110000;"
+    },
+    "numeric-reference-non-ascii": {
+      "type": "text",
+      "value": "café 雪"
+    },
+    "position-removal-exposes-text": {
+      "type": "text",
+      "value": "leftright"
+    },
+    "data-removal-exposes-text": {
+      "type": "text",
+      "value": "abc"
+    },
+    "writer-format": {
+      "type": "text",
+      "value": "café \"quoted\" \\ control\u0001"
+    }
+  }
+}

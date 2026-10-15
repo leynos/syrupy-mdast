@@ -1,9 +1,7 @@
-"""Load and validate the authored Markdown contract corpus for tests.
+"""Load and validate corpus fixtures while preserving bytes and record order.
 
-This module provides ordered manifest records, byte-preserving source reads,
-and strict JSON-golden decoding. For example,
-``load_corpus(Path("tests/fixtures/markdown_contract"))`` returns the cases
-and relations for focused integrity assertions.
+For example, ``load_corpus(Path("tests/fixtures/markdown_contract"))`` returns
+the cases and relations for focused integrity assertions.
 """
 
 import collections.abc as cabc
@@ -27,6 +25,16 @@ RULE_IDS = frozenset(f"NF-{number}" for number in range(1, 14)) | frozenset({
     "writer-format",
 })
 MIN_RELATION_CASES = 2
+_ASSERTIONS_PATH = (
+    Path(__file__).parent.parent
+    / "fixtures"
+    / "markdown_contract"
+    / "assertions"
+    / "contract-assertions.json"
+)
+PREFERRED_MEMBER_ORDER = tuple(
+    json.loads(_ASSERTIONS_PATH.read_bytes())["preferred_member_order"]
+)
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -36,6 +44,7 @@ class CaseRecord:
     id: str
     rules: tuple[str, ...]
     reason: str
+    witness: str
     kind: CaseKind
     input: Path
     expected: Path
@@ -90,6 +99,119 @@ def read_source(path: Path) -> str:
     the CRLF pair and the final bare CR in the decoded string.
     """
     return path.read_bytes().decode("utf-8")
+
+
+def assert_source_witness(case: CaseRecord) -> None:
+    """Require each declared source witness to occur in the exact input bytes."""
+    witness_bytes = case.witness.encode("utf-8")
+    assert witness_bytes in case.input.read_bytes(), (
+        f"case {case.id!r} source no longer contains its declared witness"
+    )
+
+
+def json_mapping(value: JSONValue) -> dict[str, JSONValue]:
+    """Narrow one decoded value to an object in a test assertion.
+
+    Returns
+    -------
+    dict[str, JSONValue]
+        The object mapping; ``json_mapping(payload)["type"]`` reads its root.
+    """
+    assert isinstance(value, dict), "expected a JSON object"
+    return value
+
+
+def json_array(value: JSONValue) -> list[JSONValue]:
+    """Narrow one decoded value to an array in a test assertion.
+
+    Returns
+    -------
+    list[JSONValue]
+        The array; ``json_array(payload["children"])`` reads root children.
+    """
+    assert isinstance(value, list), "expected a JSON array"
+    return value
+
+
+def node_mappings(value: JSONValue) -> list[dict[str, JSONValue]]:
+    """Collect typed node mappings in their authored depth-first order.
+
+    Returns
+    -------
+    list[dict[str, JSONValue]]
+        Typed nodes; ``node_mappings(payload)`` finds them in depth-first order.
+    """
+    match value:
+        case dict() as mapping:
+            current = [mapping] if isinstance(mapping.get("type"), str) else []
+            return current + [
+                nested
+                for member in mapping.values()
+                for nested in node_mappings(member)
+            ]
+        case list() as items:
+            return [nested for item in items for nested in node_mappings(item)]
+        case _:
+            return []
+
+
+def all_mappings(value: JSONValue) -> list[dict[str, JSONValue]]:
+    """Collect mappings recursively, including data and unknown fields.
+
+    Returns
+    -------
+    list[dict[str, JSONValue]]
+        All objects; ``all_mappings(payload)`` includes non-node mappings.
+    """
+    match value:
+        case dict() as mapping:
+            return [mapping] + [
+                nested for member in mapping.values() for nested in all_mappings(member)
+            ]
+        case list() as items:
+            return [nested for item in items for nested in all_mappings(item)]
+        case _:
+            return []
+
+
+def contains_node_mapping(value: JSONValue, marker: dict[str, JSONValue]) -> bool:
+    """Find a node containing every member in one semantic marker.
+
+    Returns
+    -------
+    bool
+        Whether a node matches, e.g. ``contains_node_mapping(payload, marker)``.
+    """
+    sentinel = object()
+    return any(
+        all(mapping.get(key, sentinel) == member for key, member in marker.items())
+        for mapping in node_mappings(value)
+        if mapping.get("type") == marker.get("type")
+    )
+
+
+def assert_preferred_member_order(value: JSONValue) -> None:
+    """Check ADR-004's preferred keys and code-point ordered remainder.
+
+    Examples
+    --------
+    ``assert_preferred_member_order(payload)`` checks every object recursively.
+    """
+    match value:
+        case dict():
+            keys = list(value)
+            preferred = [key for key in PREFERRED_MEMBER_ORDER if key in value]
+            remainder = sorted(key for key in keys if key not in PREFERRED_MEMBER_ORDER)
+            assert keys == preferred + remainder, (
+                "golden object keys must follow the accepted writer order"
+            )
+            for member_value in value.values():
+                assert_preferred_member_order(member_value)
+        case list():
+            for item in value:
+                assert_preferred_member_order(item)
+        case _:
+            return
 
 
 def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:

@@ -9,7 +9,10 @@ not rewritten by tools that treat `.md` as prose. Synthetic AST inputs use
 `.json`; expected payloads are hand-authored `.json` files. The TOML manifest
 names each case, its governing rule, and its relation to other cases.
 
-## Seed cases
+## Representative cases
+
+This table highlights four fixture families. The complete case-to-rule map is in
+[`assertions/contract-assertions.json`](assertions/contract-assertions.json).
 
 | Case IDs                                                  | Rule  | Contract                                                                    |
 | --------------------------------------------------------- | ----- | --------------------------------------------------------------------------- |
@@ -27,11 +30,14 @@ refer to the actual byte sequences `0A`, `0D 0A`, and `0D` respectively.
 ## Layout
 
 - `manifest.toml` stores ordered case and relation records.
+- `assertions/contract-assertions.json` records the exact case-to-rule map,
+  relation groups, node types, preferred JSON member order, and semantic
+  markers used by independent test checks.
 - `sources/` stores raw UTF-8 Markdown bytes with declared line endings.
 - `synthetic/` stores root-shaped input trees for rules Markdown cannot expose.
 - `expected/` stores complete expected canonical JSON payloads.
 
 The five transformation rule IDs and the accepted `NF-1` through `NF-13`
 vocabulary are defined by the test support module and ADR-004. Expected files
-are reviewed as data; tests check their formatting and relationships without
-regenerating them from a parser or canonicalizer.
+and their assertions are reviewed as data; tests check their formatting and
+relationships without regenerating them from a parser or canonicalizer.

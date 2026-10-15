@@ -1,5 +1,6 @@
 """Tests for metadata loading and byte-preserving corpus source reads."""
 
+import dataclasses
 import shutil
 from pathlib import Path
 
@@ -16,6 +17,7 @@ wenmode_evidence_version = "0.15.2"
 id = "first"
 rules = ["NF-1"]
 reason = "First source."
+witness = "text"
 kind = "markdown"
 input = "sources/first.txt"
 expected = "expected/first.json"
@@ -25,6 +27,7 @@ line_endings = "lf"
 id = "second"
 rules = ["NF-1"]
 reason = "Second source."
+witness = "text"
 kind = "markdown"
 input = "sources/second.txt"
 expected = "expected/second.json"
@@ -85,15 +88,13 @@ def _assert_declared_line_endings(case: CaseRecord) -> None:
             pytest.fail(f"Markdown case {case.id!r} has no line_endings declaration")
 
 
-def test_load_corpus_rejects_a_missing_manifest(tmp_path: Path) -> None:
-    """A corpus root without its manifest reports the missing file."""
-    with pytest.raises(ValueError, match=r"manifest.toml"):
-        load_corpus(tmp_path)
-
-
-def test_load_corpus_rejects_a_manifest_directory(tmp_path: Path) -> None:
-    """A directory at the manifest path receives the contextual file error."""
-    (tmp_path / "manifest.toml").mkdir()
+@pytest.mark.parametrize("manifest_state", ["missing", "directory"])
+def test_load_corpus_rejects_a_missing_or_directory_manifest(
+    tmp_path: Path, manifest_state: str
+) -> None:
+    """A missing or directory-valued manifest path reports the contextual error."""
+    if manifest_state == "directory":
+        (tmp_path / "manifest.toml").mkdir()
 
     with pytest.raises(ValueError, match=r"manifest.toml"):
         load_corpus(tmp_path)
@@ -113,7 +114,6 @@ def test_load_corpus_rejects_an_unknown_relation(tmp_path: Path) -> None:
 def test_load_corpus_preserves_case_and_relation_order(tmp_path: Path) -> None:
     """Metadata order remains visible in the test-only corpus records."""
     _write_minimal_corpus(tmp_path, VALID_MINIMAL_MANIFEST)
-
     corpus = load_corpus(tmp_path)
 
     assert tuple(case.id for case in corpus.cases) == ("first", "second"), (
@@ -130,6 +130,10 @@ def test_corpus_sources_match_declared_line_endings() -> None:
     observed_classes: set[str] = set()
 
     for case in corpus.cases:
+        assert markdown_contract.read_source(case.input).encode("utf-8") == (
+            case.input.read_bytes()
+        ), f"source {case.id!r} must round-trip to its original bytes"
+        markdown_contract.assert_source_witness(case)
         if case.kind == "markdown":
             _assert_declared_line_endings(case)
             assert case.line_endings is not None, (
@@ -143,19 +147,30 @@ def test_corpus_sources_match_declared_line_endings() -> None:
 
 
 @pytest.mark.parametrize(
-    "case_id",
-    ["line-endings-lf", "line-endings-crlf", "line-endings-cr"],
-    ids=["lf", "crlf", "cr"],
+    ("case_id", "removed", "replacement"),
+    [
+        ("link-full-reference-before", b"[x][r]", b'[x](/u "t")'),
+        ("link-unused-definition", b"\n[unused]: /u\n", b"\n"),
+    ],
+    ids=["reference-to-direct", "remove-unused-definition"],
 )
-def test_read_source_preserves_named_line_ending_witnesses(case_id: str) -> None:
-    """Named corpus reads round-trip to the exact original source bytes."""
+def test_source_witness_rejects_semantically_weaker_replacements(
+    tmp_path: Path, case_id: str, removed: bytes, replacement: bytes
+) -> None:
+    """Source witnesses catch semantic-preserving simplifications and removals."""
     corpus = load_corpus(Path(__file__).parent / "fixtures" / "markdown_contract")
-    case = next(case for case in corpus.cases if case.id == case_id)
+    case = next(record for record in corpus.cases if record.id == case_id)
+    changed_input = tmp_path / "changed-source.txt"
+    source_bytes = case.input.read_bytes()
+    assert removed in source_bytes, f"case {case_id!r} must contain the mutation target"
+    changed_input.write_bytes(source_bytes.replace(removed, replacement, 1))
 
-    assert (
-        markdown_contract.read_source(case.input).encode("utf-8")
-        == case.input.read_bytes()
-    ), f"source {case.id!r} must round-trip to its original bytes"
+    with pytest.raises(
+        AssertionError, match=r"source no longer contains its declared witness"
+    ):
+        markdown_contract.assert_source_witness(
+            dataclasses.replace(case, input=changed_input)
+        )
 
 
 def test_crlf_source_with_lf_bytes_is_rejected_in_a_copied_corpus(
@@ -286,13 +301,24 @@ def test_load_corpus_rejects_empty_relation_groups(tmp_path: Path) -> None:
             "first.*unknown line_endings",
         ),
         ('rules = ["NF-1"]', "rules = []", "first.*rules must not be empty"),
+        (
+            'witness = "text"',
+            'witness = ""',
+            r"first.*witness must be a non-empty string",
+        ),
+        ("corpus_version = 1", "corpus_version = 2", r"corpus_version must be 1"),
+        ("contract_version = 1", "contract_version = 2", r"contract_version must be 1"),
+        (
+            'wenmode_evidence_version = "0.15.2"',
+            'wenmode_evidence_version = "0.15.3"',
+            r"wenmode_evidence_version",
+        ),
     ],
-    ids=["kind", "rule-id", "line-endings", "empty-rules"],
 )
-def test_load_corpus_rejects_invalid_case_metadata(
+def test_load_corpus_rejects_invalid_manifest_metadata(
     tmp_path: Path, old: str, new: str, message: str
 ) -> None:
-    """Case records reject invalid kinds, rules, and newline declarations."""
+    """Manifest and case records reject unsupported declarations."""
     _write_minimal_corpus(tmp_path, VALID_MINIMAL_MANIFEST.replace(old, new, 1))
 
     with pytest.raises(ValueError, match=message):

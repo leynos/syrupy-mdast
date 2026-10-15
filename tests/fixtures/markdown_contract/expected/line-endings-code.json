@@ -1,0 +1,9 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "code",
+      "value": "x\n"
+    }
+  ]
+}

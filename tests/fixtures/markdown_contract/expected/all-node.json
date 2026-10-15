@@ -1,0 +1,262 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "heading",
+      "depth": 1,
+      "children": [
+        {
+          "type": "text",
+          "value": "h"
+        }
+      ]
+    },
+    {
+      "type": "blockquote",
+      "children": [
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "q"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "ordered": false,
+      "spread": false,
+      "children": [
+        {
+          "type": "listItem",
+          "spread": false,
+          "checked": false,
+          "children": [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "t"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "ordered": true,
+      "start": 1,
+      "spread": false,
+      "children": [
+        {
+          "type": "listItem",
+          "spread": false,
+          "children": [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "o"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "lang": "py",
+      "meta": "m",
+      "value": "c\n"
+    },
+    {
+      "type": "code",
+      "value": "i\n"
+    },
+    {
+      "type": "thematicBreak"
+    },
+    {
+      "type": "html",
+      "value": "<div>\n</div>\n"
+    },
+    {
+      "type": "paragraph",
+      "children": [
+        {
+          "type": "text",
+          "value": "a "
+        },
+        {
+          "type": "inlineCode",
+          "value": "c"
+        },
+        {
+          "type": "text",
+          "value": " "
+        },
+        {
+          "type": "strong",
+          "children": [
+            {
+              "type": "text",
+              "value": "s"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "value": " "
+        },
+        {
+          "type": "emphasis",
+          "children": [
+            {
+              "type": "text",
+              "value": "e"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "value": " "
+        },
+        {
+          "type": "delete",
+          "children": [
+            {
+              "type": "text",
+              "value": "d"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "value": " "
+        },
+        {
+          "type": "link",
+          "url": "/u",
+          "title": "t",
+          "children": [
+            {
+              "type": "text",
+              "value": "l"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "value": " "
+        },
+        {
+          "type": "image",
+          "url": "/p",
+          "title": "t",
+          "alt": "i"
+        },
+        {
+          "type": "text",
+          "value": " "
+        },
+        {
+          "type": "html",
+          "value": "<span>"
+        },
+        {
+          "type": "text",
+          "value": " "
+        },
+        {
+          "type": "link",
+          "url": "http://www.x.y",
+          "children": [
+            {
+              "type": "text",
+              "value": "www.x.y"
+            }
+          ]
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "value": "z"
+        },
+        {
+          "type": "footnoteReference",
+          "identifier": "n",
+          "label": "n"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "align": [
+        "left"
+      ],
+      "children": [
+        {
+          "type": "tableRow",
+          "children": [
+            {
+              "type": "tableCell",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "a"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "tableRow",
+          "children": [
+            {
+              "type": "tableCell",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "b"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "footnoteDefinition",
+      "identifier": "n",
+      "label": "n",
+      "children": [
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "html",
+      "value": "&lt;iframe>\n",
+      "data": {
+        "escaped": true
+      }
+    }
+  ]
+}

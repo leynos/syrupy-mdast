@@ -1,3 +1,4 @@
 tests/fixtures/markdown_contract/sources/*.txt -text
 tests/fixtures/markdown_contract/synthetic/*.json -text
 tests/fixtures/markdown_contract/expected/*.json -text
+tests/fixtures/markdown_contract/assertions/*.json -text

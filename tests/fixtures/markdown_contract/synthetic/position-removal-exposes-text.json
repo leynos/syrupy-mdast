@@ -1,0 +1,60 @@
+{
+  "type": "root",
+  "position": {
+    "start": {
+      "line": 1
+    },
+    "end": {
+      "line": 2
+    }
+  },
+  "data": {
+    "keep": false,
+    "position": {
+      "offset": [
+        0,
+        1
+      ]
+    }
+  },
+  "children": [
+    {
+      "type": "paragraph",
+      "position": {
+        "start": {
+          "line": 1
+        }
+      },
+      "children": [
+        {
+          "type": "text",
+          "value": "left",
+          "position": {
+            "start": [
+              0,
+              4
+            ]
+          }
+        },
+        {
+          "type": "text",
+          "value": "right",
+          "position": {
+            "end": [
+              4,
+              9
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "unknown": [
+    {
+      "position": {
+        "line": 1
+      },
+      "value": 1
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 """Semantic and writer-shape checks for the seed contract corpus."""
 
+import dataclasses
 import json
-import tomllib
+import shutil
 from pathlib import Path
 
 import pytest
@@ -10,73 +11,31 @@ from tests.support.markdown_contract import (
     CaseRecord,
     ContractCorpus,
     JSONValue,
-    RelationRecord,
+    all_mappings,
+    assert_preferred_member_order,
+    contains_node_mapping,
+    json_array,
+    json_mapping,
     load_corpus,
+    node_mappings,
     read_expected_payload,
 )
 
 CORPUS_ROOT = Path(__file__).parent / "fixtures" / "markdown_contract"
-KEY_ORDER = (
-    "type",
-    "depth",
-    "ordered",
-    "start",
-    "spread",
-    "checked",
-    "align",
-    "lang",
-    "meta",
-    "url",
-    "title",
-    "alt",
-    "identifier",
-    "label",
-    "value",
-    "data",
-    "children",
+CONTRACT_ASSERTIONS = json.loads(
+    (CORPUS_ROOT / "assertions" / "contract-assertions.json")
+    .read_bytes()
+    .decode("utf-8")
 )
-SEED_RULES = {
-    "emphasis-asterisk": ("NF-1",),
-    "emphasis-underscore": ("NF-1",),
-    "strong-asterisk": ("NF-1",),
-    "strong-underscore": ("NF-1",),
-    "break-soft": ("NF-10",),
-    "break-hard-spaces": ("NF-10",),
-    "break-hard-backslash": ("NF-10",),
-    "line-endings-lf": ("NF-8", "normalize-line-endings"),
-    "line-endings-crlf": ("NF-8", "normalize-line-endings"),
-    "line-endings-cr": ("NF-8", "normalize-line-endings"),
-}
-SEED_SOURCE_BYTES = {
-    "emphasis-asterisk": b"*a*\n",
-    "emphasis-underscore": b"_a_\n",
-    "strong-asterisk": b"**b**\n",
-    "strong-underscore": b"__b__\n",
-    "break-soft": b"a\nb\n",
-    "break-hard-spaces": b"a  \nb\n",
-    "break-hard-backslash": b"a\\\nb\n",
-    "line-endings-lf": b"first\nsecond\n",
-    "line-endings-crlf": b"first\r\nsecond\r\n",
-    "line-endings-cr": b"first\rsecond\r",
-}
-SEED_RELATIONS = {
-    "emphasis-delimiters": ("equal", ("emphasis-asterisk", "emphasis-underscore")),
-    "strong-delimiters": ("equal", ("strong-asterisk", "strong-underscore")),
-    "hard-break-spellings": (
-        "equal",
-        ("break-hard-spaces", "break-hard-backslash"),
-    ),
-    "soft-and-hard-breaks": ("distinct", ("break-soft", "break-hard-spaces")),
-    "paragraph-line-endings": (
-        "equal",
-        ("line-endings-lf", "line-endings-crlf", "line-endings-cr"),
-    ),
-}
+NODE_TYPES = frozenset(CONTRACT_ASSERTIONS["node_types"])
+REQUIRED_CASE_RULES = CONTRACT_ASSERTIONS["case_rules"]
+REQUIRED_RELATIONS = CONTRACT_ASSERTIONS["relations"]
+SEMANTIC_MARKERS = CONTRACT_ASSERTIONS["semantic_markers"]
 
 
 @pytest.fixture
 def corpus() -> ContractCorpus:
-    """Load the small authored corpus used by these seed assertions."""
+    """Load the authored corpus used by the contract assertions."""
     return load_corpus(CORPUS_ROOT)
 
 
@@ -85,170 +44,255 @@ def _case_by_id(corpus: ContractCorpus, case_id: str) -> CaseRecord:
     return next(case for case in corpus.cases if case.id == case_id)
 
 
-def _relation_by_id(corpus: ContractCorpus, relation_id: str) -> RelationRecord:
-    """Return a named relation record from the ordered corpus."""
-    return next(relation for relation in corpus.relations if relation.id == relation_id)
-
-
-def _mapping(value: JSONValue) -> dict[str, JSONValue]:
-    """Narrow one decoded JSON value to an object for its caller."""
-    assert isinstance(value, dict), "expected the golden payload member to be an object"
-    return value
-
-
-def _array(value: JSONValue) -> list[JSONValue]:
-    """Narrow one decoded JSON value to an array for its caller."""
-    assert isinstance(value, list), "expected the golden payload member to be an array"
-    return value
-
-
-def _first_paragraph(corpus: ContractCorpus, case_id: str) -> dict[str, JSONValue]:
-    """Return the first paragraph mapping from a named authored golden.
-
-    Returns
-    -------
-    dict[str, JSONValue]
-        The first document child in the named case's expected payload.
-
-    Examples
-    --------
-    ``_first_paragraph(corpus, "emphasis-asterisk")`` selects its paragraph.
-    """
-    payload = _mapping(read_expected_payload(_case_by_id(corpus, case_id).expected))
-    return _mapping(_array(payload["children"])[0])
-
-
-def _assert_preferred_member_order(value: JSONValue) -> None:
-    """Check ADR-004's preferred keys and code-point ordered remainder."""
-    match value:
-        case dict():
-            keys = list(value)
-            preferred = [key for key in KEY_ORDER if key in value]
-            remainder = sorted(key for key in keys if key not in KEY_ORDER)
-            assert keys == preferred + remainder, (
-                "golden object keys must follow the accepted writer order"
-            )
-            for member_value in value.values():
-                _assert_preferred_member_order(member_value)
-        case list():
-            for item in value:
-                _assert_preferred_member_order(item)
-        case _:
-            return
-
-
-def test_manifest_pins_the_accepted_corpus_versions() -> None:
-    """The corpus records contract v1 and ADR-004's evidence version."""
-    manifest = tomllib.loads(
-        (CORPUS_ROOT / "manifest.toml").read_bytes().decode("utf-8")
-    )
-
-    assert manifest["corpus_version"] == 1, "the corpus format version must be 1"
-    assert manifest["contract_version"] == 1, "the Markdown contract version must be 1"
-    assert manifest["wenmode_evidence_version"] == "0.15.2", (
-        "the Wenmode evidence pin must match ADR-004"
-    )
-
-
-@pytest.mark.parametrize(
-    ("case_id", "expected_rules"),
-    sorted(SEED_RULES.items()),
-    ids=sorted(SEED_RULES),
-)
-def test_seed_cases_name_their_normative_rule(
-    corpus: ContractCorpus, case_id: str, expected_rules: tuple[str, ...]
+def test_required_case_inventory_rejects_missing_case_in_copied_corpus(
+    tmp_path: Path, corpus: ContractCorpus
 ) -> None:
-    """Each seed case is explicitly tied to the rule it demonstrates."""
-    assert _case_by_id(corpus, case_id).rules == expected_rules, (
-        f"case {case_id!r} must name its normative rule"
+    """The exact map passes, then fails when one non-relational case is deleted."""
+    actual_rules = {case.id: list(case.rules) for case in corpus.cases}
+    assert actual_rules == REQUIRED_CASE_RULES, (
+        "the corpus must contain the approved case IDs and rule assignments"
+    )
+
+    missing_id = "html-type1-script"
+    copied_root = tmp_path / "corpus"
+    shutil.copytree(CORPUS_ROOT, copied_root)
+    manifest_path = copied_root / "manifest.toml"
+    header, *records = manifest_path.read_text(encoding="utf-8").split("[[cases]]")
+    kept = [
+        "[[cases]]" + record
+        for record in records
+        if f'id = "{missing_id}"' not in record
+    ]
+    manifest_path.write_text(header + "".join(kept), encoding="utf-8")
+    changed = load_corpus(copied_root)
+
+    with pytest.raises(AssertionError, match="missing required case"):
+        assert {
+            case.id: list(case.rules) for case in changed.cases
+        } == REQUIRED_CASE_RULES, f"missing required case {missing_id!r}"
+
+
+def _assert_relation_contract(corpus: ContractCorpus, relation_id: str) -> None:
+    """Check the exact relation members and complete expected payload bytes."""
+    relation = next(item for item in corpus.relations if item.id == relation_id)
+    assert {
+        "relation": relation.relation,
+        "cases": list(relation.cases),
+    } == REQUIRED_RELATIONS[relation_id], f"relation {relation_id!r} changed"
+    payloads = [
+        _case_by_id(corpus, item).expected.read_bytes() for item in relation.cases
+    ]
+    is_equal = len(set(payloads)) == 1
+    assert is_equal is (relation.relation == "equal"), (
+        f"relation {relation_id!r} has the wrong complete golden bytes"
     )
 
 
 @pytest.mark.parametrize(
-    ("case_id", "source_bytes"),
-    sorted(SEED_SOURCE_BYTES.items()),
-    ids=sorted(SEED_SOURCE_BYTES),
+    "relation_id",
+    sorted(REQUIRED_RELATIONS),
+    ids=sorted(REQUIRED_RELATIONS),
 )
-def test_seed_sources_preserve_the_named_syntax(
-    corpus: ContractCorpus, case_id: str, source_bytes: bytes
-) -> None:
-    """Each seed source retains its exact Markdown spelling and byte ending."""
-    assert _case_by_id(corpus, case_id).input.read_bytes() == source_bytes, (
-        f"case {case_id!r} must retain its authored Markdown spelling"
-    )
-
-
-@pytest.mark.parametrize(
-    ("relation_id", "expected_relation"),
-    sorted(SEED_RELATIONS.items()),
-    ids=sorted(SEED_RELATIONS),
-)
-def test_seed_relations_compare_complete_expected_bytes(
-    corpus: ContractCorpus,
-    relation_id: str,
-    expected_relation: tuple[str, tuple[str, ...]],
+def test_relations_compare_complete_expected_bytes(
+    corpus: ContractCorpus, relation_id: str
 ) -> None:
     """Equal groups share bytes and distinction pairs retain different bytes."""
-    expected_kind, expected_cases = expected_relation
-    relation = _relation_by_id(corpus, relation_id)
-    assert relation.cases == expected_cases, (
-        f"relation {relation_id!r} must name its required case IDs"
+    _assert_relation_contract(corpus, relation_id)
+
+
+def test_distinct_relation_rejects_partner_golden_in_a_temporary_copy(
+    tmp_path: Path, corpus: ContractCorpus
+) -> None:
+    """A copied list golden cannot be replaced with its distinct partner."""
+    original = _case_by_id(corpus, "list-unordered")
+    partner = _case_by_id(corpus, "list-item-order-swapped")
+    copied_expected = tmp_path / original.expected.name
+    shutil.copyfile(partner.expected, copied_expected)
+    changed_cases = tuple(
+        dataclasses.replace(case, expected=copied_expected)
+        if case.id == original.id
+        else case
+        for case in corpus.cases
     )
-    payloads = [
-        _case_by_id(corpus, case_id).expected.read_bytes() for case_id in relation.cases
+
+    with pytest.raises(AssertionError, match="wrong complete golden bytes"):
+        _assert_relation_contract(
+            dataclasses.replace(corpus, cases=changed_cases), "list-item-order"
+        )
+
+
+@pytest.mark.parametrize(
+    ("case_id", "marker"),
+    sorted(SEMANTIC_MARKERS.items()),
+    ids=sorted(SEMANTIC_MARKERS),
+)
+def test_named_cases_pin_their_expected_node_fields(
+    corpus: ContractCorpus, case_id: str, marker: dict[str, JSONValue]
+) -> None:
+    """Stable case IDs retain the node members named by their source witness."""
+    payload = read_expected_payload(_case_by_id(corpus, case_id).expected)
+    assert contains_node_mapping(payload, marker), (
+        f"case {case_id!r} lost marker {marker!r}"
+    )
+
+
+def test_goldens_cover_all_node_types(corpus: ContractCorpus) -> None:
+    """Focused and supplementary goldens collectively cover every node type."""
+    observed = {
+        node["type"]
+        for case in corpus.cases
+        for node in node_mappings(read_expected_payload(case.expected))
+    }
+    assert observed == NODE_TYPES, "all expected goldens must cover the node set"
+
+
+@pytest.mark.parametrize(
+    ("case_id", "node_type", "member"),
+    [
+        ("link-title-absent", "link", "title"),
+        ("image-title-absent", "image", "title"),
+        ("code-indented-omissions", "code", "lang"),
+        ("code-indented-omissions", "code", "meta"),
+        ("list-unordered", "list", "start"),
+        ("list-non-task-item", "listItem", "checked"),
+    ],
+    ids=[
+        "link-title",
+        "image-title",
+        "code-lang",
+        "code-meta",
+        "list-start",
+        "item-checked",
+    ],
+)
+def test_optional_members_stay_omitted(
+    corpus: ContractCorpus, case_id: str, node_type: str, member: str
+) -> None:
+    """Optional members remain absent when their source has no value."""
+    payload = read_expected_payload(_case_by_id(corpus, case_id).expected)
+    assert not any(
+        node.get("type") == node_type and member in node
+        for node in node_mappings(payload)
+    ), f"case {case_id!r} must omit {node_type}.{member}"
+
+
+@pytest.mark.parametrize(
+    ("case_id", "expected_values"),
+    [("list-unordered", ["a", "b"]), ("list-item-order-swapped", ["b", "a"])],
+    ids=["source-order", "swapped-source-order"],
+)
+def test_list_item_order_is_preserved(
+    corpus: ContractCorpus, case_id: str, expected_values: list[str]
+) -> None:
+    """Canonical list arrays retain the order written in each source."""
+    payload = read_expected_payload(_case_by_id(corpus, case_id).expected)
+    list_node = next(
+        node for node in node_mappings(payload) if node.get("type") == "list"
+    )
+    values: list[str] = []
+    for item in json_array(list_node["children"]):
+        list_item = json_mapping(item)
+        paragraph = json_mapping(json_array(list_item["children"])[0])
+        text_node = json_mapping(json_array(paragraph["children"])[0])
+        value = text_node["value"]
+        assert isinstance(value, str), (
+            f"case {case_id!r} list item text must be a string"
+        )
+        values.append(value)
+    assert values == expected_values, f"case {case_id!r} must preserve item order"
+
+
+def test_recursive_removal_and_falsy_value_contracts(corpus: ContractCorpus) -> None:
+    """Position and empty data are removed while non-empty and falsy values survive."""
+    positioned = read_expected_payload(
+        _case_by_id(corpus, "position-removal-exposes-text").expected
+    )
+    assert all("position" not in mapping for mapping in all_mappings(positioned)), (
+        "position members must be absent recursively"
+    )
+    assert contains_node_mapping(
+        positioned, {"type": "root", "data": {"keep": False}}
+    ), "non-empty data must retain its falsy member"
+    exposed = read_expected_payload(
+        _case_by_id(corpus, "data-removal-exposes-text").expected
+    )
+    text_nodes = [node for node in node_mappings(exposed) if node.get("type") == "text"]
+    assert [node.get("value") for node in text_nodes] == ["abc", "d", "e", "f", "g"], (
+        "empty data removal must expose adjacent text before merging"
+    )
+    assert "data" not in text_nodes[0], "empty mapping data must be removed"
+    assert text_nodes[1]["data"] == {"keep": False}, "non-empty data must be retained"
+    assert text_nodes[2]["data"] == [], "empty arrays in data must be preserved"
+    assert text_nodes[3]["data"] is None, "null data must be preserved"
+    assert text_nodes[4]["data"] is False, "false data must be preserved"
+    preserved = json_mapping(
+        read_expected_payload(_case_by_id(corpus, "preserve-falsy-values").expected)
+    )
+    data = json_mapping(
+        next(
+            mapping["data"] for mapping in node_mappings(preserved) if "data" in mapping
+        )
+    )
+    assert data["false"] is False, "false must remain a boolean"
+    assert type(data["zero"]) is int, "zero must remain an integer"
+    assert data["zero"] == 0, "integer zero must be preserved"
+    assert isinstance(data["empty_string"], str), "empty string data must remain text"
+    assert not data["empty_string"], "empty strings must be preserved"
+    assert data["empty_array"] == [], "empty arrays must be preserved"
+    assert data["null"] is None, "null members must be preserved"
+    assert data["empty"] == {}, "nested empty mappings must be preserved"
+    assert json_array(preserved["children"])[-1] is None, "null array slot must remain"
+    assert json_array(preserved["unknown"]) == [3, 1, 2], (
+        "unknown arrays must retain their order"
+    )
+
+
+def test_retained_position_mutation_is_rejected_in_a_temporary_golden(
+    tmp_path: Path, corpus: ContractCorpus
+) -> None:
+    """The position assertion rejects a copied golden with a retained position."""
+    expected = _case_by_id(corpus, "position-removal-exposes-text").expected
+    copied_expected = tmp_path / expected.name
+    copied_expected.write_bytes(
+        expected.read_bytes().replace(
+            b'"type": "root"', b'"position": {},\n  "type": "root"', 1
+        )
+    )
+    changed = read_expected_payload(copied_expected)
+
+    with pytest.raises(AssertionError, match="position"):
+        assert all("position" not in mapping for mapping in all_mappings(changed)), (
+            "position members must be absent recursively"
+        )
+
+
+def test_footnotes_keep_source_order_and_repeated_references(
+    corpus: ContractCorpus,
+) -> None:
+    """Definitions stay in source order and repeated references remain repeated."""
+    before = json_mapping(
+        read_expected_payload(
+            _case_by_id(corpus, "footnote-definition-before").expected
+        )
+    )
+    after = json_mapping(
+        read_expected_payload(_case_by_id(corpus, "footnote-definition-after").expected)
+    )
+    first_before = json_mapping(json_array(before["children"])[0])
+    last_after = json_mapping(json_array(after["children"])[-1])
+    assert first_before["type"] == "footnoteDefinition", (
+        "a definition before text must remain first"
+    )
+    assert last_after["type"] == "footnoteDefinition", (
+        "a definition after text must remain last"
+    )
+    repeated = read_expected_payload(
+        _case_by_id(corpus, "footnote-repeated-reference").expected
+    )
+    references = [
+        node for node in node_mappings(repeated) if node["type"] == "footnoteReference"
     ]
-
-    assert relation.relation == expected_kind, (
-        f"relation {relation_id!r} must have its declared relation kind"
-    )
-    if expected_kind == "equal":
-        assert all(payload == payloads[0] for payload in payloads[1:]), (
-            f"equal relation {relation_id!r} must have identical golden bytes"
-        )
-    else:
-        assert len(set(payloads)) == len(payloads), (
-            f"distinct relation {relation_id!r} must have different golden bytes"
-        )
-
-
-def test_seed_goldens_pin_emphasis_and_strong_nodes(corpus: ContractCorpus) -> None:
-    """Authored trees retain emphasis and strong nodes."""
-    emphasis_children = _array(
-        _first_paragraph(corpus, "emphasis-asterisk")["children"]
-    )
-    strong_children = _array(_first_paragraph(corpus, "strong-asterisk")["children"])
-    emphasis_node = _mapping(emphasis_children[0])
-    strong_node = _mapping(strong_children[0])
-
-    assert emphasis_node["type"] == "emphasis", "asterisk syntax must form emphasis"
-    assert strong_node["type"] == "strong", "asterisk syntax must form strong text"
-    emphasis_text = _mapping(_array(emphasis_node["children"])[0])
-    strong_text = _mapping(_array(strong_node["children"])[0])
-    assert emphasis_text["type"] == "text", "emphasis content must be a text node"
-    assert strong_text["type"] == "text", "strong content must be a text node"
-    assert emphasis_text["value"] == "a", "emphasis text must retain its authored value"
-    assert strong_text["value"] == "b", "strong text must retain its authored value"
-
-
-def test_seed_goldens_pin_soft_and_hard_break_nodes(corpus: ContractCorpus) -> None:
-    """Authored trees distinguish soft text breaks from hard break nodes."""
-    soft_children = _array(_first_paragraph(corpus, "break-soft")["children"])
-    assert len(soft_children) == 1, "a soft break must remain in one text node"
-    soft_text = _mapping(soft_children[0])
-    assert soft_text["type"] == "text", "a soft break must not create a break node"
-    assert soft_text["value"] == "a\nb", "a soft break must retain its LF value"
-
-    hard_children = _array(_first_paragraph(corpus, "break-hard-spaces")["children"])
-    assert len(hard_children) == 3, "a hard break must split text around one break node"
-    before_break = _mapping(hard_children[0])
-    break_node = _mapping(hard_children[1])
-    after_break = _mapping(hard_children[2])
-    assert before_break["type"] == "text", "hard-break content before the break is text"
-    assert before_break["value"] == "a", "hard-break text before the break is retained"
-    assert set(break_node) == {"type"}, "a Markdown break node has no extra members"
-    assert break_node["type"] == "break", "two trailing spaces must create a break node"
-    assert after_break["type"] == "text", "hard-break content after the break is text"
-    assert after_break["value"] == "b", "hard-break text after the break is retained"
+    assert len(references) == 2, "repeated source references must remain repeated"
 
 
 def _assert_expected_writer_shape(expected_path: Path) -> None:
@@ -277,7 +321,7 @@ def _assert_expected_writer_shape(expected_path: Path) -> None:
     assert expected_bytes == payload_bytes, (
         f"{expected_path.name} must match the accepted JSON writer bytes"
     )
-    _assert_preferred_member_order(payload)
+    assert_preferred_member_order(payload)
 
 
 def test_seed_expected_files_match_the_accepted_writer_shape(
@@ -303,7 +347,11 @@ def test_seed_expected_files_match_the_accepted_writer_shape(
             "exactly one LF",
         ),
         (
-            b'{\n  "children": [],\n  "type": "root"\n}\n',
+            (
+                '{\n  "type": "root",\n  "data": {},\n  "children": [],\n  '
+                '"\U00010000supplementary": "supplementary",\n  '
+                '"\ue000private": "private"\n}\n'
+            ).encode("utf-8"),
             AssertionError,
             "accepted writer order",
         ),
@@ -331,7 +379,7 @@ def test_seed_expected_files_match_the_accepted_writer_shape(
     ids=[
         "indentation",
         "trailing-newline",
-        "key-order",
+        "unicode-codepoint-order",
         "crlf",
         "duplicate-key",
         "float",

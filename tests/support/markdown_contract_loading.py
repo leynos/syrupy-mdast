@@ -184,11 +184,13 @@ def _load_case(case: dict[str, object], case_id: str, root: Path) -> CaseRecord:
     if not reason.strip():
         message = f"case {case_id!r} reason must not be empty"
         raise ValueError(message)
+    witness = _string(case.get("witness"), f"case {case_id!r} witness")
     kind, line_endings = _case_kind(case, case_id)
     return CaseRecord(
         id=case_id,
         rules=rules,
         reason=reason,
+        witness=witness,
         kind=kind,
         input=_resolve_corpus_file(root, case.get("input"), f"case {case_id!r} input"),
         expected=_resolve_corpus_file(

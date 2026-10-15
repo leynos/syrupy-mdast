@@ -1,0 +1,12 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "html",
+      "value": "&lt;title>t&lt;/title>\n",
+      "data": {
+        "escaped": true
+      }
+    }
+  ]
+}

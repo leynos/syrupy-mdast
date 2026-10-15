@@ -1,0 +1,30 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "paragraph",
+      "children": [
+        {
+          "type": "text",
+          "value": "plain"
+        }
+      ]
+    },
+    {
+      "type": "footnoteDefinition",
+      "identifier": "unused",
+      "label": "unused",
+      "children": [
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "note"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

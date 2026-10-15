@@ -1,0 +1,29 @@
+{
+  "type": "root",
+  "data": {
+    "empty": {},
+    "empty_array": [],
+    "empty_string": "",
+    "false": false,
+    "null": null,
+    "zero": 0
+  },
+  "children": [
+    {
+      "type": "paragraph",
+      "children": [
+        {
+          "type": "text",
+          "value": "x"
+        }
+      ]
+    },
+    null
+  ],
+  "flag": false,
+  "unknown": [
+    3,
+    1,
+    2
+  ]
+}

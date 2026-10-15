@@ -1,0 +1,44 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "paragraph",
+      "children": [
+        {
+          "type": "text",
+          "value": "a"
+        },
+        {
+          "type": "footnoteReference",
+          "identifier": "f",
+          "label": "f"
+        },
+        {
+          "type": "text",
+          "value": " b"
+        },
+        {
+          "type": "footnoteReference",
+          "identifier": "f",
+          "label": "f"
+        }
+      ]
+    },
+    {
+      "type": "footnoteDefinition",
+      "identifier": "f",
+      "label": "f",
+      "children": [
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "note"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

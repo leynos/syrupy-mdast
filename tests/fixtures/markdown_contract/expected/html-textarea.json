@@ -1,0 +1,9 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "html",
+      "value": "<textarea>\nq\n</textarea>\n"
+    }
+  ]
+}

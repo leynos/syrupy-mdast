@@ -5,7 +5,7 @@
 
 
 Status: IN PROGRESS — the maintainer granted an exception to the 600-line total
-cap on 2026-10-15; EP-M1 review and EP-M2 remain.
+cap on 2026-10-15; EP-M1 and EP-M2 are complete, and EP-M3 remains.
 
 Roadmap task: **1.1.3**. Prerequisite: **1.1.2**, completed at baseline
 `c19afee8ed735dffa6262cf0b2e0a9ca0a5a0551`.
@@ -47,7 +47,7 @@ than regenerate them from the implementation under test.
 - Keep source bytes, array order, and authored expected payloads intact.
   No formatting, newline conversion, sorting, or snapshot update command may
   silently change fixture semantics.
-- Put tests and test support beneath `tests/`; keep each Python file below
+- Put tests and test support beneath `tests/`; keep each Python file at most
   400 lines. Use precise types, narrow errors, and no generic plugin framework.
 - Run format, type, lint, test, and audit gates sequentially before each code
   commit; run Markdown and Mermaid gates for documentation. Never overlap gates
@@ -112,8 +112,8 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - [x] (2026-10-13 22:46Z) Read repository guidance; verify clean baseline and
   completed prerequisite 1.1.2.
 - [x] (2026-10-13 22:48Z) Obtain two Wyvern reconnaissance reports, shared
-      through context pack `pk_gadsijjx`; establish absent parser and corpus
-      infrastructure.
+  through context pack `pk_gadsijjx`; establish absent parser and corpus
+  infrastructure.
 - [x] (2026-10-13 22:50Z) Check primary format documentation using Firecrawl;
   resolve reference terminology and parser-level code-span whitespace rules.
 - [x] (2026-10-13 22:55Z) Complete all six community-of-experts perspectives
@@ -121,65 +121,113 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - [x] (2026-10-13 22:57Z) Validate the documentation-only plan: formatting,
   type checking, linting, 103 tests, Markdown, and Mermaid all passed.
 - [x] (2026-10-14 11:39Z) Receive explicit implementation approval through the
-      request to use this ExecPlan; verify PR #74, the exact candidate, and the
-      trusted-author execution boundary.
+  request to use this ExecPlan; verify PR #74, the exact candidate, and the
+  trusted-author execution boundary.
 - [x] (2026-10-14 11:55Z) Stop EP-M1 at the size tolerance: three new Python
-      files total 813 lines against the 600-line ceiling. Focused tests passed,
-      but full milestone gates and commit remain pending.
+  files total 813 lines against the 600-line ceiling. Focused tests passed, but
+  full milestone gates and commit remain pending.
 - [x] (2026-10-14) Repair the reported Python lint failures by splitting the
-      manifest loader from shared test records and path helpers, documenting
-      helper returns and exceptions, and narrowing regex/assertion checks.
-      Targeted Ruff reports zero diagnostics, 58 focused tests pass, and
-      `make fmt` completes. Logs: `/tmp/ruff-syrupy-mdast-113-targeted.json`
-      and `/tmp/pytest-syrupy-mdast-113-targeted-after-lint.out`. The four
-      Python files now total 1140 lines; D5 remains unresolved, so full
-      milestone gates and commit remain pending.
+  manifest loader from shared test records and path helpers, documenting helper
+  returns and exceptions, and narrowing regex/assertion checks. Targeted Ruff
+  reports zero diagnostics, 58 focused tests pass, and `make fmt` completes.
+  Logs: `/tmp/ruff-syrupy-mdast-113-targeted.json` and
+  `/tmp/pytest-syrupy-mdast-113-targeted-after-lint.out`. The four Python files
+  now total 1140 lines; D5 remains unresolved, so full milestone gates and
+  commit remain pending.
 - [x] (2026-10-14) Fix the follow-up df12 Pylint findings with assertion
-      messages, structural matching, smaller semantic checks, and Python 3.12
-      type aliases. Targeted Ruff has zero diagnostics, targeted df12 Pylint is
-      10/10, and 59 focused tests pass. Logs: `/tmp/ruff-syrupy-mdast-113-targeted.json`,
-      `/tmp/pylint-df12-syrupy-mdast-113-targeted.out`, and
-      `/tmp/pytest-syrupy-mdast-113-targeted-after-df12.out`. The four Python
-      files now total 1198 lines; D5 remains unresolved.
+  messages, structural matching, smaller semantic checks, and Python 3.12 type
+  aliases. Targeted Ruff has zero diagnostics, targeted df12 Pylint is 10/10,
+  and 59 focused tests pass. Logs: `/tmp/ruff-syrupy-mdast-113-targeted.json`,
+  `/tmp/pylint-df12-syrupy-mdast-113-targeted.out`, and
+  `/tmp/pytest-syrupy-mdast-113-targeted-after-df12.out`. The four Python files
+  now total 1198 lines; D5 remains unresolved.
 - [x] (2026-10-14) Remove three redundant casts reported by the full `ty`
-      check. Targeted `ty` and Ruff checks now pass for the loader. Logs:
-      `/tmp/ty-syrupy-mdast-113-targeted.out` and
-      `/tmp/ruff-syrupy-mdast-113-targeted-after-ty.out`. The four Python files
-      now total 1196 lines; the full hook rerun remains scheduled.
+  check. Targeted `ty` and Ruff checks now pass for the loader. Logs:
+  `/tmp/ty-syrupy-mdast-113-targeted.out` and
+  `/tmp/ruff-syrupy-mdast-113-targeted-after-ty.out`. The four Python files now
+  total 1196 lines; the full hook rerun remains scheduled.
 - [x] (2026-10-14) Pass the full commit gates after the `ty` repair and commit
-      the seed corpus as `08c10f0`. Formatting, lint, type checking, 162 tests,
-      Markdown lint, and Mermaid validation passed. The dependency audit found
-      no known vulnerabilities; `df12-python-lints` and `syrupy-mdast` were
-      unavailable on PyPI and could not be audited. EP-M1 remains blocked by
-      D5 because the four Python files total 1196 lines against the 600-line
-      tolerance.
+  the seed corpus as `08c10f0`. Formatting, lint, type checking, 162 tests,
+  Markdown lint, and Mermaid validation passed. The dependency audit found no
+  known vulnerabilities; `df12-python-lints` and `syrupy-mdast` were
+  unavailable on PyPI and could not be audited. EP-M1 remains blocked by D5
+  because the four Python files total 1196 lines against the 600-line tolerance.
 - [x] (2026-10-15 16:22Z) Receive the maintainer's explicit exception to the
-      600-total-line cap for this plan. The four-file maximum, 400-line limit
-      per Python file, and 100-named-case scope-review threshold remain active.
+  600-total-line cap for this plan. The four-file maximum, 400-line limit per
+  Python file, and 100-named-case scope-review threshold remain active.
 - [x] (2026-10-15) Triage the CodeRabbit CLI 0.9.0 review of all 23 paths. Two
-      duplicate findings correctly requested assertions for the authored
-      emphasis and strong child values; those assertions are now in the
-      candidate. The array-error finding is not applicable: the plan requires
-      contextual `ValueError` for its listed invalid IDs, paths, kinds, and
-      relations, while wrong field types retain contextual `TypeError`.
+  duplicate findings correctly requested assertions for the authored emphasis
+  and strong child values; those assertions are now in the candidate. The
+  array-error finding is not applicable: the plan requires contextual
+  `ValueError` for its listed invalid IDs, paths, kinds, and relations, while
+  wrong field types retain contextual `TypeError`.
 - [x] (2026-10-15) Pass all seven deterministic gates after the M1 semantic
-      review fixes; 169 tests passed. The audit found no known vulnerabilities,
-      but could not query `df12-python-lints` or `syrupy-mdast` on PyPI. The
-      next CodeRabbit review found four distinct issues: the support module
-      needed a usage docstring; the manifest version test needed byte reads; a
-      directory-valued manifest path needed the contextual error path and a
-      negative test; and this progress list needed consistent wrapping. Its two
-      notes about the path pre-check conflicted; the candidate removes the
-      check and handles the directory read error without claiming the original
-      check was defective. The full seven-gate rerun passed with 170 tests, and
-      fresh CodeRabbit CLI 0.9.0 review returned zero findings across all 23
-      changed paths. The audit found no known vulnerabilities; its two PyPI
-      omissions remain recorded. Review output:
-      `/tmp/coderabbit-review-UpB3UD/review.out`; the seven gate logs use the
-      branch-scoped filenames in `/tmp`.
+  review fixes; 169 tests passed. The audit found no known vulnerabilities, but
+  could not query `df12-python-lints` or `syrupy-mdast` on PyPI. The next
+  CodeRabbit review found four distinct issues: the support module needed a
+  usage docstring; the manifest version test needed byte reads; a
+  directory-valued manifest path needed the contextual error path and a
+  negative test; and this progress list needed consistent wrapping. Its two
+  notes about the path pre-check conflicted; the candidate removes the check
+  and handles the directory read error without claiming the original check was
+  defective. The full seven-gate rerun passed with 170 tests, and fresh
+  CodeRabbit CLI 0.9.0 review returned zero findings across all 23 changed
+  paths. The audit found no known vulnerabilities; its two PyPI omissions
+  remain recorded. Review output: `/tmp/coderabbit-review-UpB3UD/review.out`;
+  the seven gate logs use the branch-scoped filenames in `/tmp`.
+- [x] (2026-10-15) Complete the static M2 matrix with 99 cases (92 Markdown,
+  seven synthetic), 75 independently authored expected trees, 34 exact
+  relations, and 71 semantic markers across all 20 required rules. Add exact
+  case/rule coverage, a 22-node-type assertion, omission/order and
+  transformation checks, and copied-file negative controls for missing cases,
+  partner goldens, retained positions, weaker source witnesses, and
+  newline-normalizing reads. The focused integrity suite passes 161 tests; full
+  gates and the M2 CLI review remain pending. At matrix completion, the four
+  Python files had 398, 363, 399, and 393 lines.
+- [x] (2026-10-15) Triage the complete CodeRabbit CLI 0.9.0 review across 182
+  changed paths. Fix the impossible nested `root` in the Markdown all-node
+  golden, identify the README's short table as representative, remove the
+  unreachable witness-empty branch, assert node coverage across all expected
+  trees, and normalize progress-list wrapping. Retain whitespace-only source
+  witnesses because exact invisible bytes can be meaningful; `reason` remains
+  non-whitespace prose. Focused tests pass again (161 tests); full gates and
+  CodeRabbit reassessment are pending for these repairs. The four Python files
+  are now 398, 360, 397, and 393 lines.
+- [x] (2026-10-15) Repair the next complete 182-file CodeRabbit review. The
+  U+E000 key was already present in the synthetic source, witness, and golden;
+  make it explicit as a JSON escape in the source/witness and add a temporary
+  golden mutation that puts U+10000 before U+E000. Also correct the stale EP-M1
+  review status in this retrospective. The focused integrity suite passes 161
+  tests; full gates and CodeRabbit reassessment remain pending. The four Python
+  files are 398, 360, 400, and 393 lines.
+- [x] (2026-10-15) The next full rerun found Ruff's composite-assertion rule
+  after the key-order negative control was added. Restore separate type and
+  value checks and name the null array child explicitly, keeping the largest
+  Python file at 400 lines. The other six gates passed, including 264 tests;
+  the complete rerun and review remain pending.
+- [x] (2026-10-15) The lint rerun then found Pylint C1804 on the empty-string
+  equality. Restore separate string-type and empty-value assertions, shorten
+  the null array check to one line, and keep the file at 400 lines. The other
+  six gates passed, including 264 tests; the full rerun remains pending.
+- [x] (2026-10-15) Pass the complete seven-gate rerun with 264 tests; the audit
+  found no known vulnerabilities but could not query `df12-python-lints` or
+  `syrupy-mdast` on PyPI. Fresh CodeRabbit CLI 0.9.0 review of 182 changed
+  paths found one minor wording issue: the plan said “below 400 lines” while
+  the repository permits 400 and one file has exactly 400. Change the limit to
+  “at most 400” and clarify the historical line-count entry. Final M2 gates and
+  review reassessment remain pending for this plan update.
+- [x] (2026-10-15) The next full gate run also passed all seven checks with 264
+  tests. CodeRabbit found a second stale “below” phrase in D7; change it to
+  “within” so the plan accurately includes a file at the 400-line ceiling.
+  Final M2 gates and review reassessment remain pending for this correction.
+- [x] (2026-10-15) Complete EP-M2 after the final wording repair: all seven
+  gates pass with 264 tests, the audit has no known vulnerabilities with two
+  packages unavailable on PyPI, and fresh CodeRabbit CLI 0.9.0 review returns
+  zero findings across 182 changed paths. Gate logs use the `m2-planword2.out`
+  suffix; review output is `/tmp/coderabbit-syrupy-mdast-m2-xXe9Dm/review.out`.
 - [x] EP-M1: establish the corpus format and focused seed cases; pass the
-      required milestone review before advancing.
-- [ ] EP-M2: complete every normative fixture and integrity assertion.
+  required milestone review before advancing.
+- [x] EP-M2: complete every normative fixture and integrity assertion.
 - [ ] EP-M3: reconcile documentation, validate, and mark 1.1.3 done.
 
 ## Surprises & discoveries
@@ -251,6 +299,27 @@ is not a reason to cancel, duplicate, or bypass a gate.
   400-line per-file limit, test-only boundary, and 100-named-case review
   trigger. No replacement total-line ceiling was specified; continue tracking
   the actual count and keep each file cohesive and readable.
+- **D7 — keep the explicit assertion index as fixture data.** 2026-10-15.
+  Store the exact case-to-rule map, relation groups, node-type inventory,
+  preferred key order, and focused expected-node markers in
+  `assertions/contract-assertions.json`; tests compare those values with the
+  manifest and authored goldens. This keeps the Python files within their
+  per-file ceiling while leaving each assertion explicit and reviewable. The
+  index is hand-maintained test evidence, not parser or canonicalizer output,
+  and adds no dependency or runtime behaviour.
+- **D8 — preserve exact whitespace-only source witnesses.** 2026-10-15. A
+  witness is a required substring of the source's original bytes, so a value
+  consisting only of spaces or newline bytes can document an invisible-byte
+  distinction. `_string` correctly rejects only the empty string. The separate
+  `.strip()` check remains appropriate for the explanatory `reason` field; the
+  redundant truthiness branch after `_string` was removed.
+- **D9 — make code-point ordering failure observable.** 2026-10-15. The
+  U+E000 key already existed, but CodeRabbit's review did not recognize it in
+  its private-use glyph form. Encode the source key as `\uE000private`, retain
+  the decoded key in the authored golden, and test a temporary golden with the
+  U+10000 and U+E000 unknown keys swapped. The accepted Unicode code-point
+  ordering is unchanged; the mutation now proves the fixture detects the
+  competing UTF-16 order.
 
 ## Outcomes & retrospective
 
@@ -263,11 +332,12 @@ waives the 600-line cap for this plan while retaining file-count and per-file
 limits. After removing three redundant casts, the full commit gates passed,
 including 162 tests, and the seed corpus was committed as `08c10f0`. The audit
 found no known vulnerabilities, but could not audit `df12-python-lints` or
-`syrupy-mdast` because they are unavailable on PyPI. EP-M1's implementation and
-gates are complete; its milestone CLI review remains pending before
-advancement. The normative matrix and documentation reconciliation remain
-outstanding. No runtime behaviour has been delivered. The draft PR metadata
-records publication separately.
+`syrupy-mdast` because they are unavailable on PyPI. EP-M1's implementation,
+gates, and CLI review are complete. EP-M2 now has 99 named cases; its latest
+CodeRabbit findings are repaired, with full gates and review reassessment
+pending. The previous seven-gate run passed with 264 tests. EP-M3's
+documentation reconciliation remains outstanding. No runtime behaviour has been
+delivered. The draft PR metadata records publication separately.
 
 At completion, record fixture counts by obligation, named negative-control
 results, command logs, final commit, and the documentation reconciliation.

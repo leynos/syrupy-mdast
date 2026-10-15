@@ -1,0 +1,9 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "html",
+      "value": "<style>p{}</style>\n"
+    }
+  ]
+}
