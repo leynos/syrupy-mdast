@@ -4,8 +4,8 @@
 # Create the canonical Markdown contract corpus
 
 
-Status: BLOCKED — EP-M1 exceeds the 600-line size tolerance; maintainer
-direction needed.
+Status: IN PROGRESS — the maintainer granted an exception to the 600-line total
+cap on 2026-10-15; EP-M1 review and EP-M2 remain.
 
 Roadmap task: **1.1.3**. Prerequisite: **1.1.2**, completed at baseline
 `c19afee8ed735dffa6262cf0b2e0a9ca0a5a0551`.
@@ -66,10 +66,11 @@ and seek explicit direction if any of these conditions occurs:
 - Work requires modifying production modules, CI, Makefile recipes, or adding
   any dependency. Neither a second canonicalizer nor compatibility shims are
   permitted as a shortcut to a green corpus suite.
-- The implementation needs more than four new Python files or 600 total new
-  Python lines, excluding fixtures and documentation. Split data by concern; do
-  not hide executable logic in data. More than 100 named cases requires a scope
-  review; the matrix below is mandatory and may not be trimmed to fit.
+- The four-new-Python-file maximum remains active. The maintainer explicitly
+  waived the original 600-total-line cap for this plan on 2026-10-15 (D6); the
+  400-line per-file limit remains active. More than 100 named cases still
+  requires a scope review, and the matrix below is mandatory and may not be
+  trimmed to fit.
 - A failing gate remains unexplained after three targeted repair attempts.
   An infrastructure failure is not evidence of a source defect. Preserve the
   log and wait for recovery rather than bypassing the standard tool.
@@ -100,10 +101,10 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - **Parser provenance (medium impact, medium likelihood).** Wenmode 0.15.2 is
   ADR-004's evidence baseline, not a claim about every allowed 0.15.x release.
   Distinguish authored canonical expectations from observed raw parser output.
-- **Implementation size (medium impact, unresolved).** The initial loader and
-  test modules already exceed the plan's total Python-line ceiling. Resolve
-  this before adding the complete matrix so maintainability does not depend on
-  compressing required assertions into opaque helpers.
+- **Implementation size (medium impact, mitigated by D6).** The loader and seed
+  tests exceed the original total Python-line ceiling, which the maintainer
+  waived for this plan. Keep the four-file maximum and 400-line per-file limit;
+  organize cases by normative family and retain direct, readable assertions.
 
 ## Progress
 
@@ -152,7 +153,11 @@ is not a reason to cancel, duplicate, or bypass a gate.
       unavailable on PyPI and could not be audited. EP-M1 remains blocked by
       D5 because the four Python files total 1196 lines against the 600-line
       tolerance.
-- [ ] EP-M1: establish the corpus format and focused seed cases.
+- [x] (2026-10-15 16:22Z) Receive the maintainer's explicit exception to the
+      600-total-line cap for this plan. The four-file maximum, 400-line limit
+      per Python file, and 100-named-case scope-review threshold remain active.
+- [ ] EP-M1: establish the corpus format and focused seed cases; complete its
+      required milestone review before advancing.
 - [ ] EP-M2: complete every normative fixture and integrity assertion.
 - [ ] EP-M3: reconcile documentation, validate, and mark 1.1.3 done.
 
@@ -176,7 +181,8 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - The first EP-M1 implementation pass totals 813 Python lines across
   `tests/support/markdown_contract.py` (273), `tests/test_markdown_contract.py`
   (223), and `tests/test_markdown_contract_loading.py` (317). This exceeds the
-  600-line tolerance before the full fixture matrix is added.
+  600-line tolerance before the full fixture matrix is added. D6 waives only
+  that total-line cap; it does not change the file-count or per-file limits.
 - Firecrawl's initial structured extraction of the GFM specification omitted
   reference details and misstated code-span whitespace. Reading the full
   primary text resolved this: line endings become spaces in code spans, and
@@ -216,7 +222,14 @@ is not a reason to cancel, duplicate, or bypass a gate.
   direct a design review that brings the implementation under 600 lines without
   trimming the normative matrix. A larger ceiling accepts more maintenance
   surface; compression risks hiding distinctions unless every case remains
-  directly reviewable. Do not proceed until the maintainer selects a path.
+  directly reviewable. The maintainer resolved this blocker with D6.
+- **D6 — waive the total implementation-line cap for this plan.** 2026-10-15.
+  The maintainer explicitly granted an exception to the 600-line tolerance.
+  Apply it to the complete 1.1.3 corpus implementation so the mandatory matrix
+  can be delivered without opaque compression. Keep the four-file maximum,
+  400-line per-file limit, test-only boundary, and 100-named-case review
+  trigger. No replacement total-line ceiling was specified; continue tracking
+  the actual count and keep each file cohesive and readable.
 
 ## Outcomes & retrospective
 
@@ -224,16 +237,16 @@ is not a reason to cancel, duplicate, or bypass a gate.
 The plan and six-perspective review are complete, and the requested baseline
 gates passed. Explicit implementation approval arrived on 2026-10-14. EP-M1 has
 a typed loader, seed fixtures, and 59 passing focused tests. A lint repair
-split the loader into a fourth Python file; the four files total 1196 lines and
-still exceed the approved tolerance. After removing three redundant casts, the
-full commit gates passed, including 162 tests, and the seed corpus was
-committed as `08c10f0`. The audit found no known vulnerabilities, but could not
-audit `df12-python-lints` or `syrupy-mdast` because they are unavailable on
-PyPI. D5 still blocks EP-M1: maintainer direction is needed to revise the size
-tolerance or to direct a design review that brings the implementation below 600
-lines without reducing the normative matrix. No milestone is complete and no
-runtime behaviour has been delivered. The draft PR metadata records publication
-separately.
+split the loader into a fourth Python file; the four files total 1196 lines. D6
+waives the 600-line cap for this plan while retaining file-count and per-file
+limits. After removing three redundant casts, the full commit gates passed,
+including 162 tests, and the seed corpus was committed as `08c10f0`. The audit
+found no known vulnerabilities, but could not audit `df12-python-lints` or
+`syrupy-mdast` because they are unavailable on PyPI. EP-M1's implementation and
+gates are complete; its milestone CLI review remains pending before
+advancement. The normative matrix and documentation reconciliation remain
+outstanding. No runtime behaviour has been delivered. The draft PR metadata
+records publication separately.
 
 At completion, record fixture counts by obligation, named negative-control
 results, command logs, final commit, and the documentation reconciliation.
@@ -490,8 +503,10 @@ writer shape. The raw Wenmode 0.15.2 probe passed all thirteen ADR checks; it
 confirmed AST shapes only and did not execute canonicalization. Logs are
 `/tmp/pytest-syrupy-mdast-1-1-3-EP-M1-red-attempt2.out`,
 `/tmp/pytest-syrupy-mdast-1-1-3-EP-M1-green-attempt3.out`, and
-`/tmp/wenmode-syrupy-mdast-113-adr004-probe-attempt2.out`. Full M1 gates have
-not run and no M1 commit exists because D5 requires maintainer direction.
+`/tmp/wenmode-syrupy-mdast-113-adr004-probe-attempt2.out`. Full gates passed
+before the seed corpus commit `08c10f0`: 162 tests passed, with the two PyPI
+audit omissions recorded above. D6 resolves the only recorded M1 blocker;
+milestone CLI review and the normative acceptance matrix remain.
 
 - **A-COVERAGE — complete finite coverage.** In
   `tests/test_markdown_contract.py`, explicitly require every matrix subcase,
@@ -837,3 +852,8 @@ now in progress; implementation remains bounded by its existing tolerances.
 Revision note (2026-10-14): EP-M1 reached the 600-line Python implementation
 tolerance at 813 lines. The plan is blocked pending direction; focused evidence
 is recorded, and no full gates or implementation commit were produced.
+
+Revision note (2026-10-15): the maintainer granted an exception to the total
+600-line cap for this plan. The four-file maximum, per-file line limit, and
+scope-review trigger remain. The seed corpus is committed and its full local
+gates passed; EP-M1's CLI review and the full normative matrix remain.
