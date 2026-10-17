@@ -1,38 +1,134 @@
-"""Manifest parsing for the authored Markdown contract corpus tests."""
+"""Parse and validate the authored Markdown contract corpus manifest.
 
+The loader turns ``manifest.toml`` into ordered ``CaseRecord`` and
+``RelationRecord`` tuples. It never parses Markdown or computes expected
+payloads. Errors in metadata, paths, or relations identify their record.
+
+For example, ``load_corpus(Path("tests/fixtures/markdown_contract"))``
+returns a ``ContractCorpus`` whose ``cases`` follow manifest order.
+"""
+
+import collections.abc as cabc
 import tomllib
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 from tests.support.markdown_contract import (
-    MIN_RELATION_CASES,
     RULE_IDS,
     CaseKind,
     CaseRecord,
     ContractCorpus,
     LineEndings,
     RelationRecord,
-    _resolve_corpus_file,
-    _string,
-    _string_tuple,
-    _table,
 )
+
+MIN_RELATION_CASES = 2
+
+
+def _table(value: object, location: str) -> dict[str, object]:
+    """Return a string-keyed table; ``_table({"id": "case"}, "case")`` copies it.
+
+    Returns
+    -------
+    dict[str, object]
+
+    Raises
+    ------
+    TypeError
+    """
+    if not isinstance(value, cabc.Mapping) or any(
+        not isinstance(key, str) for key in value
+    ):
+        message = f"{location} must be a TOML table"
+        raise TypeError(message)
+    return dict(value.items())
+
+
+def _string(value: object, location: str) -> str:
+    """Require a non-empty string; ``_string("NF-1", "rules")`` returns that value.
+
+    Returns
+    -------
+    str
+
+    Raises
+    ------
+    TypeError
+    ValueError
+    """
+    if not isinstance(value, str):
+        message = f"{location} must be a string"
+        raise TypeError(message)
+    if not value:
+        message = f"{location} must be a non-empty string"
+        raise ValueError(message)
+    return value
+
+
+def _string_tuple(value: object, location: str) -> tuple[str, ...]:
+    """Return a tuple of strings; ``_string_tuple(["NF-1"], "rules")`` preserves order.
+
+    Returns
+    -------
+    tuple[str, ...]
+
+    Raises
+    ------
+    TypeError
+    """
+    if not isinstance(value, list):
+        message = f"{location} must be an array of strings"
+        raise TypeError(message)
+    strings: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            message = f"{location} must contain only strings"
+            raise TypeError(message)
+        strings.append(item)
+    return tuple(strings)
+
+
+def _resolve_corpus_file(root: Path, value: object, location: str) -> Path:
+    """Resolve a safe corpus file; a relative ``manifest.toml`` stays under ``root``.
+
+    Returns
+    -------
+    Path
+
+    Raises
+    ------
+    ValueError
+    """
+    relative_name = _string(value, f"{location} path")
+    relative_path = PurePosixPath(relative_name)
+    windows_path = PureWindowsPath(relative_name)
+    if any((
+        relative_path.is_absolute(),
+        windows_path.is_absolute(),
+        bool(windows_path.drive),
+        "\\" in relative_name,
+        ".." in relative_path.parts,
+        not relative_path.parts,
+    )):
+        message = f"{location} path must be relative to the corpus root"
+        raise ValueError(message)
+
+    resolved_root = root.resolve()
+    resolved_path = resolved_root.joinpath(*relative_path.parts).resolve()
+    if not resolved_path.is_relative_to(resolved_root):
+        message = f"{location} path escapes the corpus root"
+        raise ValueError(message)
+    if not resolved_path.is_file():
+        message = f"{location} file does not exist: {relative_name!r}"
+        raise ValueError(message)
+    return resolved_path
 
 
 def load_corpus(root: Path) -> ContractCorpus:
-    """Load ordered case records and paths from a corpus directory.
+    """Load validated records; ``load_corpus(root).cases`` follows manifest order.
 
     Returns
     -------
     ContractCorpus
-        Ordered case and relation metadata with validated file paths.
-
-    Examples
-    --------
-    A checked-in corpus can be loaded without parsing Markdown or constructing
-    expected output::
-
-        corpus = load_corpus(Path("tests/fixtures/markdown_contract"))
-        first_case = corpus.cases[0]
     """
     manifest = _read_manifest(root)
     _validate_manifest_header(manifest)
@@ -46,26 +142,20 @@ def load_corpus(root: Path) -> ContractCorpus:
 
 
 def _read_manifest(root: Path) -> dict[str, object]:
-    """Decode the corpus manifest and report file or syntax errors.
+    """Decode TOML strictly; ``_read_manifest(root)`` returns its top-level table.
 
     Returns
     -------
     dict[str, object]
-        The decoded top-level TOML table.
 
     Raises
     ------
     ValueError
-        If the file is missing, is a directory, or contains invalid UTF-8/TOML.
-
-    Examples
-    --------
-    ``_read_manifest(root)`` returns its TOML table after UTF-8 decoding.
     """
     manifest_path = root / "manifest.toml"
     try:
         manifest_text = manifest_path.read_bytes().decode("utf-8")
-    except (FileNotFoundError, IsADirectoryError) as error:
+    except (FileNotFoundError, IsADirectoryError, PermissionError) as error:
         message = f"manifest.toml is not a readable file in corpus root {root}"
         raise ValueError(message) from error
     except UnicodeDecodeError as error:
@@ -79,16 +169,11 @@ def _read_manifest(root: Path) -> dict[str, object]:
 
 
 def _validate_manifest_header(manifest: dict[str, object]) -> None:
-    """Require the corpus and source-evidence format versions.
+    """Require supported versions; version ``1`` and evidence ``0.15.2`` pass.
 
     Raises
     ------
     ValueError
-        If a declared format version does not match this loader.
-
-    Examples
-    --------
-    A manifest declaring both version fields as ``1`` passes this check.
     """
     for field_name in ("corpus_version", "contract_version"):
         field_value = manifest.get(field_name)
@@ -103,23 +188,16 @@ def _validate_manifest_header(manifest: dict[str, object]) -> None:
 def _manifest_records(
     value: object, field_name: str, *, allow_empty: bool
 ) -> list[object]:
-    """Return a TOML array field, optionally requiring at least one item.
+    """Return array items; an empty relations array is allowed.
 
     Returns
     -------
     list[object]
-        The original array in its manifest order.
 
     Raises
     ------
-    ValueError
-        If an empty array is forbidden.
     TypeError
-        If the field is not an array.
-
-    Examples
-    --------
-    ``_manifest_records([], "relations", allow_empty=True)`` returns ``[]``.
+    ValueError
     """
     if not isinstance(value, list):
         message = f"manifest.toml: {field_name} must be an array"
@@ -130,22 +208,27 @@ def _manifest_records(
     return value
 
 
-def _load_cases(raw_cases: list[object], root: Path) -> tuple[CaseRecord, ...]:
-    """Build ordered case records and reject duplicate identifiers.
-
-    Returns
-    -------
-    tuple[CaseRecord, ...]
-        Validated case records in manifest order.
+def _register_unique_identifier(
+    identifier: str, seen_identifiers: set[str], record_kind: str
+) -> None:
+    """Register unique IDs; registering ``"intro"`` adds it to the ID set.
 
     Raises
     ------
     ValueError
-        If a case is invalid or its identifier is duplicated.
+    """
+    if identifier in seen_identifiers:
+        message = f"duplicate {record_kind} id {identifier!r}"
+        raise ValueError(message)
+    seen_identifiers.add(identifier)
 
-    Examples
-    --------
-    A two-item manifest array produces two records in the same order.
+
+def _load_cases(raw_cases: list[object], root: Path) -> tuple[CaseRecord, ...]:
+    """Build records in order; a two-case array stays in its supplied order.
+
+    Returns
+    -------
+    tuple[CaseRecord, ...]
     """
     cases: list[CaseRecord] = []
     case_ids: set[str] = set()
@@ -153,30 +236,21 @@ def _load_cases(raw_cases: list[object], root: Path) -> tuple[CaseRecord, ...]:
         location = f"case at index {index}"
         case = _table(raw_case, location)
         case_id = _string(case.get("id"), f"{location} id")
-        if case_id in case_ids:
-            message = f"duplicate case id {case_id!r}"
-            raise ValueError(message)
-        case_ids.add(case_id)
+        _register_unique_identifier(case_id, case_ids, "case")
         cases.append(_load_case(case, case_id, root))
     return tuple(cases)
 
 
 def _load_case(case: dict[str, object], case_id: str, root: Path) -> CaseRecord:
-    """Validate and resolve one case table.
+    """Validate fields; ``_load_case(record, "intro", root)`` returns a record.
 
     Returns
     -------
     CaseRecord
-        The validated metadata and resolved paths for this case.
 
     Raises
     ------
     ValueError
-        If a field is missing, invalid, or resolves outside the corpus.
-
-    Examples
-    --------
-    A valid case table becomes a record with resolved input and expected paths.
     """
     raw_rules = _string_tuple(case.get("rules"), f"case {case_id!r} rules")
     rules = _validated_case_rules(raw_rules, case_id)
@@ -201,21 +275,15 @@ def _load_case(case: dict[str, object], case_id: str, root: Path) -> CaseRecord:
 
 
 def _validated_case_rules(raw_rules: tuple[str, ...], case_id: str) -> tuple[str, ...]:
-    """Require one or more known normative rule identifiers.
+    """Require known rules; ``("NF-1",)`` remains unchanged for a valid case.
 
     Returns
     -------
     tuple[str, ...]
-        The supplied rule identifiers after validation.
 
     Raises
     ------
     ValueError
-        If no rules are supplied or an identifier is unknown.
-
-    Examples
-    --------
-    ``_validated_case_rules(("NF-1",), "intro")`` preserves that rule tuple.
     """
     if not raw_rules:
         message = f"case {case_id!r} rules must not be empty"
@@ -230,21 +298,15 @@ def _validated_case_rules(raw_rules: tuple[str, ...], case_id: str) -> tuple[str
 def _case_kind(
     case: dict[str, object], case_id: str
 ) -> tuple[CaseKind, LineEndings | None]:
-    """Validate a case kind and its required newline declaration.
+    """Validate case metadata; synthetic cases return ``("synthetic", None)``.
 
     Returns
     -------
     tuple[CaseKind, LineEndings | None]
-        The kind and its newline declaration, or ``None`` for synthetic cases.
 
     Raises
     ------
     ValueError
-        If the kind or declared line endings are invalid.
-
-    Examples
-    --------
-    A synthetic record returns ``("synthetic", None)``.
     """
     raw_kind = _string(case.get("kind"), f"case {case_id!r} kind")
     if raw_kind not in {"markdown", "synthetic"}:
@@ -268,21 +330,11 @@ def _case_kind(
 def _load_relations(
     raw_relations: list[object], case_ids: set[str]
 ) -> tuple[RelationRecord, ...]:
-    """Build ordered relation records and reject duplicate identifiers.
+    """Build relation records in order; a two-relation array retains that order.
 
     Returns
     -------
     tuple[RelationRecord, ...]
-        Validated relation records in manifest order.
-
-    Raises
-    ------
-    ValueError
-        If a relation is invalid or its identifier is duplicated.
-
-    Examples
-    --------
-    Relation records preserve the order of their manifest array.
     """
     relations: list[RelationRecord] = []
     relation_ids: set[str] = set()
@@ -290,10 +342,7 @@ def _load_relations(
         location = f"relation at index {index}"
         relation = _table(raw_relation, location)
         relation_id = _string(relation.get("id"), f"{location} id")
-        if relation_id in relation_ids:
-            message = f"duplicate relation id {relation_id!r}"
-            raise ValueError(message)
-        relation_ids.add(relation_id)
+        _register_unique_identifier(relation_id, relation_ids, "relation")
         relations.append(_load_relation(relation, relation_id, case_ids))
     return tuple(relations)
 
@@ -301,21 +350,15 @@ def _load_relations(
 def _load_relation(
     relation: dict[str, object], relation_id: str, case_ids: set[str]
 ) -> RelationRecord:
-    """Validate relation kind and its ordered case references.
+    """Validate relation fields; equality keeps supplied case IDs in order.
 
     Returns
     -------
     RelationRecord
-        The validated relation and its ordered case IDs.
 
     Raises
     ------
     ValueError
-        If the relation kind or case references are invalid.
-
-    Examples
-    --------
-    A valid equality relation returns its named case IDs in manifest order.
     """
     raw_kind = _string(relation.get("relation"), f"relation {relation_id!r} kind")
     if raw_kind not in {"equal", "distinct"}:
@@ -335,16 +378,11 @@ def _load_relation(
 def _validate_relation_cases(
     related_cases: tuple[str, ...], relation_id: str, case_ids: set[str]
 ) -> None:
-    """Require a relation to name distinct, existing cases.
+    """Require distinct known cases; two known IDs pass in supplied order.
 
     Raises
     ------
     ValueError
-        If fewer than two unique, known cases are named.
-
-    Examples
-    --------
-    Two known case IDs pass validation in their supplied order.
     """
     if len(related_cases) < MIN_RELATION_CASES:
         message = f"relation {relation_id!r} must name at least two cases"

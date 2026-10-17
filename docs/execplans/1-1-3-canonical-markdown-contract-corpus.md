@@ -4,8 +4,12 @@
 # Create the canonical Markdown contract corpus
 
 
-Status: COMPLETE — the maintainer granted an exception to the 600-line total
-cap on 2026-10-15; EP-M1, EP-M2, and EP-M3 are complete.
+Status: IN PROGRESS — EP-M1, EP-M2, and EP-M3 are complete. The latest
+deterministic gates passed with 344 tests. Review #22's finding about the
+line-ending case reasons is corrected below. Hosted CodeScene reassessment and
+implementation acceptance remain open; roadmap task 1.1.3 stays unchecked until
+acceptance. The maintainer granted an exception to the 600-line total cap on
+2026-10-15.
 
 Roadmap task: **1.1.3**. Prerequisite: **1.1.2**, completed at baseline
 `c19afee8ed735dffa6262cf0b2e0a9ca0a5a0551`.
@@ -228,7 +232,9 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - [x] EP-M1: establish the corpus format and focused seed cases; pass the
   required milestone review before advancing.
 - [x] EP-M2: complete every normative fixture and integrity assertion.
-- [x] EP-M3: reconcile documentation, validate, and mark 1.1.3 done.
+- [x] EP-M3: reconcile documentation and validate the corpus deliverable.
+- [ ] Mark roadmap 1.1.3 done after implementation acceptance and hosted
+  delivery checks pass.
 - [x] (2026-10-15) Reconcile design §§7–8 with the accepted parser call and
   five-rule sequence; add the corpus workflow and integrity boundary to the
   developer guide and link the corpus from the contents and user guides. No new
@@ -257,8 +263,60 @@ is not a reason to cancel, duplicate, or bypass a gate.
   the `m3-table-marker.out` suffix; review output is
   `/tmp/coderabbit-syrupy-mdast-m3-table-marker-LlVaJL/review.out`. The
   numeric-reference suggestion was dispositioned against the accepted
-  Wenmode-specific NF-13 contract. The final documentation close-out includes
-  the roadmap checkbox and this completion record.
+  Wenmode-specific NF-13 contract. The 2026-10-15 close-out checked the roadmap
+  item; the 2026-10-17 reopening keeps it pending until implementation
+  acceptance.
+- [x] (2026-10-17) Repair loader complexity reported by hosted CodeScene by
+  sharing duplicate-ID registration. Local `cs delta` improves loader health
+  from 9.38 to 10.00. The first rerun found Markdown formatting and propagated
+  exception-docstring lint errors; after correction, all seven gates passed
+  with 265 tests. A fresh CodeRabbit 0.9.0 review of 187 paths returned four
+  finding events: two overlapping mutation-check concerns, one spurious
+  paragraph `data` member in the position-removal golden, and one plan-ordering
+  inconsistency. The hosted CodeScene reassessment remains pending.
+- [x] (2026-10-17) Share the exact case-inventory and recursive
+  position-removal assertions between their positive and mutation-control
+  tests; remove paragraph `data` absent from the synthetic input; and keep the
+  reopened plan record chronological and consistent. All seven gates passed; a
+  fresh review then found the wrong-type exception mismatch and premature
+  roadmap completion. Their correction passed all seven gates with 266 tests. A
+  subsequent review found `_table`'s wrong-type exception, a test helper that
+  patched the reader, a missing exact relation inventory check, and EP-M3's
+  acceptance wording. Hosted CodeScene reassessment remains pending.
+- [x] (2026-10-17) Raise contextual `TypeError` for wrong-type table records;
+  compare all manifest relation IDs with the assertion index; inject the source
+  reader into its negative control; and separate EP-M3 completion from roadmap
+  acceptance. All seven gates passed with 267 tests. Fresh CodeRabbit review
+  found stale wording in this progress record; its correction is recorded here.
+  Hosted CodeScene reassessment remains pending.
+- [x] (2026-10-17) Document all seven non-NF rules, require pairwise-distinct
+  bytes for distinct relation groups with a three-case mutation control, and
+  replace inaccurate unresolved-reference and data-removal reasons. A fresh
+  review identified these three gaps; this entry records their correction.
+- [x] (2026-10-17) Replace remaining templated reasons that misdescribe direct
+  links and images, table alignment and cell values, type-1 HTML, and entity
+  spelling. A fresh review identified these false descriptions; this entry
+  records their correction.
+- [x] (2026-10-17) Correct the HTML-spelling, asterisk, and key-order reasons;
+  require and exemplify `witness` in case records; and reconcile the outcomes
+  paragraph. The preceding review identified these gaps after a seven-gate run
+  passed with 267 tests; this entry records their correction.
+- [x] (2026-10-17) Require equal relation groups to share one expected path;
+  move manifest parsing helpers into `markdown_contract_loading.py`; expand its
+  usage documentation; and correct footnote and numeric-reference reasons.
+  These corrections follow the latest full-diff review.
+- [x] (2026-10-17) Restore concise return and exception sections to the moved
+  loader helper docstrings after the first full rerun found 28 Ruff
+  diagnostics. All seven gates then passed with 267 tests; the loader remains
+  within the 400-line per-file limit. Fresh review found two stale plan
+  statements; their correction and final validation remain pending.
+- [x] (2026-10-17) Correct the outcomes record and require hosted delivery
+  checks plus implementation acceptance before roadmap completion. Fresh review
+  found these inconsistencies with the constraints; final gates and review of
+  this documentation update remain pending.
+- [x] (2026-10-17) Fix the R-CORPUS README link and update the interface section
+  for the delivered support-module split. Fresh review found both descriptions
+  stale; final gates and another full-diff review remain pending.
 
 ## Surprises & discoveries
 
@@ -340,9 +398,9 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - **D8 — preserve exact whitespace-only source witnesses.** 2026-10-15. A
   witness is a required substring of the source's original bytes, so a value
   consisting only of spaces or newline bytes can document an invisible-byte
-  distinction. `_string` correctly rejects only the empty string. The separate
-  `.strip()` check remains appropriate for the explanatory `reason` field; the
-  redundant truthiness branch after `_string` was removed.
+  distinction. For string inputs, `_string` rejects only the empty string. The
+  separate `.strip()` check remains appropriate for the explanatory `reason`
+  field; the redundant truthiness branch after `_string` was removed.
 - **D9 — make code-point ordering failure observable.** 2026-10-15. The
   U+E000 key already existed, but CodeRabbit's review did not recognize it in
   its private-use glyph form. Encode the source key as `\uE000private`, retain
@@ -350,36 +408,75 @@ is not a reason to cancel, duplicate, or bypass a gate.
   U+10000 and U+E000 unknown keys swapped. The accepted Unicode code-point
   ordering is unchanged; the mutation now proves the fixture detects the
   competing UTF-16 order.
+- **D10 — share duplicate manifest-ID registration.** 2026-10-17. Hosted
+  CodeScene reported the loader's mean complexity above its configured
+  threshold. Case and relation loading implemented the same duplicate-ID check
+  and contextual error formatting. Share that one policy in a private helper
+  used only by those two manifest record types; preserve the existing exact
+  error messages and tests. This is a cohesive maintenance boundary, not a
+  threshold or suppression change. Reassess the hosted finding on the published
+  candidate before closing the plan.
+- **D11 — keep position-removal expectations transformation-only.** 2026-10-17.
+  The synthetic position-removal input has no paragraph `data`, and ADR-004
+  defines no transformation that adds members. Remove the paragraph `data` from
+  its expected payload and assert its absence. This corrects the fixture; it
+  does not change the accepted normalization contract.
 
 ## Outcomes & retrospective
 
 
-The plan and six-perspective review are complete, and explicit implementation
-approval arrived on 2026-10-14. EP-M1 added a typed loader and seed fixtures;
-its commit `08c10f0` passed the full gates with 162 tests. EP-M2 added 99 cases
-(92 Markdown and seven synthetic), 75 hand-authored expected trees, 34 exact
+The six-perspective review is complete, and explicit implementation approval
+arrived on 2026-10-14. EP-M1 added a typed loader and seed fixtures; its commit
+`08c10f0` passed the full gates with 162 tests. EP-M2 added 99 cases (92
+Markdown and seven synthetic), 75 hand-authored expected trees, 34 exact
 relations, and 71 semantic markers across 20 rules and 22 node types. Its
 commit is `97179f5`; the full gates passed with 264 tests, fresh CodeRabbit
 review found no issues across 182 paths, and the audit found no known
 vulnerabilities. EP-M3 adds the 72nd semantic marker and reconciles the design,
-contributor and user guidance, documentation index, and roadmap. Its final
-candidate passes all seven gates with 265 tests; fresh CodeRabbit CLI 0.9.0
-review returned zero findings across 187 paths. The audit found no known
-vulnerabilities, but `df12-python-lints` and `syrupy-mdast` remain unavailable
-on PyPI. The 600-line total cap is waived for this plan; the four-file and
-400-line per-file limits remain. Representative negative controls reject a
-missing required case, partner-golden substitution, retained `position`, a
-mutated writer-shaped golden, weakened source witnesses, and a CRLF declaration
-with LF bytes. The numeric-reference outputs follow accepted ADR-004 NF-13
-observations for Wenmode 0.15.2 despite CommonMark's U+FFFD requirement for
-invalid Unicode values. No runtime behaviour has been delivered; valid `str`
-input still raises `NotImplementedError`, and parser/canonicalizer conformance
-remains deferred.
+contributor and user guidance, and documentation index. Roadmap completion
+remains pending until implementation acceptance. The previous gate and review
+checkpoint passed with 344 tests and zero findings across 187 paths. Review #22
+then asked for the nine line-ending cases to name their parsed values; each
+reason now identifies its paragraph, code, or link-title value. The audit found
+no known vulnerabilities, but `df12-python-lints` and `syrupy-mdast` remain
+unavailable on PyPI. The 600-line total cap is waived for this plan; the
+four-file and 400-line per-file limits remain. Representative negative controls
+reject a missing required case, partner-golden substitution, retained
+`position`, a mutated writer-shaped golden, weakened source witnesses, and a
+CRLF declaration with LF bytes. The numeric-reference outputs follow accepted
+ADR-004 NF-13 observations for Wenmode 0.15.2 despite CommonMark's U+FFFD
+requirement for invalid Unicode values. No runtime behaviour has been
+delivered; valid `str` input still raises `NotImplementedError`, and
+parser/canonicalizer conformance remains deferred.
 
-The completion record preserves the finite matrix counts, representative
+The 2026-10-15 close-out recorded the finite matrix counts, representative
 negative controls, gate logs, and documentation reconciliation. Passing corpus
 integrity tests validate the authored examples; they are not parser-conformance
-proof. All normative fixtures and documentation obligations are complete.
+proof. Normative fixtures and documentation are complete; PR acceptance and
+hosted delivery checks remain open.
+
+After publication, hosted CodeScene reported mean loader complexity 4.36
+against a threshold of 4. D10 centralizes the repeated case/relation duplicate
+ID policy; local analysis now reports the issue fixed and health 10.00. The
+seven-gate rerun passed with 265 tests, but a fresh full-diff CodeRabbit review
+found that the position-removal golden added paragraph data absent from its
+synthetic input and that two mutation controls duplicated rather than reused
+their guarded assertions. D11 removes the unsupported expected member. A later
+review prompted contextual type errors, the reopened roadmap state,
+source-reader injection, and an exact relation inventory. Those repairs passed
+all seven gates with 267 tests. Subsequent reviews prompted case-reason and
+case-schema corrections, recorded in the progress log. After restoring the
+moved loader helpers' required docstring sections, all seven gates passed with
+267 tests; later review corrections brought the passing count to 269. The
+seventeenth review found no further issues across 187 paths. Review 18
+identified stale outcomes and status wording in this plan; this revision
+reconciles those sections with the latest gate result. Review 20 identified
+missing contextual handling for permission-denied manifest reads and a writer-
+shape test that did not report failures per golden. The loader now translates
+`PermissionError`, and each golden has a separate stable-ID test. The latest
+gates passed with 344 tests; review 21 found no further issues across 187
+paths. The plan remains open until the published candidate clears hosted
+CodeScene and is accepted.
 
 ## Context and orientation
 
@@ -433,7 +530,7 @@ Use these selective trace identifiers:
 
 - **R-CORPUS:** roadmap 1.1.3's equivalences, distinctions, ordinary-reference
   forms, and complete design §8 coverage → EP-M1/EP-M2 → A-COVERAGE/A-CASES; the
-  [corpus README](../tests/fixtures/markdown_contract/README.md) is the
+  [corpus README](../../tests/fixtures/markdown_contract/README.md) is the
   reader-facing fixture index.
 - **R-NORMALIZE:** design §8 as amended by ADR-004's five ordered rules →
   EP-M2 → A-SYNTHETIC and A-GOLDEN.
@@ -508,11 +605,12 @@ case that merely carries a required tag.
 
 The TOML manifest has `corpus_version = 1`, `contract_version = 1`,
 `wenmode_evidence_version = "0.15.2"`, and `[[cases]]` records. Each record has
-`id`, `rules` (non-empty rule-ID array), `reason`, `kind` (`markdown` or
-`synthetic`), `input`, and `expected` (relative paths). Markdown records also
-have `line_endings` (`lf`, `crlf`, `cr`, or `none`). For mixed-newline
-examples, use a synthetic JSON string rather than adding an ambiguous source
-category.
+`id`, `rules` (non-empty rule-ID array), `reason`, `witness` (a non-empty
+string whose UTF-8 bytes occur as an exact substring of the input file bytes),
+`kind` (`markdown` or `synthetic`), `input`, and `expected` (relative paths).
+Markdown records also have `line_endings` (`lf`, `crlf`, `cr`, or `none`). For
+mixed-newline examples, use a synthetic JSON string rather than adding an
+ambiguous source category.
 
 Separate `[[relations]]` records contain `id`, `relation` (`equal` or
 `distinct`), and `cases` (at least two existing case IDs). Equal groups share
@@ -531,6 +629,7 @@ wenmode_evidence_version = "0.15.2"
 id = "emphasis-asterisk"
 rules = ["NF-1"]
 reason = "Asterisk emphasis has the same structure as underscore emphasis."
+witness = "*a*\n"
 kind = "markdown"
 input = "sources/emphasis-asterisk.txt"
 expected = "expected/emphasis.json"
@@ -540,6 +639,7 @@ line_endings = "lf"
 id = "emphasis-underscore"
 rules = ["NF-1"]
 reason = "Underscore emphasis removes delimiter spelling as a distinction."
+witness = "_a_\n"
 kind = "markdown"
 input = "sources/emphasis-underscore.txt"
 expected = "expected/emphasis.json"
@@ -576,12 +676,14 @@ The source bytes are respectively `b"*a*\n"` and `b"_a_\n"`. Their shared
 }
 ```
 
-Add one test-only support module, `tests/support/markdown_contract.py`, with
-small typed records and these functions:
+Use two test-only support modules, within the four-new-Python-file maximum.
+`tests/support/markdown_contract.py` owns the typed records, `read_source`, and
+JSON assertion helpers. `tests/support/markdown_contract_loading.py` owns the
+manifest loader:
 
 ```python
-def load_corpus(root: Path) -> ContractCorpus: ...
-def read_source(path: Path) -> str: ...
+def load_corpus(root: Path) -> ContractCorpus: ...  # markdown_contract_loading
+def read_source(path: Path) -> str: ...  # markdown_contract
 ```
 
 `ContractCorpus` holds ordered tuples of case and relation records. Keep this
@@ -701,7 +803,8 @@ milestone CLI review and the normative acceptance matrix remain.
 - **A-DOCS — honest completion.** Design §8 and developer documentation link
   the corpus and describe its use; the user guide retains its explicit
   unimplemented-serialization limitation. The roadmap checkbox changes only
-  after A-COVERAGE through A-LOAD and all commit gates pass.
+  after A-COVERAGE through A-LOAD, all commit gates, hosted delivery checks,
+  and implementation acceptance pass.
 
 The focused command for A-COVERAGE through A-LOAD is:
 
@@ -835,14 +938,15 @@ referenced by the design before proceeding. Pure synchronization with the
 already accepted ADR needs no new decision. Do not rewrite unrelated old
 pinning language or generated scaffolding as part of this task.
 
-After all evidence passes, mark only roadmap item 1.1.3 done. Update this
-plan's outcomes, progress, trace links, and revision note. Run final gates with
-the checkbox and documentation included and commit. Final conformance checks
-confirm all matrix obligations, unchanged architecture, valid assumptions,
-current trace links, and no unresolved deviation. Recovery: leave the roadmap
-unchecked until the failed gate is repaired; never weaken a gate to close it.
-The remaining parser and serializer gaps stay visibly assigned to their
-existing roadmap tasks.
+After all corpus evidence passes, update this plan's outcomes, progress, trace
+links, and revision note. Run final gates and commit the implementation work.
+Mark roadmap item 1.1.3 done only after hosted delivery checks and
+implementation acceptance, in a separate gated documentation change. Final
+conformance checks confirm all matrix obligations, unchanged architecture,
+valid assumptions, current trace links, and no unresolved deviation. Recovery:
+leave the roadmap unchecked until the failed gate is repaired; never weaken a
+gate to close it. The remaining parser and serializer gaps stay visibly
+assigned to their existing roadmap tasks.
 
 ## Concrete steps and validation
 
@@ -907,7 +1011,7 @@ baseline evidence, not execution of EP-M1 or approval of implementation.
 
 Loading and checking the corpus must not modify it. Temporary negative-control
 copies belong under pytest's `tmp_path`; logs belong in `/tmp`, never build
-artifacts. Re-running gates should produce the same fixture bytes. Use stable
+artefacts. Re-running gates should produce the same fixture bytes. Use stable
 IDs for readable pytest reports; do not depend on filesystem enumeration order.
 
 Commit each coherent milestone only after its gates pass. A later repair
@@ -995,5 +1099,64 @@ Revision note (2026-10-15): EP-M2 is complete and committed as `97179f5` with
 72nd semantic marker, reconciles the accepted five-rule contract and user and
 contributor documentation, and records the CommonMark/Wenmode numeric-reference
 disposition. Final gates passed with 265 tests, and fresh CodeRabbit review
-returned zero findings across 187 paths. The roadmap checkbox is checked;
-runtime conformance remains deferred.
+returned zero findings across 187 paths. The roadmap checkbox was checked at
+that close-out; the 2026-10-17 revision below restores it to pending until
+implementation acceptance. Runtime conformance remains deferred.
+
+Revision note (2026-10-17): reopen final delivery after hosted CodeScene
+reports the loader mean complexity over its threshold. D10 centralizes the
+case/relation duplicate-ID check and clears local analysis. Successive fresh
+reviews also led to a corrected position-removal golden and shared positive
+assertions for its mutation controls. Successive reviews found wrong-type
+exception gaps in `_string` and `_table`, and that roadmap completion preceded
+implementation acceptance. The following review prompted exact relation-set and
+source-reader corrections; all four repairs passed the seven gates with 267
+tests. A subsequent review found stale wording in this progress record. The
+roadmap item remains unchecked while hosted CodeScene reassessment and PR
+acceptance are pending.
+
+Revision note (2026-10-17): the next full-diff review found generic fixture
+explanations and missing test-module usage notes. The manifest now names the
+reference forms, break nodes, and retained code/list fields each case records;
+both test docstrings state their focused command and scope within the 400-line
+per-file limit. Fresh gates and review remain pending.
+
+Revision note (2026-10-17): review #13 found that Python equality could match
+boolean markers to integers and that the positive corpus source check
+duplicated its mutation helper. Semantic marker matching is now recursively
+type-sensitive, with nested `False`/`0` and `True`/`1` negative controls; the
+corpus check uses the shared source round-trip assertion. Fresh gates and
+review remain pending.
+
+Revision note (2026-10-17): review #14 found one remaining dictionary equality
+that allowed `False` and `0` to compare equal in the falsy-data assertion. The
+test now checks the exact key set and asserts the retained boolean by identity.
+Fresh gates and review remain pending.
+
+Revision note (2026-10-17): review #15 found that the test-module docstrings
+omitted purpose and coverage details, and that two hard-break line-ending
+reasons described string normalization instead of the expected `break` node.
+Both descriptions now match their cases. Fresh gates and review remain pending.
+
+Revision note (2026-10-17): review #16 found that the fenced-code whitespace
+case changed both leading and trailing spaces. Its source, expected value,
+semantic marker, witness, and reason now isolate the leading-space count while
+retaining the trailing space. Source fixtures now treat trailing whitespace as
+input data for diff checks. Review #17 found no further issues; all seven gates
+passed with 269 tests, and the full-diff review reported zero findings across
+187 paths. Hosted CodeScene reassessment and PR implementation acceptance
+remain pending, so roadmap item 1.1.3 stays unchecked.
+
+Revision note (2026-10-17): review #20 found that permission-denied manifest
+reads escaped the loader's contextual `ValueError`, and that the writer-shape
+check reported only the first failing golden. `_read_manifest` now catches
+`PermissionError` narrowly, and all 75 expected payloads have individual
+writer-shape tests with corpus-relative IDs. The seven gates passed with 344
+tests; fresh review #21 found zero issues across 187 paths. Hosted CodeScene
+reassessment and implementation acceptance remain pending.
+
+Revision note (2026-10-17): review #22 found that the nine line-ending case
+reasons described normalization without naming the parsed string and expected
+value. The paragraph, fenced-code, and link-title reasons now state the value
+each fixture pins for LF, CRLF, and bare CR input. Hosted CodeScene
+reassessment and implementation acceptance remain pending.

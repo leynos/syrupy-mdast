@@ -39,7 +39,7 @@ outcome bounds every parser, serializer, and compatibility decision. See the
   - See design §§7, 13, and 15.
   - Success: the explicitly versioned ADR is accepted before any related
     implementation or fixture change is committed.
-- [x] 1.1.3. Create the canonical Markdown contract corpus.
+- [ ] 1.1.3. Create the canonical Markdown contract corpus.
   - Requires 1.1.2.
   - Pair syntax-equivalent emphasis, line-ending, and direct/reference-link
     inputs.
@@ -49,7 +49,7 @@ outcome bounds every parser, serializer, and compatibility decision. See the
     references.
   - Success: every normalization and preservation rule in design §8 maps to a
     focused, reviewer-readable fixture.
-  - Outcome: 99 cases and hand-authored expected payloads are documented in
+  - Current deliverable: 99 cases and hand-authored expected payloads appear in
     the [canonical Markdown contract corpus](../tests/fixtures/markdown_contract/README.md).
     Its integrity tests validate the authored fixtures; parser and
     canonicalizer conformance remain implementation work in later roadmap

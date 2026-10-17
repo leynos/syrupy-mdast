@@ -1,18 +1,23 @@
-"""Tests for metadata loading and byte-preserving corpus source reads."""
+"""Test corpus loading, contextual errors, order, and byte-preserving reads.
 
+Run ``uv run pytest -v tests/test_markdown_contract_loading.py``.
+"""
+
+import collections.abc as cabc
 import dataclasses
 import shutil
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
 from tests.support import markdown_contract
-from tests.support.markdown_contract import CaseRecord, load_corpus
+from tests.support.markdown_contract import CaseRecord
+from tests.support.markdown_contract_loading import load_corpus
 
 VALID_MINIMAL_MANIFEST = """corpus_version = 1
 contract_version = 1
 wenmode_evidence_version = "0.15.2"
-
 [[cases]]
 id = "first"
 rules = ["NF-1"]
@@ -32,7 +37,6 @@ kind = "markdown"
 input = "sources/second.txt"
 expected = "expected/second.json"
 line_endings = "lf"
-
 [[relations]]
 id = "first-relation"
 relation = "equal"
@@ -42,8 +46,7 @@ cases = ["first", "second"]
 
 def _write_minimal_corpus(root: Path, manifest: str) -> None:
     """Write two harmless source and golden files for loader boundary tests."""
-    source_directory = root / "sources"
-    expected_directory = root / "expected"
+    source_directory, expected_directory = root / "sources", root / "expected"
     source_directory.mkdir(parents=True)
     expected_directory.mkdir(parents=True)
     for case_id in ("first", "second"):
@@ -52,9 +55,9 @@ def _write_minimal_corpus(root: Path, manifest: str) -> None:
     (root / "manifest.toml").write_text(manifest, encoding="utf-8")
 
 
-def _assert_source_round_trip(path: Path) -> None:
+def _assert_source_round_trip(path: Path, reader: cabc.Callable[[Path], str]) -> None:
     """Require the test reader to reproduce the file's exact UTF-8 bytes."""
-    actual_bytes = markdown_contract.read_source(path).encode("utf-8")
+    actual_bytes = reader(path).encode("utf-8")
     assert actual_bytes == path.read_bytes(), f"source bytes changed for {path}"
 
 
@@ -88,13 +91,17 @@ def _assert_declared_line_endings(case: CaseRecord) -> None:
             pytest.fail(f"Markdown case {case.id!r} has no line_endings declaration")
 
 
-@pytest.mark.parametrize("manifest_state", ["missing", "directory"])
-def test_load_corpus_rejects_a_missing_or_directory_manifest(
-    tmp_path: Path, manifest_state: str
+@pytest.mark.parametrize("manifest_state", ["missing", "directory", "permission"])
+def test_unusable_manifest_rejected(
+    tmp_path: Path, manifest_state: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A missing or directory-valued manifest path reports the contextual error."""
-    if manifest_state == "directory":
-        (tmp_path / "manifest.toml").mkdir()
+    """Manifest read failures report the contextual error."""
+    match manifest_state:
+        case "directory":
+            (tmp_path / "manifest.toml").mkdir()
+        case "permission":
+            read_error = mock.Mock(side_effect=PermissionError)
+            monkeypatch.setattr(Path, "read_bytes", read_error)
 
     with pytest.raises(ValueError, match=r"manifest.toml"):
         load_corpus(tmp_path)
@@ -130,9 +137,7 @@ def test_corpus_sources_match_declared_line_endings() -> None:
     observed_classes: set[str] = set()
 
     for case in corpus.cases:
-        assert markdown_contract.read_source(case.input).encode("utf-8") == (
-            case.input.read_bytes()
-        ), f"source {case.id!r} must round-trip to its original bytes"
+        _assert_source_round_trip(case.input, markdown_contract.read_source)
         markdown_contract.assert_source_witness(case)
         if case.kind == "markdown":
             _assert_declared_line_endings(case)
@@ -341,13 +346,19 @@ def test_load_corpus_rejects_invalid_manifest_metadata(
             VALID_MINIMAL_MANIFEST.replace('cases = ["first", "second"]', "cases = 1"),
             r"relation 'first-relation' cases must be an array of strings",
         ),
+        (
+            VALID_MINIMAL_MANIFEST.replace('witness = "text"', "witness = 1", 1),
+            r"case 'first' witness must be a string",
+        ),
+        (
+            VALID_MINIMAL_MANIFEST.partition("[[cases]]")[0] + "cases = [1]\n",
+            r"case at index 0 must be a TOML table",
+        ),
     ],
-    ids=["case-records", "case-rules", "relation-cases"],
+    ids=["records", "rules", "relation-cases", "case-witness", "case-table"],
 )
-def test_load_corpus_rejects_non_array_metadata(
-    tmp_path: Path, manifest: str, message: str
-) -> None:
-    """Array-valued manifest fields reject scalar replacements as type errors."""
+def test_manifest_type_errors(tmp_path: Path, manifest: str, message: str) -> None:
+    """Manifest fields reject values with the wrong type."""
     _write_minimal_corpus(tmp_path, manifest)
 
     with pytest.raises(TypeError, match=message):
@@ -380,14 +391,10 @@ def test_read_source_rejects_invalid_utf8_without_translation(tmp_path: Path) ->
     ids=["crlf", "cr"],
 )
 def test_newline_normalizing_reader_is_detected(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, source_bytes: bytes
+    tmp_path: Path, source_bytes: bytes
 ) -> None:
     """The source-byte assertion rejects a universal-newline reader."""
     source_path = tmp_path / "source.txt"
     source_path.write_bytes(source_bytes)
-    monkeypatch.setattr(
-        markdown_contract, "read_source", _read_text_with_newline_normalization
-    )
-
     with pytest.raises(AssertionError, match=r"source bytes changed"):
-        _assert_source_round_trip(source_path)
+        _assert_source_round_trip(source_path, _read_text_with_newline_normalization)

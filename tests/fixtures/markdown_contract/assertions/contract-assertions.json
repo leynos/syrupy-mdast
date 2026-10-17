@@ -881,7 +881,7 @@
     },
     "code-fenced-whitespace": {
       "type": "code",
-      "value": " c\n"
+      "value": " c \n"
     },
     "code-fenced-language": {
       "type": "code",
@@ -944,11 +944,34 @@
     "plain-text-metadata-boundary": {
       "type": "paragraph",
       "children": [
-        {"type": "text", "value": "ab"},
-        {"type": "text", "value": "c", "data": {"escaped": true}},
-        {"type": "text", "value": "d"},
-        {"type": "strong", "children": [{"type": "text", "value": "e"}]},
-        {"type": "text", "value": "f"}
+        {
+          "type": "text",
+          "value": "ab"
+        },
+        {
+          "type": "text",
+          "value": "c",
+          "data": {
+            "escaped": true
+          }
+        },
+        {
+          "type": "text",
+          "value": "d"
+        },
+        {
+          "type": "strong",
+          "children": [
+            {
+              "type": "text",
+              "value": "e"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "value": "f"
+        }
       ]
     },
     "key-order-codepoint": {

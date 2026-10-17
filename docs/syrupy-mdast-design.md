@@ -289,10 +289,11 @@ contains the normative examples and hand-authored expected payloads. Its
 integrity tests validate fixture bytes and relationships; they do not run a
 parser or canonicalizer and therefore do not establish runtime conformance.
 
-The preferred order is `type`, structural scalar fields, link and footnote
-fields, `value`, `data`, and `children`. The exact sequence is recorded in the
-corpus assertion index and covered by its integrity tests. Object-member order
-improves reviewability but does not change array order.
+ADR-004 defines the preferred key sequence: `type`, structural scalar fields,
+link and footnote fields, `value`, `data`, and `children`. The corpus assertion
+index records an independent reviewed copy of that sequence, which its
+integrity tests check. Object-member order improves reviewability but does not
+change array order.
 
 The canonicalizer preserves `false`, `0`, empty arrays, empty strings, non-empty
 `data`, all unknown fields, and `null` array elements. Wenmode omits fields

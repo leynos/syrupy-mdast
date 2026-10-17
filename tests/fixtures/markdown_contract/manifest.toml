@@ -45,7 +45,7 @@ line_endings = "lf"
 [[cases]]
 id = "break-soft"
 rules = ["NF-10"]
-reason = "The break soft case shows that the named structural or whitespace distinction remains observable."
+reason = "A soft line ending merges adjacent text; hard-break forms produce a break node."
 witness = "a\nb\n"
 kind = "markdown"
 input = "sources/break-soft.txt"
@@ -55,7 +55,7 @@ line_endings = "lf"
 [[cases]]
 id = "break-hard-spaces"
 rules = ["NF-10"]
-reason = "The break hard spaces case shows that the named structural or whitespace distinction remains observable."
+reason = "Two trailing spaces create a hard-break node, equivalent to the backslash spelling."
 witness = "a  \nb\n"
 kind = "markdown"
 input = "sources/break-hard-spaces.txt"
@@ -65,7 +65,7 @@ line_endings = "lf"
 [[cases]]
 id = "break-hard-backslash"
 rules = ["NF-10"]
-reason = "The break hard backslash case shows that the named structural or whitespace distinction remains observable."
+reason = "A trailing backslash creates the same hard-break node as two trailing spaces."
 witness = "a\\\nb\n"
 kind = "markdown"
 input = "sources/break-hard-backslash.txt"
@@ -75,7 +75,7 @@ line_endings = "lf"
 [[cases]]
 id = "line-endings-lf"
 rules = ["NF-8", "normalize-line-endings"]
-reason = "The line endings lf case shows that source line endings normalize inside the named parsed string context."
+reason = "LF paragraph line endings yield one text node with value `first\\nsecond`."
 witness = "first\nsecond\n"
 kind = "markdown"
 input = "sources/line-endings-lf.txt"
@@ -85,7 +85,7 @@ line_endings = "lf"
 [[cases]]
 id = "line-endings-crlf"
 rules = ["NF-8", "normalize-line-endings"]
-reason = "The line endings crlf case shows that source line endings normalize inside the named parsed string context."
+reason = "CRLF paragraph line endings yield one text node with value `first\\nsecond`."
 witness = "first\r\nsecond\r\n"
 kind = "markdown"
 input = "sources/line-endings-crlf.txt"
@@ -95,7 +95,7 @@ line_endings = "crlf"
 [[cases]]
 id = "line-endings-cr"
 rules = ["NF-8", "normalize-line-endings"]
-reason = "The line endings cr case shows that source line endings normalize inside the named parsed string context."
+reason = "Bare CR paragraph line endings yield one text node with value `first\\nsecond`."
 witness = "first\rsecond\r"
 kind = "markdown"
 input = "sources/line-endings-cr.txt"
@@ -105,7 +105,7 @@ line_endings = "cr"
 [[cases]]
 id = "link-direct"
 rules = ["NF-2"]
-reason = "The link direct case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "A direct link resolves to a link node with its destination, title, and child text."
 witness = "[x](/u \"t\")\n"
 kind = "markdown"
 input = "sources/link-direct.txt"
@@ -115,7 +115,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-full-reference-before"
 rules = ["NF-2"]
-reason = "The link full reference before case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "A full reference defined before use resolves to the same link node as the direct link."
 witness = "[r]: /u \"t\"\n\n[x][r]\n"
 kind = "markdown"
 input = "sources/link-full-reference-before.txt"
@@ -125,7 +125,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-full-reference-after"
 rules = ["NF-2"]
-reason = "The link full reference after case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "A full reference defined after use resolves to the same link node as the direct link."
 witness = "[x][r]\n\n[r]: /u \"t\"\n"
 kind = "markdown"
 input = "sources/link-full-reference-after.txt"
@@ -135,7 +135,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-collapsed-reference"
 rules = ["NF-2"]
-reason = "The link collapsed reference case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "A collapsed reference resolves to the same link node as the direct link."
 witness = "[x][]\n\n[x]: /u \"t\"\n"
 kind = "markdown"
 input = "sources/link-collapsed-reference.txt"
@@ -145,7 +145,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-shortcut-reference"
 rules = ["NF-2"]
-reason = "The link shortcut reference case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "A shortcut reference resolves to the same link node as the direct link."
 witness = "[x]\n\n[x]: /u \"t\"\n"
 kind = "markdown"
 input = "sources/link-shortcut-reference.txt"
@@ -155,7 +155,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-casefold-reference"
 rules = ["NF-2"]
-reason = "The link casefold reference case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "A reference label differing only in case resolves to the same link node as its definition."
 witness = "[x][r]\n\n[R]: /u \"t\"\n"
 kind = "markdown"
 input = "sources/link-casefold-reference.txt"
@@ -165,7 +165,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-distinct-url"
 rules = ["NF-2"]
-reason = "The link distinct url case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "Changing only the link destination produces a distinct resolved link payload."
 witness = "[x](/v \"t\")\n"
 kind = "markdown"
 input = "sources/link-distinct-url.txt"
@@ -175,7 +175,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-distinct-title"
 rules = ["NF-2"]
-reason = "The link distinct title case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "Changing only the link title produces a distinct resolved link payload."
 witness = "[x](/u \"other\")\n"
 kind = "markdown"
 input = "sources/link-distinct-title.txt"
@@ -185,7 +185,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-distinct-child"
 rules = ["NF-2"]
-reason = "The link distinct child case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "Changing only the link child text produces a distinct resolved link payload."
 witness = "[y](/u \"t\")\n"
 kind = "markdown"
 input = "sources/link-distinct-child.txt"
@@ -195,7 +195,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-title-absent"
 rules = ["NF-2", "NF-4"]
-reason = "The link title absent case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "An absent link title remains omitted and distinguishes this payload from a titled link."
 witness = "[x](/u)\n"
 kind = "markdown"
 input = "sources/link-title-absent.txt"
@@ -205,7 +205,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-unresolved-full"
 rules = ["NF-2"]
-reason = "The link unresolved full case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "An unresolved full link reference has no definition, so its bracket syntax remains literal text."
 witness = "[x][missing]\n"
 kind = "markdown"
 input = "sources/link-unresolved-full.txt"
@@ -215,7 +215,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-unresolved-collapsed"
 rules = ["NF-2"]
-reason = "The link unresolved collapsed case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "An unresolved collapsed link reference has no definition, so its bracket syntax remains literal text."
 witness = "[x][]\n"
 kind = "markdown"
 input = "sources/link-unresolved-collapsed.txt"
@@ -225,7 +225,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-unresolved-shortcut"
 rules = ["NF-2"]
-reason = "The link unresolved shortcut case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "An unresolved shortcut link reference has no definition, so its bracket syntax remains literal text."
 witness = "[x]\n"
 kind = "markdown"
 input = "sources/link-unresolved-shortcut.txt"
@@ -235,7 +235,7 @@ line_endings = "lf"
 [[cases]]
 id = "link-unused-definition"
 rules = ["NF-2"]
-reason = "The link unused definition case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "An unused link definition leaves no node or member in the expected canonical payload."
 witness = "plain\n\n[unused]: /u\n"
 kind = "markdown"
 input = "sources/link-unused-definition.txt"
@@ -245,7 +245,7 @@ line_endings = "lf"
 [[cases]]
 id = "image-direct"
 rules = ["NF-2"]
-reason = "The image direct case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "A direct image resolves to an image node with its destination, title, and alt text."
 witness = "![alt](/p \"t\")\n"
 kind = "markdown"
 input = "sources/image-direct.txt"
@@ -255,7 +255,7 @@ line_endings = "lf"
 [[cases]]
 id = "image-title-absent"
 rules = ["NF-2", "NF-4"]
-reason = "The image title absent case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "An absent image title remains omitted and distinguishes this payload from a titled image."
 witness = "![alt](/p)\n"
 kind = "markdown"
 input = "sources/image-title-absent.txt"
@@ -265,7 +265,7 @@ line_endings = "lf"
 [[cases]]
 id = "image-full-reference-forward"
 rules = ["NF-2"]
-reason = "The image full reference forward case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "A forward full reference resolves to the same image node as the direct image."
 witness = "![alt][i]\n\n[i]: /p \"t\"\n"
 kind = "markdown"
 input = "sources/image-full-reference-forward.txt"
@@ -275,7 +275,7 @@ line_endings = "lf"
 [[cases]]
 id = "image-collapsed-reference"
 rules = ["NF-2"]
-reason = "The image collapsed reference case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "A collapsed reference resolves to the same image node as the direct image."
 witness = "![alt][]\n\n[alt]: /p \"t\"\n"
 kind = "markdown"
 input = "sources/image-collapsed-reference.txt"
@@ -285,7 +285,7 @@ line_endings = "lf"
 [[cases]]
 id = "image-shortcut-reference"
 rules = ["NF-2"]
-reason = "The image shortcut reference case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "A shortcut reference resolves to the same image node as the direct image."
 witness = "![alt]\n\n[alt]: /p \"t\"\n"
 kind = "markdown"
 input = "sources/image-shortcut-reference.txt"
@@ -295,7 +295,7 @@ line_endings = "lf"
 [[cases]]
 id = "image-unresolved-reference"
 rules = ["NF-2"]
-reason = "The image unresolved reference case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "An unresolved image reference has no definition, so its bracket syntax remains literal text."
 witness = "![alt][missing]\n"
 kind = "markdown"
 input = "sources/image-unresolved-reference.txt"
@@ -305,7 +305,7 @@ line_endings = "lf"
 [[cases]]
 id = "image-unused-definition"
 rules = ["NF-2"]
-reason = "The image unused definition case shows that reference syntax is omitted when resolved fields agree, while changed fields remain distinct."
+reason = "An unused image definition leaves no node or member in the expected canonical payload."
 witness = "plain\n\n[i]: /p \"t\"\n"
 kind = "markdown"
 input = "sources/image-unused-definition.txt"
@@ -335,7 +335,7 @@ line_endings = "lf"
 [[cases]]
 id = "footnote-definition-before"
 rules = ["NF-3"]
-reason = "The footnote definition before case shows that footnote labels are folded while definition order and body remain observable."
+reason = "A footnote definition written before its reference stays first in document order."
 witness = "[^f]: note\n\nref[^f]\n"
 kind = "markdown"
 input = "sources/footnote-definition-before.txt"
@@ -345,7 +345,7 @@ line_endings = "lf"
 [[cases]]
 id = "footnote-definition-after"
 rules = ["NF-3"]
-reason = "The footnote definition after case shows that footnote labels are folded while definition order and body remain observable."
+reason = "A footnote definition written after its reference stays last in document order."
 witness = "ref[^f]\n\n[^f]: note\n"
 kind = "markdown"
 input = "sources/footnote-definition-after.txt"
@@ -355,7 +355,7 @@ line_endings = "lf"
 [[cases]]
 id = "footnote-unused-definition"
 rules = ["NF-3"]
-reason = "The footnote unused definition case shows that footnote labels are folded while definition order and body remain observable."
+reason = "An unused footnote definition remains a structural footnoteDefinition node."
 witness = "plain\n\n[^unused]: note\n"
 kind = "markdown"
 input = "sources/footnote-unused-definition.txt"
@@ -365,7 +365,7 @@ line_endings = "lf"
 [[cases]]
 id = "footnote-repeated-reference"
 rules = ["NF-3"]
-reason = "The footnote repeated reference case shows that footnote labels are folded while definition order and body remain observable."
+reason = "Two references to one footnote remain two footnoteReference nodes."
 witness = "a[^f] b[^f]\n\n[^f]: note\n"
 kind = "markdown"
 input = "sources/footnote-repeated-reference.txt"
@@ -375,7 +375,7 @@ line_endings = "lf"
 [[cases]]
 id = "footnote-undefined-reference"
 rules = ["NF-3"]
-reason = "The footnote undefined reference case shows that footnote labels are folded while definition order and body remain observable."
+reason = "A footnote reference without a definition remains literal text."
 witness = "ref[^missing]\n"
 kind = "markdown"
 input = "sources/footnote-undefined-reference.txt"
@@ -385,7 +385,7 @@ line_endings = "lf"
 [[cases]]
 id = "footnote-distinct-identifier"
 rules = ["NF-3"]
-reason = "The footnote distinct identifier case shows that footnote labels are folded while definition order and body remain observable."
+reason = "Changing only the footnote identifier produces a distinct payload."
 witness = "[^g]: note\n\nref[^g]\n"
 kind = "markdown"
 input = "sources/footnote-distinct-identifier.txt"
@@ -395,7 +395,7 @@ line_endings = "lf"
 [[cases]]
 id = "footnote-distinct-body"
 rules = ["NF-3"]
-reason = "The footnote distinct body case shows that footnote labels are folded while definition order and body remain observable."
+reason = "Changing only the footnote body text produces a distinct payload."
 witness = "[^f]: other\n\nref[^f]\n"
 kind = "markdown"
 input = "sources/footnote-distinct-body.txt"
@@ -415,7 +415,7 @@ line_endings = "lf"
 [[cases]]
 id = "table-left"
 rules = ["NF-5", "NF-10"]
-reason = "The table left case shows that table alignment arrays retain null entries and meaningful cell values."
+reason = "Both columns retain left alignment in the complete table payload."
 witness = "| a | b |\n|:---|:---|\n| 1 | 2 |\n"
 kind = "markdown"
 input = "sources/table-left.txt"
@@ -425,7 +425,7 @@ line_endings = "lf"
 [[cases]]
 id = "table-centre"
 rules = ["NF-5", "NF-10"]
-reason = "The table centre case shows that table alignment arrays retain null entries and meaningful cell values."
+reason = "Both columns retain centre alignment in the complete table payload."
 witness = "| a | b |\n|:---:|:---:|\n| 1 | 2 |\n"
 kind = "markdown"
 input = "sources/table-centre.txt"
@@ -435,7 +435,7 @@ line_endings = "lf"
 [[cases]]
 id = "table-right"
 rules = ["NF-5", "NF-10"]
-reason = "The table right case shows that table alignment arrays retain null entries and meaningful cell values."
+reason = "Both columns retain right alignment in the complete table payload."
 witness = "| a | b |\n|---:|---:|\n| 1 | 2 |\n"
 kind = "markdown"
 input = "sources/table-right.txt"
@@ -445,7 +445,7 @@ line_endings = "lf"
 [[cases]]
 id = "table-cell-base"
 rules = ["NF-5", "NF-10"]
-reason = "The table cell base case shows that table alignment arrays retain null entries and meaningful cell values."
+reason = "The first table payload preserves `1` as the data row's cell value."
 witness = "| a |\n|:---|\n| 1 |\n"
 kind = "markdown"
 input = "sources/table-cell-base.txt"
@@ -455,7 +455,7 @@ line_endings = "lf"
 [[cases]]
 id = "table-cell-changed"
 rules = ["NF-5", "NF-10"]
-reason = "The table cell changed case shows that table alignment arrays retain null entries and meaningful cell values."
+reason = "Changing the data row's cell value from `1` to `2` changes the table payload."
 witness = "| a |\n|:---|\n| 2 |\n"
 kind = "markdown"
 input = "sources/table-cell-changed.txt"
@@ -465,7 +465,7 @@ line_endings = "lf"
 [[cases]]
 id = "html-spelling-lowercase"
 rules = ["NF-6", "NF-10"]
-reason = "The html spelling lowercase case shows that HTML values and the parser's escaped marker remain observable."
+reason = "Lowercase raw HTML keeps its exact tag spelling in the html value."
 witness = "<div>\nx\n</div>\n"
 kind = "markdown"
 input = "sources/html-spelling-lowercase.txt"
@@ -475,7 +475,7 @@ line_endings = "lf"
 [[cases]]
 id = "html-spelling-uppercase"
 rules = ["NF-6", "NF-10"]
-reason = "The html spelling uppercase case shows that HTML values and the parser's escaped marker remain observable."
+reason = "Uppercase raw HTML keeps its exact tag spelling and differs from the lowercase payload."
 witness = "<DIV>\nx\n</DIV>\n"
 kind = "markdown"
 input = "sources/html-spelling-uppercase.txt"
@@ -485,7 +485,7 @@ line_endings = "lf"
 [[cases]]
 id = "html-allowed"
 rules = ["NF-6", "NF-10"]
-reason = "The html allowed case shows that HTML values and the parser's escaped marker remain observable."
+reason = "Allowed raw HTML is an unescaped html node without a data.escaped marker."
 witness = "<div>\nhi\n</div>\n"
 kind = "markdown"
 input = "sources/html-allowed.txt"
@@ -515,7 +515,7 @@ line_endings = "lf"
 [[cases]]
 id = "html-type1-script"
 rules = ["NF-6", "NF-7", "NF-10"]
-reason = "The html type1 script case shows that HTML values and the parser's escaped marker remain observable."
+reason = "ADR-004 NF-7 pins Wenmode 0.15.2 emitting this type-1 script block as raw HTML."
 witness = "<script>x</script>\n"
 kind = "markdown"
 input = "sources/html-type1-script.txt"
@@ -525,7 +525,7 @@ line_endings = "lf"
 [[cases]]
 id = "html-type1-style"
 rules = ["NF-6", "NF-7", "NF-10"]
-reason = "The html type1 style case shows that HTML values and the parser's escaped marker remain observable."
+reason = "ADR-004 NF-7 pins Wenmode 0.15.2 emitting this type-1 style block as raw HTML."
 witness = "<style>p{}</style>\n"
 kind = "markdown"
 input = "sources/html-type1-style.txt"
@@ -535,7 +535,7 @@ line_endings = "lf"
 [[cases]]
 id = "html-type1-textarea"
 rules = ["NF-6", "NF-7", "NF-10"]
-reason = "The html type1 textarea case shows that HTML values and the parser's escaped marker remain observable."
+reason = "ADR-004 NF-7 pins Wenmode 0.15.2 emitting this type-1 textarea block as raw HTML."
 witness = "<textarea>\nq\n</textarea>\n"
 kind = "markdown"
 input = "sources/html-type1-textarea.txt"
@@ -545,7 +545,7 @@ line_endings = "lf"
 [[cases]]
 id = "line-endings-hard-crlf"
 rules = ["NF-8", "NF-10", "normalize-line-endings"]
-reason = "The line endings hard crlf case shows that source line endings normalize inside the named parsed string context."
+reason = "Two trailing spaces before a CRLF line ending produce the same break node as the LF hard-break source."
 witness = "a  \r\nb\r\n"
 kind = "markdown"
 input = "sources/line-endings-hard-crlf.txt"
@@ -555,7 +555,7 @@ line_endings = "crlf"
 [[cases]]
 id = "line-endings-hard-cr"
 rules = ["NF-8", "NF-10", "normalize-line-endings"]
-reason = "The line endings hard cr case shows that source line endings normalize inside the named parsed string context."
+reason = "Two trailing spaces before a bare CR line ending produce the same break node as the LF hard-break source."
 witness = "a  \rb\r"
 kind = "markdown"
 input = "sources/line-endings-hard-cr.txt"
@@ -565,7 +565,7 @@ line_endings = "cr"
 [[cases]]
 id = "line-endings-code-lf"
 rules = ["NF-8", "NF-10", "normalize-line-endings"]
-reason = "The line endings code lf case shows that source line endings normalize inside the named parsed string context."
+reason = "LF line endings in a fenced code block yield code value `x\\n`."
 witness = "```\nx\n```\n"
 kind = "markdown"
 input = "sources/line-endings-code-lf.txt"
@@ -575,7 +575,7 @@ line_endings = "lf"
 [[cases]]
 id = "line-endings-code-crlf"
 rules = ["NF-8", "NF-10", "normalize-line-endings"]
-reason = "The line endings code crlf case shows that source line endings normalize inside the named parsed string context."
+reason = "CRLF line endings in a fenced code block yield code value `x\\n`."
 witness = "```\r\nx\r\n```\r\n"
 kind = "markdown"
 input = "sources/line-endings-code-crlf.txt"
@@ -585,7 +585,7 @@ line_endings = "crlf"
 [[cases]]
 id = "line-endings-code-cr"
 rules = ["NF-8", "NF-10", "normalize-line-endings"]
-reason = "The line endings code cr case shows that source line endings normalize inside the named parsed string context."
+reason = "Bare CR line endings in a fenced code block yield code value `x\\n`."
 witness = "```\rx\r```\r"
 kind = "markdown"
 input = "sources/line-endings-code-cr.txt"
@@ -595,7 +595,7 @@ line_endings = "cr"
 [[cases]]
 id = "line-endings-title-lf"
 rules = ["NF-8", "normalize-line-endings"]
-reason = "The line endings title lf case shows that source line endings normalize inside the named parsed string context."
+reason = "An LF line ending inside a link title yields title `a\\nb`."
 witness = "[x](/u \"a\nb\")\n"
 kind = "markdown"
 input = "sources/line-endings-title-lf.txt"
@@ -605,7 +605,7 @@ line_endings = "lf"
 [[cases]]
 id = "line-endings-title-crlf"
 rules = ["NF-8", "normalize-line-endings"]
-reason = "The line endings title crlf case shows that source line endings normalize inside the named parsed string context."
+reason = "A CRLF line ending inside a link title yields title `a\\nb`."
 witness = "[x](/u \"a\r\nb\")\r\n"
 kind = "markdown"
 input = "sources/line-endings-title-crlf.txt"
@@ -615,7 +615,7 @@ line_endings = "crlf"
 [[cases]]
 id = "line-endings-title-cr"
 rules = ["NF-8", "normalize-line-endings"]
-reason = "The line endings title cr case shows that source line endings normalize inside the named parsed string context."
+reason = "A bare CR line ending inside a link title yields title `a\\nb`."
 witness = "[x](/u \"a\rb\")\r"
 kind = "markdown"
 input = "sources/line-endings-title-cr.txt"
@@ -635,7 +635,7 @@ line_endings = "lf"
 [[cases]]
 id = "code-fenced-base"
 rules = ["NF-10"]
-reason = "The code fenced base case shows that the named structural or whitespace distinction remains observable."
+reason = "The fenced code node retains `lang=\"py\"`, `meta=\"m\"`, and value `\"  c \\n\"`."
 witness = "```py m\n  c \n```\n"
 kind = "markdown"
 input = "sources/code-fenced-base.txt"
@@ -645,8 +645,8 @@ line_endings = "lf"
 [[cases]]
 id = "code-fenced-whitespace"
 rules = ["NF-10"]
-reason = "The code fenced whitespace case shows that the named structural or whitespace distinction remains observable."
-witness = "```py m\n c\n```\n"
+reason = "The code value keeps one trailing space and has one leading space here versus two in the baseline."
+witness = "```py m\n c \n```\n"
 kind = "markdown"
 input = "sources/code-fenced-whitespace.txt"
 expected = "expected/code-whitespace.json"
@@ -655,7 +655,7 @@ line_endings = "lf"
 [[cases]]
 id = "code-fenced-language"
 rules = ["NF-10"]
-reason = "The code fenced language case shows that the named structural or whitespace distinction remains observable."
+reason = "The fenced code language is retained as `lang=\"js\"`."
 witness = "```js m\n  c \n```\n"
 kind = "markdown"
 input = "sources/code-fenced-language.txt"
@@ -665,7 +665,7 @@ line_endings = "lf"
 [[cases]]
 id = "code-fenced-meta"
 rules = ["NF-10"]
-reason = "The code fenced meta case shows that the named structural or whitespace distinction remains observable."
+reason = "The fenced code info-string metadata is retained as `meta=\"other\"`."
 witness = "```py other\n  c \n```\n"
 kind = "markdown"
 input = "sources/code-fenced-meta.txt"
@@ -675,7 +675,7 @@ line_endings = "lf"
 [[cases]]
 id = "inline-code-base"
 rules = ["NF-10"]
-reason = "The inline code base case shows that the named structural or whitespace distinction remains observable."
+reason = "The inline code value preserves its single interior space."
 witness = "`a b`\n"
 kind = "markdown"
 input = "sources/inline-code-base.txt"
@@ -685,7 +685,7 @@ line_endings = "lf"
 [[cases]]
 id = "inline-code-whitespace"
 rules = ["NF-10"]
-reason = "The inline code whitespace case shows that the named structural or whitespace distinction remains observable."
+reason = "The inline code value preserves two interior spaces distinctly from one."
 witness = "`a  b`\n"
 kind = "markdown"
 input = "sources/inline-code-whitespace.txt"
@@ -705,7 +705,7 @@ line_endings = "lf"
 [[cases]]
 id = "list-ordered-start-one"
 rules = ["NF-10"]
-reason = "The list ordered start one case shows that the named structural or whitespace distinction remains observable."
+reason = "The ordered list preserves its start number as `start=1`."
 witness = "1. a\n2. b\n"
 kind = "markdown"
 input = "sources/list-ordered-start-one.txt"
@@ -715,7 +715,7 @@ line_endings = "lf"
 [[cases]]
 id = "list-ordered-start-three"
 rules = ["NF-10"]
-reason = "The list ordered start three case shows that the named structural or whitespace distinction remains observable."
+reason = "The ordered list preserves its start number as `start=3`."
 witness = "3. a\n4. b\n"
 kind = "markdown"
 input = "sources/list-ordered-start-three.txt"
@@ -735,7 +735,7 @@ line_endings = "lf"
 [[cases]]
 id = "list-loose"
 rules = ["NF-10"]
-reason = "The list loose case shows that the named structural or whitespace distinction remains observable."
+reason = "Blank lines make the list loose, preserving `spread=true`."
 witness = "- a\n\n- b\n"
 kind = "markdown"
 input = "sources/list-loose.txt"
@@ -745,7 +745,7 @@ line_endings = "lf"
 [[cases]]
 id = "list-task-checked"
 rules = ["NF-10"]
-reason = "The list task checked case shows that the named structural or whitespace distinction remains observable."
+reason = "The checked task item preserves `checked=true`."
 witness = "- [x] a\n"
 kind = "markdown"
 input = "sources/list-task-checked.txt"
@@ -755,7 +755,7 @@ line_endings = "lf"
 [[cases]]
 id = "list-task-unchecked"
 rules = ["NF-10"]
-reason = "The list task unchecked case shows that the named structural or whitespace distinction remains observable."
+reason = "The unchecked task item preserves `checked=false`."
 witness = "- [ ] a\n"
 kind = "markdown"
 input = "sources/list-task-unchecked.txt"
@@ -775,7 +775,7 @@ line_endings = "lf"
 [[cases]]
 id = "list-item-order-swapped"
 rules = ["NF-10"]
-reason = "The list item order swapped case shows that the named structural or whitespace distinction remains observable."
+reason = "The expected list retains source order: `b` then `a`."
 witness = "- b\n- a\n"
 kind = "markdown"
 input = "sources/list-item-order-swapped.txt"
@@ -785,7 +785,7 @@ line_endings = "lf"
 [[cases]]
 id = "plain-entity-literal"
 rules = ["NF-11", "merge-plain-text"]
-reason = "The plain entity literal case shows that only adjacent text nodes with exactly type and value are merged."
+reason = "A literal ampersand is represented as plain text in the canonical payload."
 witness = "a & b\n"
 kind = "markdown"
 input = "sources/plain-entity-literal.txt"
@@ -795,7 +795,7 @@ line_endings = "lf"
 [[cases]]
 id = "plain-entity-reference"
 rules = ["NF-11", "merge-plain-text"]
-reason = "The plain entity reference case shows that only adjacent text nodes with exactly type and value are merged."
+reason = "The `&amp;` character reference decodes to the same plain text as a literal ampersand."
 witness = "a &amp; b\n"
 kind = "markdown"
 input = "sources/plain-entity-reference.txt"
@@ -805,7 +805,7 @@ line_endings = "lf"
 [[cases]]
 id = "plain-asterisk-literal"
 rules = ["NF-11", "merge-plain-text"]
-reason = "The plain asterisk literal case shows that only adjacent text nodes with exactly type and value are merged."
+reason = "A literal asterisk between letters remains plain text because it cannot open emphasis."
 witness = "a*b\n"
 kind = "markdown"
 input = "sources/plain-asterisk-literal.txt"
@@ -815,7 +815,7 @@ line_endings = "lf"
 [[cases]]
 id = "plain-asterisk-escaped"
 rules = ["NF-11", "merge-plain-text"]
-reason = "The plain asterisk escaped case shows that only adjacent text nodes with exactly type and value are merged."
+reason = "A backslash-escaped asterisk decodes to the same plain text as a literal asterisk."
 witness = "a\\*b\n"
 kind = "markdown"
 input = "sources/plain-asterisk-escaped.txt"
@@ -843,7 +843,7 @@ expected = "expected/plain-metadata-boundary.json"
 [[cases]]
 id = "key-order-codepoint"
 rules = ["NF-12", "order-members"]
-reason = "The key order codepoint case shows that node coverage and preferred member ordering are pinned."
+reason = "Preferred members come first; unknown names follow code-point order, and CR in a name is kept."
 witness = "{\n  \"𐀀supplementary\": \"supplementary\",\n  \"children\": [],\n  \"\\uE000private\": \"private\",\n  \"type\": \"root\",\n  \"data\": {\n    \"z\": \"last\",\n    \"line\\rkey\": \"kept\"\n  }\n}\n"
 kind = "synthetic"
 input = "synthetic/key-order-codepoint.json"
@@ -942,11 +942,11 @@ line_endings = "lf"
 [[cases]]
 id = "numeric-reference-non-ascii"
 rules = ["NF-13"]
-reason = "The numeric reference non ascii case shows that numeric reference boundaries produce replacement or literal text as specified."
+reason = "Literal non-ASCII text stays UTF-8 text without numeric-reference decoding."
 witness = "café 雪\n"
 kind = "markdown"
 input = "sources/numeric-reference-non-ascii.txt"
-expected = "expected/numeric-ascii.json"
+expected = "expected/numeric-non-ascii.json"
 line_endings = "lf"
 
 [[cases]]
@@ -961,7 +961,7 @@ expected = "expected/position-removal.json"
 [[cases]]
 id = "data-removal-exposes-text"
 rules = ["NF-9", "remove-position", "remove-empty-data", "merge-plain-text", "preserve-values"]
-reason = "The data removal exposes text case shows that positions are removed recursively, including when removal exposes adjacent text."
+reason = "Removing positions and empty-mapping data exposes adjacent text for merging; list, null, and false data remain."
 witness = "{\n  \"type\": \"root\",\n  \"position\": {\n    \"line\": 1\n  },\n  \"data\": {\n    \"position\": {\n      \"line\": 1\n    }\n  },\n  \"children\": [\n    {\n      \"type\": \"paragraph\",\n      \"children\": [\n        {\n          \"type\": \"text\",\n          \"value\": \"a\"\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"b\",\n          \"data\": {}\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"c\",\n          \"data\": {\n            \"position\": {\n              \"line\": 2\n            }\n          }\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"d\",\n          \"data\": {\n            \"keep\": false\n          }\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"e\",\n          \"data\": []\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"f\",\n          \"data\": null\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"g\",\n          \"data\": false\n        }\n      ]\n    }\n  ]\n}\n"
 kind = "synthetic"
 input = "synthetic/data-removal-exposes-text.json"

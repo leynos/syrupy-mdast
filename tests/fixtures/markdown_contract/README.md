@@ -37,7 +37,10 @@ refer to the actual byte sequences `0A`, `0D 0A`, and `0D` respectively.
 - `synthetic/` stores root-shaped input trees for rules Markdown cannot expose.
 - `expected/` stores complete expected canonical JSON payloads.
 
-The five transformation rule IDs and the accepted `NF-1` through `NF-13`
-vocabulary are defined by the test support module and ADR-004. Expected files
-and their assertions are reviewed as data; tests check their formatting and
-relationships without regenerating them from a parser or canonicalizer.
+The accepted rule vocabulary is `NF-1` through `NF-13`, the five ordered
+transformation IDs (`remove-position`, `remove-empty-data`, `merge-plain-text`,
+`normalize-line-endings`, and `order-members`), plus the `preserve-values` and
+`writer-format` contracts. The test support module and ADR-004 define this
+vocabulary. Expected files and their assertions are reviewed as data; tests
+check their formatting and relationships without regenerating them from a
+parser or canonicalizer.
