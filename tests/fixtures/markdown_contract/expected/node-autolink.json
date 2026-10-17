@@ -1,0 +1,20 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "paragraph",
+      "children": [
+        {
+          "type": "link",
+          "url": "http://www.x.y",
+          "children": [
+            {
+              "type": "text",
+              "value": "www.x.y"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

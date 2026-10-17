@@ -1,0 +1,16 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "paragraph",
+      "children": [
+        {
+          "type": "image",
+          "url": "/p",
+          "title": "t",
+          "alt": "alt"
+        }
+      ]
+    }
+  ]
+}

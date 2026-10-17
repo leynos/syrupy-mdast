@@ -26,6 +26,12 @@ with `ValueError`; non-string input is rejected with `TypeError`. Valid `str`
 input currently raises `NotImplementedError` until the parser and canonical
 serialization milestone is delivered.
 
+The
+[canonical Markdown contract corpus](../tests/fixtures/markdown_contract/README.md)
+records normative comparison examples and hand-authored expected results for
+future parser and canonicalization work. It does not make serialization
+available today; valid `str` input continues to raise `NotImplementedError`.
+
 ## Handling MarkdownAstError
 
 Catch `MarkdownAstError` around package operations and inspect its required

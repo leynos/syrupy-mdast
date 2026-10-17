@@ -1,0 +1,1156 @@
+corpus_version = 1
+contract_version = 1
+wenmode_evidence_version = "0.15.2"
+
+[[cases]]
+id = "emphasis-asterisk"
+rules = ["NF-1"]
+reason = "The emphasis asterisk case shows that delimiter spelling is omitted while emphasis strength and text remain."
+witness = "*a*\n"
+kind = "markdown"
+input = "sources/emphasis-asterisk.txt"
+expected = "expected/emphasis.json"
+line_endings = "lf"
+
+[[cases]]
+id = "emphasis-underscore"
+rules = ["NF-1"]
+reason = "The emphasis underscore case shows that delimiter spelling is omitted while emphasis strength and text remain."
+witness = "_a_\n"
+kind = "markdown"
+input = "sources/emphasis-underscore.txt"
+expected = "expected/emphasis.json"
+line_endings = "lf"
+
+[[cases]]
+id = "strong-asterisk"
+rules = ["NF-1"]
+reason = "The strong asterisk case shows that delimiter spelling is omitted while emphasis strength and text remain."
+witness = "**b**\n"
+kind = "markdown"
+input = "sources/strong-asterisk.txt"
+expected = "expected/strong.json"
+line_endings = "lf"
+
+[[cases]]
+id = "strong-underscore"
+rules = ["NF-1"]
+reason = "The strong underscore case shows that delimiter spelling is omitted while emphasis strength and text remain."
+witness = "__b__\n"
+kind = "markdown"
+input = "sources/strong-underscore.txt"
+expected = "expected/strong.json"
+line_endings = "lf"
+
+[[cases]]
+id = "break-soft"
+rules = ["NF-10"]
+reason = "A soft line ending merges adjacent text; hard-break forms produce a break node."
+witness = "a\nb\n"
+kind = "markdown"
+input = "sources/break-soft.txt"
+expected = "expected/break-soft.json"
+line_endings = "lf"
+
+[[cases]]
+id = "break-hard-spaces"
+rules = ["NF-10"]
+reason = "Two trailing spaces create a hard-break node, equivalent to the backslash spelling."
+witness = "a  \nb\n"
+kind = "markdown"
+input = "sources/break-hard-spaces.txt"
+expected = "expected/break-hard.json"
+line_endings = "lf"
+
+[[cases]]
+id = "break-hard-backslash"
+rules = ["NF-10"]
+reason = "A trailing backslash creates the same hard-break node as two trailing spaces."
+witness = "a\\\nb\n"
+kind = "markdown"
+input = "sources/break-hard-backslash.txt"
+expected = "expected/break-hard.json"
+line_endings = "lf"
+
+[[cases]]
+id = "line-endings-lf"
+rules = ["NF-8", "normalize-line-endings"]
+reason = "LF paragraph line endings yield one text node with value `first\\nsecond`."
+witness = "first\nsecond\n"
+kind = "markdown"
+input = "sources/line-endings-lf.txt"
+expected = "expected/line-endings-paragraph.json"
+line_endings = "lf"
+
+[[cases]]
+id = "line-endings-crlf"
+rules = ["NF-8", "normalize-line-endings"]
+reason = "CRLF paragraph line endings yield one text node with value `first\\nsecond`."
+witness = "first\r\nsecond\r\n"
+kind = "markdown"
+input = "sources/line-endings-crlf.txt"
+expected = "expected/line-endings-paragraph.json"
+line_endings = "crlf"
+
+[[cases]]
+id = "line-endings-cr"
+rules = ["NF-8", "normalize-line-endings"]
+reason = "Bare CR paragraph line endings yield one text node with value `first\\nsecond`."
+witness = "first\rsecond\r"
+kind = "markdown"
+input = "sources/line-endings-cr.txt"
+expected = "expected/line-endings-paragraph.json"
+line_endings = "cr"
+
+[[cases]]
+id = "link-direct"
+rules = ["NF-2"]
+reason = "A direct link resolves to a link node with its destination, title, and child text."
+witness = "[x](/u \"t\")\n"
+kind = "markdown"
+input = "sources/link-direct.txt"
+expected = "expected/link-resolved.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-full-reference-before"
+rules = ["NF-2"]
+reason = "A full reference defined before use resolves to the same link node as the direct link."
+witness = "[r]: /u \"t\"\n\n[x][r]\n"
+kind = "markdown"
+input = "sources/link-full-reference-before.txt"
+expected = "expected/link-resolved.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-full-reference-after"
+rules = ["NF-2"]
+reason = "A full reference defined after use resolves to the same link node as the direct link."
+witness = "[x][r]\n\n[r]: /u \"t\"\n"
+kind = "markdown"
+input = "sources/link-full-reference-after.txt"
+expected = "expected/link-resolved.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-collapsed-reference"
+rules = ["NF-2"]
+reason = "A collapsed reference resolves to the same link node as the direct link."
+witness = "[x][]\n\n[x]: /u \"t\"\n"
+kind = "markdown"
+input = "sources/link-collapsed-reference.txt"
+expected = "expected/link-resolved.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-shortcut-reference"
+rules = ["NF-2"]
+reason = "A shortcut reference resolves to the same link node as the direct link."
+witness = "[x]\n\n[x]: /u \"t\"\n"
+kind = "markdown"
+input = "sources/link-shortcut-reference.txt"
+expected = "expected/link-resolved.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-casefold-reference"
+rules = ["NF-2"]
+reason = "A reference label differing only in case resolves to the same link node as its definition."
+witness = "[x][r]\n\n[R]: /u \"t\"\n"
+kind = "markdown"
+input = "sources/link-casefold-reference.txt"
+expected = "expected/link-resolved.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-distinct-url"
+rules = ["NF-2"]
+reason = "Changing only the link destination produces a distinct resolved link payload."
+witness = "[x](/v \"t\")\n"
+kind = "markdown"
+input = "sources/link-distinct-url.txt"
+expected = "expected/link-url.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-distinct-title"
+rules = ["NF-2"]
+reason = "Changing only the link title produces a distinct resolved link payload."
+witness = "[x](/u \"other\")\n"
+kind = "markdown"
+input = "sources/link-distinct-title.txt"
+expected = "expected/link-title.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-distinct-child"
+rules = ["NF-2"]
+reason = "Changing only the link child text produces a distinct resolved link payload."
+witness = "[y](/u \"t\")\n"
+kind = "markdown"
+input = "sources/link-distinct-child.txt"
+expected = "expected/link-child.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-title-absent"
+rules = ["NF-2", "NF-4"]
+reason = "An absent link title remains omitted and distinguishes this payload from a titled link."
+witness = "[x](/u)\n"
+kind = "markdown"
+input = "sources/link-title-absent.txt"
+expected = "expected/link-title-absent.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-unresolved-full"
+rules = ["NF-2"]
+reason = "An unresolved full link reference has no definition, so its bracket syntax remains literal text."
+witness = "[x][missing]\n"
+kind = "markdown"
+input = "sources/link-unresolved-full.txt"
+expected = "expected/link-unresolved-full.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-unresolved-collapsed"
+rules = ["NF-2"]
+reason = "An unresolved collapsed link reference has no definition, so its bracket syntax remains literal text."
+witness = "[x][]\n"
+kind = "markdown"
+input = "sources/link-unresolved-collapsed.txt"
+expected = "expected/link-unresolved-collapsed.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-unresolved-shortcut"
+rules = ["NF-2"]
+reason = "An unresolved shortcut link reference has no definition, so its bracket syntax remains literal text."
+witness = "[x]\n"
+kind = "markdown"
+input = "sources/link-unresolved-shortcut.txt"
+expected = "expected/link-unresolved-shortcut.json"
+line_endings = "lf"
+
+[[cases]]
+id = "link-unused-definition"
+rules = ["NF-2"]
+reason = "An unused link definition leaves no node or member in the expected canonical payload."
+witness = "plain\n\n[unused]: /u\n"
+kind = "markdown"
+input = "sources/link-unused-definition.txt"
+expected = "expected/plain.json"
+line_endings = "lf"
+
+[[cases]]
+id = "image-direct"
+rules = ["NF-2"]
+reason = "A direct image resolves to an image node with its destination, title, and alt text."
+witness = "![alt](/p \"t\")\n"
+kind = "markdown"
+input = "sources/image-direct.txt"
+expected = "expected/image-resolved.json"
+line_endings = "lf"
+
+[[cases]]
+id = "image-title-absent"
+rules = ["NF-2", "NF-4"]
+reason = "An absent image title remains omitted and distinguishes this payload from a titled image."
+witness = "![alt](/p)\n"
+kind = "markdown"
+input = "sources/image-title-absent.txt"
+expected = "expected/image-title-absent.json"
+line_endings = "lf"
+
+[[cases]]
+id = "image-full-reference-forward"
+rules = ["NF-2"]
+reason = "A forward full reference resolves to the same image node as the direct image."
+witness = "![alt][i]\n\n[i]: /p \"t\"\n"
+kind = "markdown"
+input = "sources/image-full-reference-forward.txt"
+expected = "expected/image-resolved.json"
+line_endings = "lf"
+
+[[cases]]
+id = "image-collapsed-reference"
+rules = ["NF-2"]
+reason = "A collapsed reference resolves to the same image node as the direct image."
+witness = "![alt][]\n\n[alt]: /p \"t\"\n"
+kind = "markdown"
+input = "sources/image-collapsed-reference.txt"
+expected = "expected/image-resolved.json"
+line_endings = "lf"
+
+[[cases]]
+id = "image-shortcut-reference"
+rules = ["NF-2"]
+reason = "A shortcut reference resolves to the same image node as the direct image."
+witness = "![alt]\n\n[alt]: /p \"t\"\n"
+kind = "markdown"
+input = "sources/image-shortcut-reference.txt"
+expected = "expected/image-resolved.json"
+line_endings = "lf"
+
+[[cases]]
+id = "image-unresolved-reference"
+rules = ["NF-2"]
+reason = "An unresolved image reference has no definition, so its bracket syntax remains literal text."
+witness = "![alt][missing]\n"
+kind = "markdown"
+input = "sources/image-unresolved-reference.txt"
+expected = "expected/image-unresolved.json"
+line_endings = "lf"
+
+[[cases]]
+id = "image-unused-definition"
+rules = ["NF-2"]
+reason = "An unused image definition leaves no node or member in the expected canonical payload."
+witness = "plain\n\n[i]: /p \"t\"\n"
+kind = "markdown"
+input = "sources/image-unused-definition.txt"
+expected = "expected/plain.json"
+line_endings = "lf"
+
+[[cases]]
+id = "footnote-case-upper"
+rules = ["NF-3"]
+reason = "The footnote case upper case shows that footnote labels are folded while definition order and body remain observable."
+witness = "[^F]\n\n[^f]: note\n"
+kind = "markdown"
+input = "sources/footnote-case-upper.txt"
+expected = "expected/footnote-case.json"
+line_endings = "lf"
+
+[[cases]]
+id = "footnote-case-lower"
+rules = ["NF-3"]
+reason = "The footnote case lower case shows that footnote labels are folded while definition order and body remain observable."
+witness = "[^f]\n\n[^f]: note\n"
+kind = "markdown"
+input = "sources/footnote-case-lower.txt"
+expected = "expected/footnote-case.json"
+line_endings = "lf"
+
+[[cases]]
+id = "footnote-definition-before"
+rules = ["NF-3"]
+reason = "A footnote definition written before its reference stays first in document order."
+witness = "[^f]: note\n\nref[^f]\n"
+kind = "markdown"
+input = "sources/footnote-definition-before.txt"
+expected = "expected/footnote-before.json"
+line_endings = "lf"
+
+[[cases]]
+id = "footnote-definition-after"
+rules = ["NF-3"]
+reason = "A footnote definition written after its reference stays last in document order."
+witness = "ref[^f]\n\n[^f]: note\n"
+kind = "markdown"
+input = "sources/footnote-definition-after.txt"
+expected = "expected/footnote-after.json"
+line_endings = "lf"
+
+[[cases]]
+id = "footnote-unused-definition"
+rules = ["NF-3"]
+reason = "An unused footnote definition remains a structural footnoteDefinition node."
+witness = "plain\n\n[^unused]: note\n"
+kind = "markdown"
+input = "sources/footnote-unused-definition.txt"
+expected = "expected/footnote-unused.json"
+line_endings = "lf"
+
+[[cases]]
+id = "footnote-repeated-reference"
+rules = ["NF-3"]
+reason = "Two references to one footnote remain two footnoteReference nodes."
+witness = "a[^f] b[^f]\n\n[^f]: note\n"
+kind = "markdown"
+input = "sources/footnote-repeated-reference.txt"
+expected = "expected/footnote-repeated.json"
+line_endings = "lf"
+
+[[cases]]
+id = "footnote-undefined-reference"
+rules = ["NF-3"]
+reason = "A footnote reference without a definition remains literal text."
+witness = "ref[^missing]\n"
+kind = "markdown"
+input = "sources/footnote-undefined-reference.txt"
+expected = "expected/footnote-undefined.json"
+line_endings = "lf"
+
+[[cases]]
+id = "footnote-distinct-identifier"
+rules = ["NF-3"]
+reason = "Changing only the footnote identifier produces a distinct payload."
+witness = "[^g]: note\n\nref[^g]\n"
+kind = "markdown"
+input = "sources/footnote-distinct-identifier.txt"
+expected = "expected/footnote-identifier.json"
+line_endings = "lf"
+
+[[cases]]
+id = "footnote-distinct-body"
+rules = ["NF-3"]
+reason = "Changing only the footnote body text produces a distinct payload."
+witness = "[^f]: other\n\nref[^f]\n"
+kind = "markdown"
+input = "sources/footnote-distinct-body.txt"
+expected = "expected/footnote-body.json"
+line_endings = "lf"
+
+[[cases]]
+id = "table-unaligned"
+rules = ["NF-5", "NF-10"]
+reason = "The table unaligned case shows that table alignment arrays retain null entries and meaningful cell values."
+witness = "| a | b |\n|---|---|\n| 1 | 2 |\n"
+kind = "markdown"
+input = "sources/table-unaligned.txt"
+expected = "expected/table-unaligned.json"
+line_endings = "lf"
+
+[[cases]]
+id = "table-left"
+rules = ["NF-5", "NF-10"]
+reason = "Both columns retain left alignment in the complete table payload."
+witness = "| a | b |\n|:---|:---|\n| 1 | 2 |\n"
+kind = "markdown"
+input = "sources/table-left.txt"
+expected = "expected/table-left.json"
+line_endings = "lf"
+
+[[cases]]
+id = "table-centre"
+rules = ["NF-5", "NF-10"]
+reason = "Both columns retain centre alignment in the complete table payload."
+witness = "| a | b |\n|:---:|:---:|\n| 1 | 2 |\n"
+kind = "markdown"
+input = "sources/table-centre.txt"
+expected = "expected/table-centre.json"
+line_endings = "lf"
+
+[[cases]]
+id = "table-right"
+rules = ["NF-5", "NF-10"]
+reason = "Both columns retain right alignment in the complete table payload."
+witness = "| a | b |\n|---:|---:|\n| 1 | 2 |\n"
+kind = "markdown"
+input = "sources/table-right.txt"
+expected = "expected/table-right.json"
+line_endings = "lf"
+
+[[cases]]
+id = "table-cell-base"
+rules = ["NF-5", "NF-10"]
+reason = "The first table payload preserves `1` as the data row's cell value."
+witness = "| a |\n|:---|\n| 1 |\n"
+kind = "markdown"
+input = "sources/table-cell-base.txt"
+expected = "expected/table-cell-base.json"
+line_endings = "lf"
+
+[[cases]]
+id = "table-cell-changed"
+rules = ["NF-5", "NF-10"]
+reason = "Changing the data row's cell value from `1` to `2` changes the table payload."
+witness = "| a |\n|:---|\n| 2 |\n"
+kind = "markdown"
+input = "sources/table-cell-changed.txt"
+expected = "expected/table-cell-changed.json"
+line_endings = "lf"
+
+[[cases]]
+id = "html-spelling-lowercase"
+rules = ["NF-6", "NF-10"]
+reason = "Lowercase raw HTML keeps its exact tag spelling in the html value."
+witness = "<div>\nx\n</div>\n"
+kind = "markdown"
+input = "sources/html-spelling-lowercase.txt"
+expected = "expected/html-lower.json"
+line_endings = "lf"
+
+[[cases]]
+id = "html-spelling-uppercase"
+rules = ["NF-6", "NF-10"]
+reason = "Uppercase raw HTML keeps its exact tag spelling and differs from the lowercase payload."
+witness = "<DIV>\nx\n</DIV>\n"
+kind = "markdown"
+input = "sources/html-spelling-uppercase.txt"
+expected = "expected/html-upper.json"
+line_endings = "lf"
+
+[[cases]]
+id = "html-allowed"
+rules = ["NF-6", "NF-10"]
+reason = "Allowed raw HTML is an unescaped html node without a data.escaped marker."
+witness = "<div>\nhi\n</div>\n"
+kind = "markdown"
+input = "sources/html-allowed.txt"
+expected = "expected/html-allowed.json"
+line_endings = "lf"
+
+[[cases]]
+id = "html-filtered-title"
+rules = ["NF-6", "NF-10"]
+reason = "The html filtered title case shows that HTML values and the parser's escaped marker remain observable."
+witness = "<title>t</title>\n"
+kind = "markdown"
+input = "sources/html-filtered-title.txt"
+expected = "expected/html-title.json"
+line_endings = "lf"
+
+[[cases]]
+id = "html-filtered-iframe"
+rules = ["NF-6", "NF-10"]
+reason = "The html filtered iframe case shows that HTML values and the parser's escaped marker remain observable."
+witness = "<iframe src=a></iframe>\n"
+kind = "markdown"
+input = "sources/html-filtered-iframe.txt"
+expected = "expected/html-iframe.json"
+line_endings = "lf"
+
+[[cases]]
+id = "html-type1-script"
+rules = ["NF-6", "NF-7", "NF-10"]
+reason = "ADR-004 NF-7 pins Wenmode 0.15.2 emitting this type-1 script block as raw HTML."
+witness = "<script>x</script>\n"
+kind = "markdown"
+input = "sources/html-type1-script.txt"
+expected = "expected/html-script.json"
+line_endings = "lf"
+
+[[cases]]
+id = "html-type1-style"
+rules = ["NF-6", "NF-7", "NF-10"]
+reason = "ADR-004 NF-7 pins Wenmode 0.15.2 emitting this type-1 style block as raw HTML."
+witness = "<style>p{}</style>\n"
+kind = "markdown"
+input = "sources/html-type1-style.txt"
+expected = "expected/html-style.json"
+line_endings = "lf"
+
+[[cases]]
+id = "html-type1-textarea"
+rules = ["NF-6", "NF-7", "NF-10"]
+reason = "ADR-004 NF-7 pins Wenmode 0.15.2 emitting this type-1 textarea block as raw HTML."
+witness = "<textarea>\nq\n</textarea>\n"
+kind = "markdown"
+input = "sources/html-type1-textarea.txt"
+expected = "expected/html-textarea.json"
+line_endings = "lf"
+
+[[cases]]
+id = "line-endings-hard-crlf"
+rules = ["NF-8", "NF-10", "normalize-line-endings"]
+reason = "Two trailing spaces before a CRLF line ending produce the same break node as the LF hard-break source."
+witness = "a  \r\nb\r\n"
+kind = "markdown"
+input = "sources/line-endings-hard-crlf.txt"
+expected = "expected/break-hard.json"
+line_endings = "crlf"
+
+[[cases]]
+id = "line-endings-hard-cr"
+rules = ["NF-8", "NF-10", "normalize-line-endings"]
+reason = "Two trailing spaces before a bare CR line ending produce the same break node as the LF hard-break source."
+witness = "a  \rb\r"
+kind = "markdown"
+input = "sources/line-endings-hard-cr.txt"
+expected = "expected/break-hard.json"
+line_endings = "cr"
+
+[[cases]]
+id = "line-endings-code-lf"
+rules = ["NF-8", "NF-10", "normalize-line-endings"]
+reason = "LF line endings in a fenced code block yield code value `x\\n`."
+witness = "```\nx\n```\n"
+kind = "markdown"
+input = "sources/line-endings-code-lf.txt"
+expected = "expected/line-endings-code.json"
+line_endings = "lf"
+
+[[cases]]
+id = "line-endings-code-crlf"
+rules = ["NF-8", "NF-10", "normalize-line-endings"]
+reason = "CRLF line endings in a fenced code block yield code value `x\\n`."
+witness = "```\r\nx\r\n```\r\n"
+kind = "markdown"
+input = "sources/line-endings-code-crlf.txt"
+expected = "expected/line-endings-code.json"
+line_endings = "crlf"
+
+[[cases]]
+id = "line-endings-code-cr"
+rules = ["NF-8", "NF-10", "normalize-line-endings"]
+reason = "Bare CR line endings in a fenced code block yield code value `x\\n`."
+witness = "```\rx\r```\r"
+kind = "markdown"
+input = "sources/line-endings-code-cr.txt"
+expected = "expected/line-endings-code.json"
+line_endings = "cr"
+
+[[cases]]
+id = "line-endings-title-lf"
+rules = ["NF-8", "normalize-line-endings"]
+reason = "An LF line ending inside a link title yields title `a\\nb`."
+witness = "[x](/u \"a\nb\")\n"
+kind = "markdown"
+input = "sources/line-endings-title-lf.txt"
+expected = "expected/line-endings-title.json"
+line_endings = "lf"
+
+[[cases]]
+id = "line-endings-title-crlf"
+rules = ["NF-8", "normalize-line-endings"]
+reason = "A CRLF line ending inside a link title yields title `a\\nb`."
+witness = "[x](/u \"a\r\nb\")\r\n"
+kind = "markdown"
+input = "sources/line-endings-title-crlf.txt"
+expected = "expected/line-endings-title.json"
+line_endings = "crlf"
+
+[[cases]]
+id = "line-endings-title-cr"
+rules = ["NF-8", "normalize-line-endings"]
+reason = "A bare CR line ending inside a link title yields title `a\\nb`."
+witness = "[x](/u \"a\rb\")\r"
+kind = "markdown"
+input = "sources/line-endings-title-cr.txt"
+expected = "expected/line-endings-title.json"
+line_endings = "cr"
+
+[[cases]]
+id = "code-indented-omissions"
+rules = ["NF-4", "NF-10"]
+reason = "The code indented omissions case shows that omitted nullable members remain absent rather than becoming null."
+witness = "    i\n"
+kind = "markdown"
+input = "sources/code-indented-omissions.txt"
+expected = "expected/code-indented.json"
+line_endings = "lf"
+
+[[cases]]
+id = "code-fenced-base"
+rules = ["NF-10"]
+reason = "The fenced code node retains `lang=\"py\"`, `meta=\"m\"`, and value `\"  c \\n\"`."
+witness = "```py m\n  c \n```\n"
+kind = "markdown"
+input = "sources/code-fenced-base.txt"
+expected = "expected/code-fenced.json"
+line_endings = "lf"
+
+[[cases]]
+id = "code-fenced-whitespace"
+rules = ["NF-10"]
+reason = "The code value keeps one trailing space and has one leading space here versus two in the baseline."
+witness = "```py m\n c \n```\n"
+kind = "markdown"
+input = "sources/code-fenced-whitespace.txt"
+expected = "expected/code-whitespace.json"
+line_endings = "lf"
+
+[[cases]]
+id = "code-fenced-language"
+rules = ["NF-10"]
+reason = "The fenced code language is retained as `lang=\"js\"`."
+witness = "```js m\n  c \n```\n"
+kind = "markdown"
+input = "sources/code-fenced-language.txt"
+expected = "expected/code-language.json"
+line_endings = "lf"
+
+[[cases]]
+id = "code-fenced-meta"
+rules = ["NF-10"]
+reason = "The fenced code info-string metadata is retained as `meta=\"other\"`."
+witness = "```py other\n  c \n```\n"
+kind = "markdown"
+input = "sources/code-fenced-meta.txt"
+expected = "expected/code-meta.json"
+line_endings = "lf"
+
+[[cases]]
+id = "inline-code-base"
+rules = ["NF-10"]
+reason = "The inline code value preserves its single interior space."
+witness = "`a b`\n"
+kind = "markdown"
+input = "sources/inline-code-base.txt"
+expected = "expected/inline-code.json"
+line_endings = "lf"
+
+[[cases]]
+id = "inline-code-whitespace"
+rules = ["NF-10"]
+reason = "The inline code value preserves two interior spaces distinctly from one."
+witness = "`a  b`\n"
+kind = "markdown"
+input = "sources/inline-code-whitespace.txt"
+expected = "expected/inline-code-whitespace.json"
+line_endings = "lf"
+
+[[cases]]
+id = "list-unordered"
+rules = ["NF-4", "NF-10"]
+reason = "The list unordered case shows that omitted nullable members remain absent rather than becoming null."
+witness = "- a\n- b\n"
+kind = "markdown"
+input = "sources/list-unordered.txt"
+expected = "expected/list-unordered.json"
+line_endings = "lf"
+
+[[cases]]
+id = "list-ordered-start-one"
+rules = ["NF-10"]
+reason = "The ordered list preserves its start number as `start=1`."
+witness = "1. a\n2. b\n"
+kind = "markdown"
+input = "sources/list-ordered-start-one.txt"
+expected = "expected/list-ordered-one.json"
+line_endings = "lf"
+
+[[cases]]
+id = "list-ordered-start-three"
+rules = ["NF-10"]
+reason = "The ordered list preserves its start number as `start=3`."
+witness = "3. a\n4. b\n"
+kind = "markdown"
+input = "sources/list-ordered-start-three.txt"
+expected = "expected/list-ordered-three.json"
+line_endings = "lf"
+
+[[cases]]
+id = "list-tight"
+rules = ["NF-10"]
+reason = "This case deliberately reuses list-unordered's source and golden so list-tightness compares one tight-list representation with list-loose."
+witness = "- a\n- b\n"
+kind = "markdown"
+input = "sources/list-unordered.txt"
+expected = "expected/list-unordered.json"
+line_endings = "lf"
+
+[[cases]]
+id = "list-loose"
+rules = ["NF-10"]
+reason = "Blank lines make the list loose, preserving `spread=true`."
+witness = "- a\n\n- b\n"
+kind = "markdown"
+input = "sources/list-loose.txt"
+expected = "expected/list-loose.json"
+line_endings = "lf"
+
+[[cases]]
+id = "list-task-checked"
+rules = ["NF-10"]
+reason = "The checked task item preserves `checked=true`."
+witness = "- [x] a\n"
+kind = "markdown"
+input = "sources/list-task-checked.txt"
+expected = "expected/list-task-checked.json"
+line_endings = "lf"
+
+[[cases]]
+id = "list-task-unchecked"
+rules = ["NF-10"]
+reason = "The unchecked task item preserves `checked=false`."
+witness = "- [ ] a\n"
+kind = "markdown"
+input = "sources/list-task-unchecked.txt"
+expected = "expected/list-task-unchecked.json"
+line_endings = "lf"
+
+[[cases]]
+id = "list-non-task-item"
+rules = ["NF-4", "NF-10"]
+reason = "The list non task item case shows that omitted nullable members remain absent rather than becoming null."
+witness = "- plain\n"
+kind = "markdown"
+input = "sources/list-non-task-item.txt"
+expected = "expected/list-non-task.json"
+line_endings = "lf"
+
+[[cases]]
+id = "list-item-order-swapped"
+rules = ["NF-10"]
+reason = "The expected list retains source order: `b` then `a`."
+witness = "- b\n- a\n"
+kind = "markdown"
+input = "sources/list-item-order-swapped.txt"
+expected = "expected/list-order-swapped.json"
+line_endings = "lf"
+
+[[cases]]
+id = "plain-entity-literal"
+rules = ["NF-11", "merge-plain-text"]
+reason = "A literal ampersand is represented as plain text in the canonical payload."
+witness = "a & b\n"
+kind = "markdown"
+input = "sources/plain-entity-literal.txt"
+expected = "expected/plain-entity.json"
+line_endings = "lf"
+
+[[cases]]
+id = "plain-entity-reference"
+rules = ["NF-11", "merge-plain-text"]
+reason = "The `&amp;` character reference decodes to the same plain text as a literal ampersand."
+witness = "a &amp; b\n"
+kind = "markdown"
+input = "sources/plain-entity-reference.txt"
+expected = "expected/plain-entity.json"
+line_endings = "lf"
+
+[[cases]]
+id = "plain-asterisk-literal"
+rules = ["NF-11", "merge-plain-text"]
+reason = "A literal asterisk between letters remains plain text because it cannot open emphasis."
+witness = "a*b\n"
+kind = "markdown"
+input = "sources/plain-asterisk-literal.txt"
+expected = "expected/plain-asterisk.json"
+line_endings = "lf"
+
+[[cases]]
+id = "plain-asterisk-escaped"
+rules = ["NF-11", "merge-plain-text"]
+reason = "A backslash-escaped asterisk decodes to the same plain text as a literal asterisk."
+witness = "a\\*b\n"
+kind = "markdown"
+input = "sources/plain-asterisk-escaped.txt"
+expected = "expected/plain-asterisk.json"
+line_endings = "lf"
+
+[[cases]]
+id = "plain-text-cross-sibling-crlf"
+rules = ["NF-11", "merge-plain-text", "normalize-line-endings"]
+reason = "The plain text cross sibling crlf case shows that only adjacent text nodes with exactly type and value are merged."
+witness = "{\n  \"type\": \"root\",\n  \"children\": [\n    {\n      \"type\": \"paragraph\",\n      \"children\": [\n        {\n          \"type\": \"text\",\n          \"value\": \"a\\r\"\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"\\nb\"\n        }\n      ]\n    }\n  ]\n}\n"
+kind = "synthetic"
+input = "synthetic/plain-text-cross-sibling-crlf.json"
+expected = "expected/plain-cross-sibling.json"
+
+[[cases]]
+id = "plain-text-metadata-boundary"
+rules = ["NF-11", "merge-plain-text"]
+reason = "The plain text metadata boundary case shows that only adjacent text nodes with exactly type and value are merged."
+witness = "{\n  \"type\": \"root\",\n  \"children\": [\n    {\n      \"type\": \"paragraph\",\n      \"children\": [\n        {\n          \"type\": \"text\",\n          \"value\": \"a\"\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"b\"\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"c\",\n          \"data\": {\n            \"escaped\": true\n          }\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"d\"\n        },\n        {\n          \"type\": \"strong\",\n          \"children\": [\n            {\n              \"type\": \"text\",\n              \"value\": \"e\"\n            }\n          ]\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"f\"\n        }\n      ]\n    }\n  ]\n}\n"
+kind = "synthetic"
+input = "synthetic/plain-text-metadata-boundary.json"
+expected = "expected/plain-metadata-boundary.json"
+
+[[cases]]
+id = "key-order-codepoint"
+rules = ["NF-12", "order-members"]
+reason = "Preferred members come first; unknown names follow code-point order, and CR in a name is kept."
+witness = "{\n  \"𐀀supplementary\": \"supplementary\",\n  \"children\": [],\n  \"\\uE000private\": \"private\",\n  \"type\": \"root\",\n  \"data\": {\n    \"z\": \"last\",\n    \"line\\rkey\": \"kept\"\n  }\n}\n"
+kind = "synthetic"
+input = "synthetic/key-order-codepoint.json"
+expected = "expected/key-order.json"
+
+[[cases]]
+id = "all-node-document"
+rules = ["NF-12", "order-members"]
+reason = "The all node document case shows that node coverage and preferred member ordering are pinned."
+witness = "# h\n\n> q\n\n- [ ] t\n1. o\n\n```py m\nc\n```\n\n    i\n\n***\n\n<div>\n</div>\n\na `c` **s** *e* ~~d~~ [l](/u \"t\") ![i](/p \"t\") <span> www.x.y  \nz[^n]\n\n| a |\n|:-|\n| b |\n\n[^n]: f\n\n<iframe>\n"
+kind = "markdown"
+input = "sources/all-node-document.txt"
+expected = "expected/all-node.json"
+line_endings = "lf"
+
+[[cases]]
+id = "node-strikethrough"
+rules = ["NF-12", "order-members"]
+reason = "The node strikethrough case shows that node coverage and preferred member ordering are pinned."
+witness = "~~gone~~\n"
+kind = "markdown"
+input = "sources/node-strikethrough.txt"
+expected = "expected/node-strikethrough.json"
+line_endings = "lf"
+
+[[cases]]
+id = "node-autolink"
+rules = ["NF-12", "order-members"]
+reason = "The node autolink case shows that node coverage and preferred member ordering are pinned."
+witness = "www.x.y\n"
+kind = "markdown"
+input = "sources/node-autolink.txt"
+expected = "expected/node-autolink.json"
+line_endings = "lf"
+
+[[cases]]
+id = "node-heading"
+rules = ["NF-12", "order-members"]
+reason = "The node heading case shows that node coverage and preferred member ordering are pinned."
+witness = "# H\n"
+kind = "markdown"
+input = "sources/node-heading.txt"
+expected = "expected/node-heading.json"
+line_endings = "lf"
+
+[[cases]]
+id = "node-blockquote"
+rules = ["NF-12", "order-members"]
+reason = "The node blockquote case shows that node coverage and preferred member ordering are pinned."
+witness = "> q\n"
+kind = "markdown"
+input = "sources/node-blockquote.txt"
+expected = "expected/node-blockquote.json"
+line_endings = "lf"
+
+[[cases]]
+id = "node-thematic-break"
+rules = ["NF-12", "order-members"]
+reason = "The node thematic break case shows that node coverage and preferred member ordering are pinned."
+witness = "***\n"
+kind = "markdown"
+input = "sources/node-thematic-break.txt"
+expected = "expected/node-thematic-break.json"
+line_endings = "lf"
+
+[[cases]]
+id = "numeric-reference-zero"
+rules = ["NF-13"]
+reason = "The numeric reference zero case shows that numeric reference boundaries produce replacement or literal text as specified."
+witness = "&#0;\n"
+kind = "markdown"
+input = "sources/numeric-reference-zero.txt"
+expected = "expected/numeric-zero.json"
+line_endings = "lf"
+
+[[cases]]
+id = "numeric-reference-surrogate"
+rules = ["NF-13"]
+reason = "ADR-004 NF-13 records Wenmode 0.15.2 retaining this surrogate reference as literal text."
+witness = "&#xD800;\n"
+kind = "markdown"
+input = "sources/numeric-reference-surrogate.txt"
+expected = "expected/numeric-surrogate.json"
+line_endings = "lf"
+
+[[cases]]
+id = "numeric-reference-out-of-range"
+rules = ["NF-13"]
+reason = "ADR-004 NF-13 records Wenmode 0.15.2 retaining this out-of-range reference as literal text."
+witness = "&#x110000;\n"
+kind = "markdown"
+input = "sources/numeric-reference-out-of-range.txt"
+expected = "expected/numeric-range.json"
+line_endings = "lf"
+
+[[cases]]
+id = "numeric-reference-non-ascii"
+rules = ["NF-13"]
+reason = "Literal non-ASCII text stays UTF-8 text without numeric-reference decoding."
+witness = "café 雪\n"
+kind = "markdown"
+input = "sources/numeric-reference-non-ascii.txt"
+expected = "expected/numeric-non-ascii.json"
+line_endings = "lf"
+
+[[cases]]
+id = "position-removal-exposes-text"
+rules = ["NF-9", "remove-position", "merge-plain-text"]
+reason = "The position removal exposes text case shows that positions are removed recursively, including when removal exposes adjacent text."
+witness = "{\n  \"type\": \"root\",\n  \"position\": {\n    \"start\": {\n      \"line\": 1\n    },\n    \"end\": {\n      \"line\": 2\n    }\n  },\n  \"data\": {\n    \"keep\": false,\n    \"position\": {\n      \"offset\": [\n        0,\n        1\n      ]\n    }\n  },\n  \"children\": [\n    {\n      \"type\": \"paragraph\",\n      \"position\": {\n        \"start\": {\n          \"line\": 1\n        }\n      },\n      \"children\": [\n        {\n          \"type\": \"text\",\n          \"value\": \"left\",\n          \"position\": {\n            \"start\": [\n              0,\n              4\n            ]\n          }\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"right\",\n          \"position\": {\n            \"end\": [\n              4,\n              9\n            ]\n          }\n        }\n      ]\n    }\n  ],\n  \"unknown\": [\n    {\n      \"position\": {\n        \"line\": 1\n      },\n      \"value\": 1\n    }\n  ]\n}\n"
+kind = "synthetic"
+input = "synthetic/position-removal-exposes-text.json"
+expected = "expected/position-removal.json"
+
+[[cases]]
+id = "data-removal-exposes-text"
+rules = ["NF-9", "remove-position", "remove-empty-data", "merge-plain-text", "preserve-values"]
+reason = "Removing positions and empty-mapping data exposes adjacent text for merging; list, null, and false data remain."
+witness = "{\n  \"type\": \"root\",\n  \"position\": {\n    \"line\": 1\n  },\n  \"data\": {\n    \"position\": {\n      \"line\": 1\n    }\n  },\n  \"children\": [\n    {\n      \"type\": \"paragraph\",\n      \"children\": [\n        {\n          \"type\": \"text\",\n          \"value\": \"a\"\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"b\",\n          \"data\": {}\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"c\",\n          \"data\": {\n            \"position\": {\n              \"line\": 2\n            }\n          }\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"d\",\n          \"data\": {\n            \"keep\": false\n          }\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"e\",\n          \"data\": []\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"f\",\n          \"data\": null\n        },\n        {\n          \"type\": \"text\",\n          \"value\": \"g\",\n          \"data\": false\n        }\n      ]\n    }\n  ]\n}\n"
+kind = "synthetic"
+input = "synthetic/data-removal-exposes-text.json"
+expected = "expected/data-removal.json"
+
+[[cases]]
+id = "preserve-falsy-values"
+rules = ["preserve-values"]
+reason = "The preserve falsy values case shows that falsy values, unknown fields, and array order remain intact."
+witness = "{\n  \"type\": \"root\",\n  \"position\": {\n    \"line\": 1\n  },\n  \"data\": {\n    \"empty\": {},\n    \"false\": false,\n    \"zero\": 0,\n    \"empty_string\": \"\",\n    \"empty_array\": [],\n    \"null\": null\n  },\n  \"children\": [\n    {\n      \"type\": \"paragraph\",\n      \"children\": [\n        {\n          \"type\": \"text\",\n          \"value\": \"x\"\n        }\n      ]\n    },\n    null\n  ],\n  \"flag\": false,\n  \"unknown\": [\n    3,\n    1,\n    2\n  ]\n}\n"
+kind = "synthetic"
+input = "synthetic/preserve-falsy-values.json"
+expected = "expected/preserve-values.json"
+
+[[cases]]
+id = "writer-format"
+rules = ["writer-format", "order-members"]
+reason = "The writer format case shows that the complete JSON bytes follow the accepted UTF-8 writer shape."
+witness = "{\n  \"type\": \"root\",\n  \"children\": [\n    {\n      \"type\": \"paragraph\",\n      \"children\": [\n        {\n          \"type\": \"text\",\n          \"value\": \"café \\\"quoted\\\" \\\\ control\\u0001\"\n        }\n      ]\n    }\n  ]\n}\n"
+kind = "synthetic"
+input = "synthetic/writer-format.json"
+expected = "expected/writer-format.json"
+
+[[relations]]
+id = "emphasis-delimiters"
+relation = "equal"
+cases = ["emphasis-asterisk", "emphasis-underscore"]
+
+[[relations]]
+id = "strong-delimiters"
+relation = "equal"
+cases = ["strong-asterisk", "strong-underscore"]
+
+[[relations]]
+id = "hard-break-spellings"
+relation = "equal"
+cases = ["break-hard-spaces", "break-hard-backslash"]
+
+[[relations]]
+id = "soft-and-hard-breaks"
+relation = "distinct"
+cases = ["break-soft", "break-hard-spaces"]
+
+[[relations]]
+id = "paragraph-line-endings"
+relation = "equal"
+cases = ["line-endings-lf", "line-endings-crlf", "line-endings-cr"]
+
+[[relations]]
+id = "link-equivalent-forms"
+relation = "equal"
+cases = ["link-direct", "link-full-reference-before", "link-full-reference-after", "link-collapsed-reference", "link-shortcut-reference", "link-casefold-reference"]
+
+[[relations]]
+id = "link-unresolved-forms"
+relation = "distinct"
+cases = ["link-unresolved-full", "link-unresolved-collapsed", "link-unresolved-shortcut"]
+
+[[relations]]
+id = "link-destination-change"
+relation = "distinct"
+cases = ["link-direct", "link-distinct-url"]
+
+[[relations]]
+id = "link-title-change"
+relation = "distinct"
+cases = ["link-direct", "link-distinct-title"]
+
+[[relations]]
+id = "link-child-change"
+relation = "distinct"
+cases = ["link-direct", "link-distinct-child"]
+
+[[relations]]
+id = "link-title-omission"
+relation = "distinct"
+cases = ["link-direct", "link-title-absent"]
+
+[[relations]]
+id = "image-reference-forms"
+relation = "equal"
+cases = ["image-direct", "image-full-reference-forward", "image-collapsed-reference", "image-shortcut-reference"]
+
+[[relations]]
+id = "image-title-omission"
+relation = "distinct"
+cases = ["image-direct", "image-title-absent"]
+
+[[relations]]
+id = "footnote-casefold"
+relation = "equal"
+cases = ["footnote-case-upper", "footnote-case-lower"]
+
+[[relations]]
+id = "footnote-definition-order"
+relation = "distinct"
+cases = ["footnote-definition-before", "footnote-definition-after"]
+
+[[relations]]
+id = "footnote-identifier-change"
+relation = "distinct"
+cases = ["footnote-definition-before", "footnote-distinct-identifier"]
+
+[[relations]]
+id = "footnote-body-change"
+relation = "distinct"
+cases = ["footnote-definition-before", "footnote-distinct-body"]
+
+[[relations]]
+id = "line-endings-hard-breaks"
+relation = "equal"
+cases = ["break-hard-spaces", "line-endings-hard-crlf", "line-endings-hard-cr"]
+
+[[relations]]
+id = "line-endings-code-values"
+relation = "equal"
+cases = ["line-endings-code-lf", "line-endings-code-crlf", "line-endings-code-cr"]
+
+[[relations]]
+id = "line-endings-title-values"
+relation = "equal"
+cases = ["line-endings-title-lf", "line-endings-title-crlf", "line-endings-title-cr"]
+
+[[relations]]
+id = "table-alignments"
+relation = "distinct"
+cases = ["table-left", "table-centre", "table-right"]
+
+[[relations]]
+id = "table-cell-content"
+relation = "distinct"
+cases = ["table-cell-base", "table-cell-changed"]
+
+[[relations]]
+id = "html-raw-spelling"
+relation = "distinct"
+cases = ["html-spelling-lowercase", "html-spelling-uppercase"]
+
+[[relations]]
+id = "html-filtering"
+relation = "distinct"
+cases = ["html-allowed", "html-filtered-iframe"]
+
+[[relations]]
+id = "fenced-code-whitespace"
+relation = "distinct"
+cases = ["code-fenced-base", "code-fenced-whitespace"]
+
+[[relations]]
+id = "fenced-code-language"
+relation = "distinct"
+cases = ["code-fenced-base", "code-fenced-language"]
+
+[[relations]]
+id = "fenced-code-meta"
+relation = "distinct"
+cases = ["code-fenced-base", "code-fenced-meta"]
+
+[[relations]]
+id = "inline-code-whitespace"
+relation = "distinct"
+cases = ["inline-code-base", "inline-code-whitespace"]
+
+[[relations]]
+id = "list-start-number"
+relation = "distinct"
+cases = ["list-ordered-start-one", "list-ordered-start-three"]
+
+[[relations]]
+id = "list-item-order"
+relation = "distinct"
+cases = ["list-unordered", "list-item-order-swapped"]
+
+[[relations]]
+id = "list-task-state"
+relation = "distinct"
+cases = ["list-task-checked", "list-task-unchecked"]
+
+[[relations]]
+id = "list-tightness"
+relation = "distinct"
+cases = ["list-tight", "list-loose"]
+
+[[relations]]
+id = "plain-entity-spelling"
+relation = "equal"
+cases = ["plain-entity-literal", "plain-entity-reference"]
+
+[[relations]]
+id = "plain-backslash-escape"
+relation = "equal"
+cases = ["plain-asterisk-literal", "plain-asterisk-escaped"]
