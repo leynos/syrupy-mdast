@@ -15,11 +15,11 @@ local gates pass on the working tree with 350 tests. The audit found no known
 vulnerabilities, although two packages are unavailable on PyPI. The repaired
 candidate `59f6d17` passed hosted CI, Act Validation, CodeScene, and Gecko.
 CodeRabbit's follow-up resolved all four coverage obligations and found no
-other corpus omissions or runtime regression. It requested updating the
-roadmap's deliverable count from 99 to 101; that correction is in progress.
-Final-head checks, formal review, and implementation acceptance remain open, so
-roadmap task 1.1.3 remains unchecked. The maintainer granted an exception to
-the 600-line total cap on 2026-10-15.
+other corpus omissions or runtime regression. The roadmap count correction is
+published in `fd29b94`; its hosted checks and documentation gates passed, and
+CodeRabbit marked the implementation assessment clear on that exact head.
+Roadmap task 1.1.3 is complete. Formal PR review and merge remain open. The
+maintainer granted an exception to the 600-line total cap on 2026-10-15.
 
 Roadmap task: **1.1.3**. Prerequisite: **1.1.2**, completed at baseline
 `c19afee8ed735dffa6262cf0b2e0a9ca0a5a0551`.
@@ -243,8 +243,11 @@ is not a reason to cancel, duplicate, or bypass a gate.
   required milestone review before advancing.
 - [x] EP-M2: complete every normative fixture and integrity assertion.
 - [x] EP-M3: reconcile documentation and validate the corpus deliverable.
-- [ ] Mark roadmap 1.1.3 done after implementation acceptance and hosted
-  delivery checks pass.
+- [x] (2026-10-19) Mark roadmap 1.1.3 done after implementation acceptance and
+  hosted delivery checks passed. CodeRabbit's implementation assessment is
+  clear on `fd29b947`; the documentation-only count correction passed all
+  current hosted checks and the Markdown gates. Formal PR review and merge
+  remain separate delivery steps.
 - [x] (2026-10-15) Reconcile design §§7–8 with the accepted parser call and
   five-rule sequence; add the corpus workflow and integrity boundary to the
   developer guide and link the corpus from the contents and user guides. No new
@@ -340,7 +343,7 @@ is not a reason to cancel, duplicate, or bypass a gate.
   Commit `4cb3680` was pushed; hosted CI, Act Validation, CodeScene, and Gecko
   all passed on that head. The later CodeRabbit completeness assessment found
   three separate coverage gaps; D13 tracks those repairs.
-- [ ] (2026-10-19) Close CodeRabbit assessment comment
+- [x] (2026-10-19) Close CodeRabbit assessment comment
   [6257298887](https://github.com/leynos/syrupy-mdast/pull/74#issuecomment-6257298887):
   add copied-golden negative controls for swapped list children and lost
   `false`, isolate a one-column table-alignment distinction, and pin a literal
@@ -348,8 +351,10 @@ is not a reason to cancel, duplicate, or bypass a gate.
   [6257513469](https://github.com/leynos/syrupy-mdast/pull/74#issuecomment-6257513469)
   verified all four obligations on `59f6d17` and found no remaining corpus
   omissions. It requested changing the roadmap deliverable count from 99 to
-  101. The count is corrected below; final-head gates, hosted checks, and
-  formal review remain pending.
+  101. Follow-up assessment
+  [6257572386](https://github.com/leynos/syrupy-mdast/pull/74#issuecomment-6257572386)
+  confirmed the correction and marked implementation completeness clear on
+  exact head `fd29b94`. Formal PR review and merge remain pending.
 
 ## Surprises & discoveries
 
@@ -1239,6 +1244,14 @@ Revision note (2026-10-19): CodeRabbit follow-up assessment comment 6257513469
 covered head `59f6d17873e88c25dd18b0778745d016347d7c8b` and verified the list
 and falsy copied-golden controls, isolated table alignment pair, and literal
 tab code case. It found no other corpus omissions or incorrect payloads, but
-requested correcting the roadmap's current deliverable count from 99 to 101.
-The count is updated; the roadmap task remains unchecked until the final head's
-checks and formal review complete.
+requested correcting the roadmap's current deliverable count from 99 to 101. At
+that point, the corrected head still needed hosted verification and a
+candidate-bound follow-up assessment before implementation acceptance.
+
+Revision note (2026-10-19): CodeRabbit follow-up assessment comment 6257572386
+confirmed the 101-case roadmap count and marked implementation completeness
+clear on exact head `fd29b947a5db28f24c68a5cd06282eae2634af9e`. All hosted
+checks passed on that head; the code gates passed with 350 tests on the
+unchanged implementation candidate, and the documentation gates passed after
+the count correction. The roadmap task is now checked complete. Formal PR
+review and merge remain pending.

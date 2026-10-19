@@ -39,7 +39,7 @@ outcome bounds every parser, serializer, and compatibility decision. See the
   - See design §§7, 13, and 15.
   - Success: the explicitly versioned ADR is accepted before any related
     implementation or fixture change is committed.
-- [ ] 1.1.3. Create the canonical Markdown contract corpus.
+- [x] 1.1.3. Create the canonical Markdown contract corpus.
   - Requires 1.1.2.
   - Pair syntax-equivalent emphasis, line-ending, and direct/reference-link
     inputs.
