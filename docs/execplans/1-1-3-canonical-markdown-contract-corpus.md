@@ -18,8 +18,11 @@ CodeRabbit's follow-up resolved all four coverage obligations and found no
 other corpus omissions or runtime regression. The roadmap count correction is
 published in `fd29b94`; its hosted checks and documentation gates passed, and
 CodeRabbit marked the implementation assessment clear on that exact head.
-Roadmap task 1.1.3 is complete. Formal PR review and merge remain open. The
-maintainer granted an exception to the 600-line total cap on 2026-10-15.
+Roadmap task 1.1.3 is complete. CodeRabbit's formal review of `8b04823`
+requested correction of stale completion wording; this revision reconciles the
+historical checkpoints with the final implementation status. Formal review and
+merge approval remain outstanding. The maintainer granted an exception to the
+600-line total cap on 2026-10-15.
 
 Roadmap task: **1.1.3**. Prerequisite: **1.1.2**, completed at baseline
 `c19afee8ed735dffa6262cf0b2e0a9ca0a5a0551`.
@@ -488,27 +491,37 @@ relations, and 71 semantic markers across 20 rules and 22 node types. Its
 commit is `97179f5`; the full gates passed with 264 tests, fresh CodeRabbit
 review found no issues across 182 paths, and the audit found no known
 vulnerabilities. EP-M3 adds the 72nd semantic marker and reconciles the design,
-contributor and user guidance, and documentation index. Roadmap completion
-remains pending until implementation acceptance. The previous gate and review
-checkpoint passed with 344 tests and zero findings across 187 paths. Review #22
-then asked for the nine line-ending cases to name their parsed values; each
-reason now identifies its paragraph, code, or link-title value. The audit found
-no known vulnerabilities, but `df12-python-lints` and `syrupy-mdast` remain
-unavailable on PyPI. The 600-line total cap is waived for this plan; the
-four-file and 400-line per-file limits remain. Representative negative controls
-reject a missing required case, partner-golden substitution, retained
-`position`, a mutated writer-shaped golden, weakened source witnesses, and a
-CRLF declaration with LF bytes. The numeric-reference outputs follow accepted
-ADR-004 NF-13 observations for Wenmode 0.15.2 despite CommonMark's U+FFFD
-requirement for invalid Unicode values. No runtime behaviour has been
-delivered; valid `str` input still raises `NotImplementedError`, and
-parser/canonicalizer conformance remains deferred.
+contributor and user guidance, and documentation index. At this checkpoint,
+roadmap completion still awaited implementation acceptance. The previous gate
+and review checkpoint passed with 344 tests and zero findings across 187 paths;
+these results remain historical evidence. Review #22 then asked for the nine
+line-ending cases to name their parsed values; each reason now identifies its
+paragraph, code, or link-title value. The audit found no known vulnerabilities,
+but `df12-python-lints` and `syrupy-mdast` remain unavailable on PyPI. The
+600-line total cap is waived for this plan; the four-file and 400-line per-file
+limits remain. Representative negative controls reject a missing required case,
+partner-golden substitution, retained `position`, a mutated writer-shaped
+golden, weakened source witnesses, and a CRLF declaration with LF bytes. The
+numeric-reference outputs follow accepted ADR-004 NF-13 observations for
+Wenmode 0.15.2 despite CommonMark's U+FFFD requirement for invalid Unicode
+values. No runtime behaviour has been delivered; valid `str` input still raises
+`NotImplementedError`, and parser/canonicalizer conformance remains deferred.
+
+D13 closed the three remaining coverage gaps and brought the corpus to 101
+cases. Implementation acceptance and hosted delivery checks passed on
+`fd29b94`; all seven local gates passed with 350 tests, hosted CodeScene
+cleared the candidate, and roadmap task 1.1.3 is complete. The earlier
+344-test, zero-finding result across 187 paths remains a historical checkpoint.
+CodeRabbit thread resolution and final approval remain outstanding before merge.
 
 The 2026-10-15 close-out recorded the finite matrix counts, representative
 negative controls, gate logs, and documentation reconciliation. Passing corpus
 integrity tests validate the authored examples; they are not parser-conformance
-proof. Normative fixtures and documentation are complete; PR acceptance and
-hosted delivery checks remain open.
+proof. Normative fixtures and documentation were complete at that checkpoint;
+implementation acceptance and hosted delivery checks were still open then.
+After D13, the 101-case implementation was accepted and hosted checks passed on
+`fd29b94`; roadmap task 1.1.3 is complete. CodeRabbit thread resolution and
+final approval remain outstanding before merge.
 
 After publication, hosted CodeScene reported mean loader complexity 4.36
 against a threshold of 4. D10 centralizes the repeated case/relation duplicate
@@ -529,9 +542,12 @@ reconciles those sections with the latest gate result. Review 20 identified
 missing contextual handling for permission-denied manifest reads and a writer-
 shape test that did not report failures per golden. The loader now translates
 `PermissionError`, and each golden has a separate stable-ID test. The latest
-gates passed with 344 tests; review 21 found no further issues across 187
-paths. The plan remains open until the published candidate clears hosted
-CodeScene and is accepted.
+gates at that stage passed with 344 tests; review 21 found no further issues
+across 187 paths. The plan then remained open pending hosted CodeScene and
+implementation acceptance. D13 later brought the corpus to 101 cases and passed
+all seven local gates with 350 tests; hosted CodeScene cleared the accepted
+candidate on `fd29b94`, and roadmap task 1.1.3 is complete. CodeRabbit thread
+resolution and final approval remain outstanding before merge.
 
 ## Context and orientation
 
@@ -1255,3 +1271,13 @@ checks passed on that head; the code gates passed with 350 tests on the
 unchanged implementation candidate, and the documentation gates passed after
 the count correction. The roadmap task is now checked complete. Formal PR
 review and merge remain pending.
+
+Revision note (2026-10-19): CodeRabbit formal review 5566091187 on head
+`8b0482309f8b8d96639276e3bc1fc6206e5b6348` found stale present-state wording,
+not a fixture mismatch. Its follow-up assessment 6257775717 confirmed
+implementation completeness for that exact head and requested reconciliation of
+the outcome summary and plan status. This update preserves the 344-test,
+187-path results as historical, records D13's 101-case completion and 350-test
+gate result, and states that acceptance and hosted checks passed on `fd29b94`.
+The documentation-only repair requires fresh hosted checks and reconciliation
+of the CodeRabbit thread before merge.
