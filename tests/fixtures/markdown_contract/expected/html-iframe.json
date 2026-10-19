@@ -1,0 +1,12 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "html",
+      "value": "&lt;iframe src=a>&lt;/iframe>\n",
+      "data": {
+        "escaped": true
+      }
+    }
+  ]
+}

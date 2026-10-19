@@ -1,0 +1,21 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "paragraph",
+      "children": [
+        {
+          "type": "link",
+          "url": "/u",
+          "title": "a\nb",
+          "children": [
+            {
+              "type": "text",
+              "value": "x"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

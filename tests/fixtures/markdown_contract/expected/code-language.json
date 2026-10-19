@@ -1,0 +1,11 @@
+{
+  "type": "root",
+  "children": [
+    {
+      "type": "code",
+      "lang": "js",
+      "meta": "m",
+      "value": "  c \n"
+    }
+  ]
+}

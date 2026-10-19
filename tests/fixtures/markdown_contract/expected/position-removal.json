@@ -1,0 +1,22 @@
+{
+  "type": "root",
+  "data": {
+    "keep": false
+  },
+  "children": [
+    {
+      "type": "paragraph",
+      "children": [
+        {
+          "type": "text",
+          "value": "leftright"
+        }
+      ]
+    }
+  ],
+  "unknown": [
+    {
+      "value": 1
+    }
+  ]
+}

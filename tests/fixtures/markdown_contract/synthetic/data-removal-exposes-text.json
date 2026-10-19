@@ -1,0 +1,58 @@
+{
+  "type": "root",
+  "position": {
+    "line": 1
+  },
+  "data": {
+    "position": {
+      "line": 1
+    }
+  },
+  "children": [
+    {
+      "type": "paragraph",
+      "children": [
+        {
+          "type": "text",
+          "value": "a"
+        },
+        {
+          "type": "text",
+          "value": "b",
+          "data": {}
+        },
+        {
+          "type": "text",
+          "value": "c",
+          "data": {
+            "position": {
+              "line": 2
+            }
+          }
+        },
+        {
+          "type": "text",
+          "value": "d",
+          "data": {
+            "keep": false
+          }
+        },
+        {
+          "type": "text",
+          "value": "e",
+          "data": []
+        },
+        {
+          "type": "text",
+          "value": "f",
+          "data": null
+        },
+        {
+          "type": "text",
+          "value": "g",
+          "data": false
+        }
+      ]
+    }
+  ]
+}
