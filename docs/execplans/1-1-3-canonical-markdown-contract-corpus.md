@@ -13,9 +13,13 @@ lost `false`, an isolated one-column table-alignment pair, and a literal-tab
 code value. D13 now implements those controls and cases; all seven sequential
 local gates pass on the working tree with 350 tests. The audit found no known
 vulnerabilities, although two packages are unavailable on PyPI. The repaired
-candidate still needs commit, push, hosted checks, and CodeRabbit reassessment.
-Implementation acceptance is open and roadmap task 1.1.3 remains unchecked. The
-maintainer granted an exception to the 600-line total cap on 2026-10-15.
+candidate `59f6d17` passed hosted CI, Act Validation, CodeScene, and Gecko.
+CodeRabbit's follow-up resolved all four coverage obligations and found no
+other corpus omissions or runtime regression. It requested updating the
+roadmap's deliverable count from 99 to 101; that correction is in progress.
+Final-head checks, formal review, and implementation acceptance remain open, so
+roadmap task 1.1.3 remains unchecked. The maintainer granted an exception to
+the 600-line total cap on 2026-10-15.
 
 Roadmap task: **1.1.3**. Prerequisite: **1.1.2**, completed at baseline
 `c19afee8ed735dffa6262cf0b2e0a9ca0a5a0551`.
@@ -340,9 +344,12 @@ is not a reason to cancel, duplicate, or bypass a gate.
   [6257298887](https://github.com/leynos/syrupy-mdast/pull/74#issuecomment-6257298887):
   add copied-golden negative controls for swapped list children and lost
   `false`, isolate a one-column table-alignment distinction, and pin a literal
-  tab in a fenced code value. The controls and cases are implemented, and all
-  seven sequential local gates pass with 350 tests. Commit, push, hosted
-  checks, and candidate-bound reassessment remain pending.
+  tab in a fenced code value. Follow-up assessment
+  [6257513469](https://github.com/leynos/syrupy-mdast/pull/74#issuecomment-6257513469)
+  verified all four obligations on `59f6d17` and found no remaining corpus
+  omissions. It requested changing the roadmap deliverable count from 99 to
+  101. The count is corrected below; final-head gates, hosted checks, and
+  formal review remain pending.
 
 ## Surprises & discoveries
 
@@ -1227,3 +1234,11 @@ seven sequential local gates now pass with 350 tests; audit reports no known
 vulnerabilities, with two packages unavailable on PyPI. Commit, push, hosted
 checks, and follow-up assessment remain pending. Roadmap task 1.1.3 remains
 unchecked.
+
+Revision note (2026-10-19): CodeRabbit follow-up assessment comment 6257513469
+covered head `59f6d17873e88c25dd18b0778745d016347d7c8b` and verified the list
+and falsy copied-golden controls, isolated table alignment pair, and literal
+tab code case. It found no other corpus omissions or incorrect payloads, but
+requested correcting the roadmap's current deliverable count from 99 to 101.
+The count is updated; the roadmap task remains unchecked until the final head's
+checks and formal review complete.

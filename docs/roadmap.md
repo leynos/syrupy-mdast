@@ -49,7 +49,7 @@ outcome bounds every parser, serializer, and compatibility decision. See the
     references.
   - Success: every normalization and preservation rule in design §8 maps to a
     focused, reviewer-readable fixture.
-  - Current deliverable: 99 cases and hand-authored expected payloads appear in
+  - Current deliverable: 101 cases and hand-authored expected payloads appear in
     the [canonical Markdown contract corpus](../tests/fixtures/markdown_contract/README.md).
     Its integrity tests validate the authored fixtures; parser and
     canonicalizer conformance remain implementation work in later roadmap
