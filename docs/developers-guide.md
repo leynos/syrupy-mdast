@@ -124,9 +124,11 @@ uv run pytest -v tests/test_markdown_contract.py tests/test_markdown_contract_lo
 Its loader and integrity tests are test support only: they validate metadata,
 source bytes, expected payloads, and relationships without parsing Markdown or
 canonicalizing trees. Passing this suite proves fixture integrity, not parser
-conformance. Manifest-shape and path helpers stay private to
-`markdown_contract_loading.py`; its `_register_unique_identifier` helper checks
-both case and relation IDs.
+conformance. Semantic assertions in `tests/support/markdown_contract.py` are
+private to corpus tests and are reused for authored payloads and copied-golden
+negative controls; they never generate expected output. Manifest-shape and path
+helpers stay private to `markdown_contract_loading.py`; its
+`_register_unique_identifier` helper checks both case and relation IDs.
 
 When changing a case, review the manifest, source or synthetic input, source
 witness, expected payload, relation membership, assertion index, and focused

@@ -70,6 +70,9 @@
     "code-fenced-whitespace": [
       "NF-10"
     ],
+    "code-fenced-tab": [
+      "NF-10"
+    ],
     "code-fenced-language": [
       "NF-10"
     ],
@@ -220,6 +223,10 @@
       "NF-10"
     ],
     "table-right": [
+      "NF-5",
+      "NF-10"
+    ],
+    "table-left-second-right": [
       "NF-5",
       "NF-10"
     ],
@@ -560,6 +567,13 @@
         "table-right"
       ]
     },
+    "table-single-alignment": {
+      "relation": "distinct",
+      "cases": [
+        "table-left",
+        "table-left-second-right"
+      ]
+    },
     "table-cell-content": {
       "relation": "distinct",
       "cases": [
@@ -586,6 +600,13 @@
       "cases": [
         "code-fenced-base",
         "code-fenced-whitespace"
+      ]
+    },
+    "fenced-code-tab": {
+      "relation": "distinct",
+      "cases": [
+        "code-fenced-base",
+        "code-fenced-tab"
       ]
     },
     "fenced-code-language": {
@@ -815,6 +836,13 @@
         "right"
       ]
     },
+    "table-left-second-right": {
+      "type": "table",
+      "align": [
+        "left",
+        "right"
+      ]
+    },
     "table-cell-base": {
       "type": "text",
       "value": "1"
@@ -882,6 +910,10 @@
     "code-fenced-whitespace": {
       "type": "code",
       "value": " c \n"
+    },
+    "code-fenced-tab": {
+      "type": "code",
+      "value": "\tc \n"
     },
     "code-fenced-language": {
       "type": "code",

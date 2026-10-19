@@ -1,7 +1,8 @@
-"""Define corpus records and byte-level helpers for integrity tests.
+"""Define corpus records and assertions for contract integrity tests.
 
 For example, ``read_expected_payload(path)`` decodes an authored expected file
-without generating output from a parser or canonicalizer.
+without generating output from a parser or canonicalizer. Semantic assertion
+helpers check authored payloads and copied-golden controls.
 """
 
 import dataclasses
@@ -197,6 +198,53 @@ def contains_node_mapping(value: JSONValue, marker: dict[str, JSONValue]) -> boo
         )
         for mapping in node_mappings(value)
         if mapping.get("type") == marker.get("type")
+    )
+
+
+def assert_list_item_order(
+    value: JSONValue, expected_values: list[str], case_id: str
+) -> None:
+    """Require the named list's child values to retain their authored order.
+
+    Example: ``assert_list_item_order(payload, ["a", "b"], "ordered-list")``
+    rejects a golden whose list children are swapped.
+    """
+    list_node = next(
+        node for node in node_mappings(value) if node.get("type") == "list"
+    )
+    values: list[str] = []
+    for item in json_array(list_node["children"]):
+        list_item = json_mapping(item)
+        paragraph = json_mapping(json_array(list_item["children"])[0])
+        text_node = json_mapping(json_array(paragraph["children"])[0])
+        text_value = text_node["value"]
+        assert isinstance(text_value, str), (
+            f"case {case_id!r} list item text must be a string"
+        )
+        values.append(text_value)
+    assert values == expected_values, f"case {case_id!r} must preserve item order"
+
+
+def assert_preserved_falsy_values(value: JSONValue) -> None:
+    """Require authored data, null slots, and unknown arrays to survive.
+
+    Example: ``assert_preserved_falsy_values(payload)`` rejects a lost ``false``.
+    """
+    root = json_mapping(value)
+    data = json_mapping(
+        next(mapping["data"] for mapping in node_mappings(root) if "data" in mapping)
+    )
+    assert data.get("false") is False, "false must remain a boolean"
+    assert type(data["zero"]) is int, "zero must remain an integer"
+    assert data["zero"] == 0, "integer zero must be preserved"
+    assert isinstance(data["empty_string"], str), "empty string data must remain text"
+    assert not data["empty_string"], "empty strings must be preserved"
+    assert data["empty_array"] == [], "empty arrays must be preserved"
+    assert data["null"] is None, "null members must be preserved"
+    assert data["empty"] == {}, "nested empty mappings must be preserved"
+    assert json_array(root["children"])[-1] is None, "null array slot must remain"
+    assert json_array(root["unknown"]) == [3, 1, 2], (
+        "unknown arrays must retain their order"
     )
 
 

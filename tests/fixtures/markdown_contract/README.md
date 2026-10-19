@@ -11,7 +11,8 @@ names each case, its governing rule, and its relation to other cases.
 
 ## Representative cases
 
-This table highlights four fixture families. The complete case-to-rule map is in
+This table highlights representative fixture families. The complete
+case-to-rule map is in
 [`assertions/contract-assertions.json`](assertions/contract-assertions.json).
 
 | Case IDs                                                  | Rule  | Contract                                                                    |
@@ -20,6 +21,8 @@ This table highlights four fixture families. The complete case-to-rule map is in
 | `strong-asterisk`, `strong-underscore`                    | NF-1  | Delimiter spelling preserves the same strong node.                          |
 | `break-soft`, `break-hard-spaces`, `break-hard-backslash` | NF-10 | A soft line break remains distinct from the two equal hard-break spellings. |
 | `line-endings-lf`, `line-endings-crlf`, `line-endings-cr` | NF-8  | LF, CRLF, and CR source bytes map to one expected paragraph.                |
+| `table-left`, `table-left-second-right`                   | NF-5  | Changing only the second column's alignment changes the table payload.      |
+| `code-fenced-base`, `code-fenced-tab`                     | NF-10 | Parsed code values retain spaces and a literal tab.                         |
 
 The manifest's `line_endings` field classifies source bytes. The corpus does
 not infer this declaration from a decoded string: `lf` contains LF and no CR,

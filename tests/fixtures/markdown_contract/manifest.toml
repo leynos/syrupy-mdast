@@ -443,6 +443,16 @@ expected = "expected/table-right.json"
 line_endings = "lf"
 
 [[cases]]
+id = "table-left-second-right"
+rules = ["NF-5", "NF-10"]
+reason = "Only the second column changes from left to right alignment."
+witness = "| a | b |\n|:---|---:|\n| 1 | 2 |\n"
+kind = "markdown"
+input = "sources/table-left-second-right.txt"
+expected = "expected/table-left-second-right.json"
+line_endings = "lf"
+
+[[cases]]
 id = "table-cell-base"
 rules = ["NF-5", "NF-10"]
 reason = "The first table payload preserves `1` as the data row's cell value."
@@ -650,6 +660,16 @@ witness = "```py m\n c \n```\n"
 kind = "markdown"
 input = "sources/code-fenced-whitespace.txt"
 expected = "expected/code-whitespace.json"
+line_endings = "lf"
+
+[[cases]]
+id = "code-fenced-tab"
+rules = ["NF-10"]
+reason = "A literal tab at the start of the fenced code value is preserved."
+witness = "```py m\n\tc \n```\n"
+kind = "markdown"
+input = "sources/code-fenced-tab.txt"
+expected = "expected/code-fenced-tab.json"
 line_endings = "lf"
 
 [[cases]]
@@ -1091,6 +1111,11 @@ relation = "distinct"
 cases = ["table-left", "table-centre", "table-right"]
 
 [[relations]]
+id = "table-single-alignment"
+relation = "distinct"
+cases = ["table-left", "table-left-second-right"]
+
+[[relations]]
 id = "table-cell-content"
 relation = "distinct"
 cases = ["table-cell-base", "table-cell-changed"]
@@ -1109,6 +1134,11 @@ cases = ["html-allowed", "html-filtered-iframe"]
 id = "fenced-code-whitespace"
 relation = "distinct"
 cases = ["code-fenced-base", "code-fenced-whitespace"]
+
+[[relations]]
+id = "fenced-code-tab"
+relation = "distinct"
+cases = ["code-fenced-base", "code-fenced-tab"]
 
 [[relations]]
 id = "fenced-code-language"

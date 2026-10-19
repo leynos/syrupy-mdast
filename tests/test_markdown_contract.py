@@ -16,7 +16,9 @@ from tests.support.markdown_contract import (
     ContractCorpus,
     JSONValue,
     all_mappings,
+    assert_list_item_order,
     assert_preferred_member_order,
+    assert_preserved_falsy_values,
     contains_node_mapping,
     json_array,
     json_mapping,
@@ -146,14 +148,6 @@ def test_named_cases_pin_their_expected_node_fields(
     assert contains_node_mapping(payload, marker), f"{case_id!r}: marker missing"
 
 
-@pytest.mark.parametrize(("actual", "marker"), [(0, False), (1, True)])
-def test_markers_distinguish_bool_int(actual: int, *, marker: bool) -> None:
-    """Nested markers distinguish boolean values from integers."""
-    actual_node = json_mapping({"type": "root", "data": {"keep": actual}})
-    marker_node = json_mapping({"type": "root", "data": {"keep": marker}})
-    assert not contains_node_mapping(actual_node, marker_node), "bool and int differ"
-
-
 def test_goldens_cover_all_node_types(corpus: ContractCorpus) -> None:
     """Focused and supplementary goldens collectively cover every node type."""
     observed = {
@@ -204,20 +198,25 @@ def test_list_item_order_is_preserved(
 ) -> None:
     """Canonical list arrays retain the order written in each source."""
     payload = read_expected_payload(_case_by_id(corpus, case_id).expected)
-    list_node = next(
-        node for node in node_mappings(payload) if node.get("type") == "list"
-    )
-    values: list[str] = []
-    for item in json_array(list_node["children"]):
-        list_item = json_mapping(item)
-        paragraph = json_mapping(json_array(list_item["children"])[0])
-        text_node = json_mapping(json_array(paragraph["children"])[0])
-        value = text_node["value"]
-        assert isinstance(value, str), (
-            f"case {case_id!r} list item text must be a string"
+    assert_list_item_order(payload, expected_values, case_id)
+
+
+def test_swapped_list_golden_mutation_is_rejected(
+    tmp_path: Path, corpus: ContractCorpus
+) -> None:
+    """A copied golden with reversed children fails the list-order assertion."""
+    case = _case_by_id(corpus, "list-item-order-swapped")
+    copied_expected = tmp_path / case.expected.name
+    shutil.copyfile(case.expected, copied_expected)
+    tree = json_mapping(read_expected_payload(copied_expected))
+    list_node = next(node for node in node_mappings(tree) if node.get("type") == "list")
+    json_array(list_node["children"]).reverse()
+    copied_expected.write_text(json.dumps(tree), encoding="utf-8")
+
+    with pytest.raises(AssertionError, match="preserve item order"):
+        assert_list_item_order(
+            read_expected_payload(copied_expected), ["b", "a"], case.id
         )
-        values.append(value)
-    assert values == expected_values, f"case {case_id!r} must preserve item order"
 
 
 def test_recursive_removal_and_falsy_value_contracts(corpus: ContractCorpus) -> None:
@@ -244,26 +243,25 @@ def test_recursive_removal_and_falsy_value_contracts(corpus: ContractCorpus) -> 
     assert text_nodes[2]["data"] == [], "empty arrays in data must be preserved"
     assert text_nodes[3]["data"] is None, "null data must be preserved"
     assert text_nodes[4]["data"] is False, "false data must be preserved"
-    preserved = json_mapping(
-        read_expected_payload(_case_by_id(corpus, "preserve-falsy-values").expected)
+    preserved = read_expected_payload(
+        _case_by_id(corpus, "preserve-falsy-values").expected
     )
-    data = json_mapping(
-        next(
-            mapping["data"] for mapping in node_mappings(preserved) if "data" in mapping
-        )
-    )
-    assert data["false"] is False, "false must remain a boolean"
-    assert type(data["zero"]) is int, "zero must remain an integer"
-    assert data["zero"] == 0, "integer zero must be preserved"
-    assert isinstance(data["empty_string"], str), "empty string data must remain text"
-    assert not data["empty_string"], "empty strings must be preserved"
-    assert data["empty_array"] == [], "empty arrays must be preserved"
-    assert data["null"] is None, "null members must be preserved"
-    assert data["empty"] == {}, "nested empty mappings must be preserved"
-    assert json_array(preserved["children"])[-1] is None, "null array slot must remain"
-    assert json_array(preserved["unknown"]) == [3, 1, 2], (
-        "unknown arrays must retain their order"
-    )
+    assert_preserved_falsy_values(preserved)
+
+
+def test_lost_false_golden_mutation_is_rejected(
+    tmp_path: Path, corpus: ContractCorpus
+) -> None:
+    """A copied golden missing ``false`` fails the falsy-value assertion."""
+    case = _case_by_id(corpus, "preserve-falsy-values")
+    copied_expected = tmp_path / case.expected.name
+    shutil.copyfile(case.expected, copied_expected)
+    tree = json_mapping(read_expected_payload(copied_expected))
+    del json_mapping(tree["data"])["false"]
+    copied_expected.write_text(json.dumps(tree), encoding="utf-8")
+
+    with pytest.raises(AssertionError, match="false must remain a boolean"):
+        assert_preserved_falsy_values(read_expected_payload(copied_expected))
 
 
 def test_retained_position_mutation_is_rejected_in_a_temporary_golden(

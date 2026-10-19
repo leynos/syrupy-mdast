@@ -4,17 +4,18 @@
 # Create the canonical Markdown contract corpus
 
 
-Status: IN PROGRESS — EP-M1, EP-M2, and EP-M3 are complete. The last full
-deterministic run passed with 344 tests on the prior candidate. Review #22's
-line-ending case reasons are corrected below. On 2026-10-19, D12 split path
-validation from file resolution and manifest decoding from TOML parsing after
-hosted CodeScene again reported loader complexity above 4. Local `cs delta` now
-reports health 10.00 for the working change. All seven sequential local gates
-pass on the current working candidate, including 344 tests; the audit found no
-known vulnerabilities, although two packages are unavailable on PyPI. Commit,
-hosted checks, and CodeScene reassessment remain pending. Implementation
-acceptance is open and roadmap task 1.1.3 remains unchecked. The maintainer
-granted an exception to the 600-line total cap on 2026-10-15.
+Status: IN PROGRESS — EP-M1, EP-M2, and EP-M3 are complete. D12 was published
+in commit `4cb3680`; all seven sequential local gates passed with 344 tests,
+and hosted CI, Act Validation, CodeScene, and Gecko passed on that exact head.
+CodeRabbit's completeness assessment of that candidate found three remaining
+coverage obligations: copied-golden controls for swapped list children and a
+lost `false`, an isolated one-column table-alignment pair, and a literal-tab
+code value. D13 now implements those controls and cases; all seven sequential
+local gates pass on the working tree with 350 tests. The audit found no known
+vulnerabilities, although two packages are unavailable on PyPI. The repaired
+candidate still needs commit, push, hosted checks, and CodeRabbit reassessment.
+Implementation acceptance is open and roadmap task 1.1.3 remains unchecked. The
+maintainer granted an exception to the 600-line total cap on 2026-10-15.
 
 Roadmap task: **1.1.3**. Prerequisite: **1.1.2**, completed at baseline
 `c19afee8ed735dffa6262cf0b2e0a9ca0a5a0551`.
@@ -332,7 +333,16 @@ is not a reason to cancel, duplicate, or bypass a gate.
   398 lines. All seven sequential local gates pass, including 344 tests;
   dependency audit found no known vulnerabilities but could not audit
   `df12-python-lints` or `syrupy-mdast` because they are unavailable on PyPI.
-  Commit, hosted checks, and CodeScene reassessment remain pending.
+  Commit `4cb3680` was pushed; hosted CI, Act Validation, CodeScene, and Gecko
+  all passed on that head. The later CodeRabbit completeness assessment found
+  three separate coverage gaps; D13 tracks those repairs.
+- [ ] (2026-10-19) Close CodeRabbit assessment comment
+  [6257298887](https://github.com/leynos/syrupy-mdast/pull/74#issuecomment-6257298887):
+  add copied-golden negative controls for swapped list children and lost
+  `false`, isolate a one-column table-alignment distinction, and pin a literal
+  tab in a fenced code value. The controls and cases are implemented, and all
+  seven sequential local gates pass with 350 tests. Commit, push, hosted
+  checks, and candidate-bound reassessment remain pending.
 
 ## Surprises & discoveries
 
@@ -443,7 +453,17 @@ is not a reason to cancel, duplicate, or bypass a gate.
   validation from rooted file checks, and strict UTF-8 file reading from TOML
   decoding. Preserve contextual errors and keep the unchanged 400-line limit.
   Do not suppress the rule or change its configuration. Local delta analysis
-  now clears the finding; hosted reassessment and full gates decide acceptance.
+  now clears the finding. The full local gates and hosted CodeScene review
+  passed on published commit `4cb3680`.
+- **D13 — close explicit corpus-coverage findings.** 2026-10-19. CodeRabbit's
+  completeness assessment on `4cb368049448c8e41578ae1a5618752c9f64dc9c`
+  confirmed the inspected payloads and runtime boundary but identified three
+  unfulfilled matrix obligations. Add copied-golden mutations that reuse the
+  list-order and falsy-value assertions, a table pair differing only in one
+  column's alignment, and a fenced-code case whose authored value contains a
+  literal tab. Keep all expected values hand-authored and keep the change
+  within the existing four Python files and 400-line per-file limit. Request
+  reassessment after candidate-bound gates and hosted checks pass.
 
 ## Outcomes & retrospective
 
@@ -1189,7 +1209,21 @@ complexity 4.38 across 16 functions, above the threshold of 4, on published head
 `2b5ca1d`. D12 separates path validation, rooted file checks, manifest
 reading, and TOML decoding without suppressing the rule. Local delta analysis
 reports the working change fixed at health 10.00. All seven sequential local
-gates pass on the working candidate, including 344 tests. Audit reports no
-known vulnerabilities with two packages unavailable on PyPI. Commit, hosted
-checks, and hosted CodeScene reassessment remain pending. The PR remains draft
+gates pass on the published D12 candidate, including 344 tests, and on the
+current D13 working tree, including 350 tests. Audit reports no known
+vulnerabilities with two packages unavailable on PyPI. Commit, hosted checks,
+and hosted CodeScene reassessment remain pending for D13. The PR remains draft
 and the roadmap item remains unchecked until implementation acceptance.
+
+Revision note (2026-10-19): CodeRabbit assessment comment 6257298887, covering
+published head `4cb368049448c8e41578ae1a5618752c9f64dc9c`, found three missing
+coverage obligations: copied-golden controls for swapped list children and lost
+`false`, a distinct pair changing only one table alignment, and a literal tab
+in a fenced-code value. It found no incorrect authored payload or runtime
+regression in its inspection. D13 adds reusable list-order and falsy-value
+assertions with copied-golden controls, the one-column table-alignment pair,
+and the fenced-code tab value in both source witness and expected marker. All
+seven sequential local gates now pass with 350 tests; audit reports no known
+vulnerabilities, with two packages unavailable on PyPI. Commit, push, hosted
+checks, and follow-up assessment remain pending. Roadmap task 1.1.3 remains
+unchecked.
