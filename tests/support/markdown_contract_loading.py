@@ -87,17 +87,8 @@ def _string_tuple(value: object, location: str) -> tuple[str, ...]:
     return tuple(strings)
 
 
-def _resolve_corpus_file(root: Path, value: object, location: str) -> Path:
-    """Resolve a safe corpus file; a relative ``manifest.toml`` stays under ``root``.
-
-    Returns
-    -------
-    Path
-
-    Raises
-    ------
-    ValueError
-    """
+def _relative_corpus_path(value: object, location: str) -> tuple[str, PurePosixPath]:
+    """Return a safe path; ``_relative_corpus_path("a.md", "case")`` succeeds."""
     relative_name = _string(value, f"{location} path")
     relative_path = PurePosixPath(relative_name)
     windows_path = PureWindowsPath(relative_name)
@@ -111,7 +102,13 @@ def _resolve_corpus_file(root: Path, value: object, location: str) -> Path:
     )):
         message = f"{location} path must be relative to the corpus root"
         raise ValueError(message)
+    return relative_name, relative_path
 
+
+def _corpus_file(
+    root: Path, relative_name: str, relative_path: PurePosixPath, location: str
+) -> Path:
+    """Resolve an existing file; ``_corpus_file(root, name, path, "case")`` succeeds."""
     resolved_root = root.resolve()
     resolved_path = resolved_root.joinpath(*relative_path.parts).resolve()
     if not resolved_path.is_relative_to(resolved_root):
@@ -121,6 +118,12 @@ def _resolve_corpus_file(root: Path, value: object, location: str) -> Path:
         message = f"{location} file does not exist: {relative_name!r}"
         raise ValueError(message)
     return resolved_path
+
+
+def _resolve_corpus_file(root: Path, value: object, location: str) -> Path:
+    """Resolve a safe file; ``_resolve_corpus_file(root, "a.md", "case")`` succeeds."""
+    relative_name, relative_path = _relative_corpus_path(value, location)
+    return _corpus_file(root, relative_name, relative_path, location)
 
 
 def load_corpus(root: Path) -> ContractCorpus:
@@ -141,17 +144,8 @@ def load_corpus(root: Path) -> ContractCorpus:
     return ContractCorpus(cases=cases, relations=relations)
 
 
-def _read_manifest(root: Path) -> dict[str, object]:
-    """Decode TOML strictly; ``_read_manifest(root)`` returns its top-level table.
-
-    Returns
-    -------
-    dict[str, object]
-
-    Raises
-    ------
-    ValueError
-    """
+def _manifest_text(root: Path) -> str:
+    """Decode manifest text; ``_manifest_text(root)`` returns strict UTF-8."""
     manifest_path = root / "manifest.toml"
     try:
         manifest_text = manifest_path.read_bytes().decode("utf-8")
@@ -161,6 +155,12 @@ def _read_manifest(root: Path) -> dict[str, object]:
     except UnicodeDecodeError as error:
         message = f"manifest.toml is not valid UTF-8: {error}"
         raise ValueError(message) from error
+    return manifest_text
+
+
+def _read_manifest(root: Path) -> dict[str, object]:
+    """Load a TOML table; ``_read_manifest(root)`` returns its values."""
+    manifest_text = _manifest_text(root)
     try:
         return _table(tomllib.loads(manifest_text), "manifest.toml")
     except tomllib.TOMLDecodeError as error:

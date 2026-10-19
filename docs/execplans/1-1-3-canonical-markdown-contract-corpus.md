@@ -4,12 +4,17 @@
 # Create the canonical Markdown contract corpus
 
 
-Status: IN PROGRESS — EP-M1, EP-M2, and EP-M3 are complete. The latest
-deterministic gates passed with 344 tests. Review #22's finding about the
-line-ending case reasons is corrected below. Hosted CodeScene reassessment and
-implementation acceptance remain open; roadmap task 1.1.3 stays unchecked until
-acceptance. The maintainer granted an exception to the 600-line total cap on
-2026-10-15.
+Status: IN PROGRESS — EP-M1, EP-M2, and EP-M3 are complete. The last full
+deterministic run passed with 344 tests on the prior candidate. Review #22's
+line-ending case reasons are corrected below. On 2026-10-19, D12 split path
+validation from file resolution and manifest decoding from TOML parsing after
+hosted CodeScene again reported loader complexity above 4. Local `cs delta` now
+reports health 10.00 for the working change. All seven sequential local gates
+pass on the current working candidate, including 344 tests; the audit found no
+known vulnerabilities, although two packages are unavailable on PyPI. Commit,
+hosted checks, and CodeScene reassessment remain pending. Implementation
+acceptance is open and roadmap task 1.1.3 remains unchecked. The maintainer
+granted an exception to the 600-line total cap on 2026-10-15.
 
 Roadmap task: **1.1.3**. Prerequisite: **1.1.2**, completed at baseline
 `c19afee8ed735dffa6262cf0b2e0a9ca0a5a0551`.
@@ -317,6 +322,17 @@ is not a reason to cancel, duplicate, or bypass a gate.
 - [x] (2026-10-17) Fix the R-CORPUS README link and update the interface section
   for the delivered support-module split. Fresh review found both descriptions
   stale; final gates and another full-diff review remain pending.
+- [x] (2026-10-19) Refactor the loader's path and manifest boundaries after
+  hosted CodeScene reported mean cyclomatic complexity 4.38 across 16
+  functions, above the configured threshold of 4. Separate lexical path checks
+  from rooted file checks and strict text decoding from TOML parsing. Exact
+  path errors, read/decode errors, and malformed-TOML errors remain distinct.
+  `cs delta --file tests/support/markdown_contract_loading.py` reports the
+  complexity issue fixed and health 10.00 on the working change. The loader is
+  398 lines. All seven sequential local gates pass, including 344 tests;
+  dependency audit found no known vulnerabilities but could not audit
+  `df12-python-lints` or `syrupy-mdast` because they are unavailable on PyPI.
+  Commit, hosted checks, and CodeScene reassessment remain pending.
 
 ## Surprises & discoveries
 
@@ -421,6 +437,13 @@ is not a reason to cancel, duplicate, or bypass a gate.
   defines no transformation that adds members. Remove the paragraph `data` from
   its expected payload and assert its absence. This corrects the fixture; it
   does not change the accepted normalization contract.
+- **D12 — separate loader validation boundaries.** 2026-10-19. Hosted
+  CodeScene still measured the manifest loader at mean cyclomatic complexity
+  4.38 across 16 functions, above its threshold of 4. Split lexical path
+  validation from rooted file checks, and strict UTF-8 file reading from TOML
+  decoding. Preserve contextual errors and keep the unchanged 400-line limit.
+  Do not suppress the rule or change its configuration. Local delta analysis
+  now clears the finding; hosted reassessment and full gates decide acceptance.
 
 ## Outcomes & retrospective
 
@@ -1160,3 +1183,13 @@ reasons described normalization without naming the parsed string and expected
 value. The paragraph, fenced-code, and link-title reasons now state the value
 each fixture pins for LF, CRLF, and bare CR input. Hosted CodeScene
 reassessment and implementation acceptance remain pending.
+
+Revision note (2026-10-19): hosted CodeScene result 7998531 reports loader
+complexity 4.38 across 16 functions, above the threshold of 4, on published head
+`2b5ca1d`. D12 separates path validation, rooted file checks, manifest
+reading, and TOML decoding without suppressing the rule. Local delta analysis
+reports the working change fixed at health 10.00. All seven sequential local
+gates pass on the working candidate, including 344 tests. Audit reports no
+known vulnerabilities with two packages unavailable on PyPI. Commit, hosted
+checks, and hosted CodeScene reassessment remain pending. The PR remains draft
+and the roadmap item remains unchecked until implementation acceptance.
