@@ -50,3 +50,8 @@ documentation set.
 - [Scripting standards](scripting-standards.md) explains the preferred Python
   scripting stack, command execution patterns, and test expectations for helper
   scripts.
+
+## Execution plans
+
+- [Exact Wenmode runtime dependency](execplans/1-2-1-wenmode-runtime-dependency.md)
+  proposes roadmap 1.2.1 and its approval-gated verification work.
