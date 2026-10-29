@@ -1,6 +1,6 @@
 # Add the exact Wenmode runtime dependency
 
-Status: DRAFT — awaiting explicit approval before implementation.
+Status: APPROVED — implementation in progress.
 
 Roadmap task: **1.2.1**. Baseline: `780a9081eb7f2a810165e1db2b8dc9b187b64972`.
 Prepared 2026-10-20.
@@ -8,7 +8,7 @@ Prepared 2026-10-20.
 This execution plan is a living document. Keep its constraints, tolerances,
 risks, progress, discoveries, decisions, conformance basis, verification, and
 outcomes current at each milestone. Approval includes the proposed dependency
-policy change described below; publication of this plan does not accept it.
+policy change described below; the user approved implementation on 2026-10-29.
 
 ## Purpose and big picture
 
@@ -80,7 +80,7 @@ builds per behavioural scenario or Hypothesis example.
 - [x] 2026-10-20: Draft implementation and verification together.
 - [x] 2026-10-20: Six-perspective community review and revisions.
 - [x] 2026-10-20: Validate the plan and prepare it for draft publication.
-- [ ] Obtain explicit approval, including the dependency-policy amendment.
+- [x] 2026-10-29: Obtain approval, including the dependency-policy amendment.
 - [ ] EP-M1: Ratify exact pin, add dependency, and prove Python-only installs.
 - [ ] EP-M2: Complete documentation, gates, and roadmap reconciliation.
 
@@ -544,3 +544,6 @@ contracts. Approval and all implementation work remain outstanding.
 2026-10-20: Recorded passing planning gates and clarified that recorded
 container invocations provide network-configuration evidence before automatic
 removal. Implementation acceptance remains pending approval and execution.
+
+2026-10-29: User approved the plan and its dependency-policy amendment and
+requested implementation after rebasing onto the PR target.
