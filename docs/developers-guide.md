@@ -154,15 +154,19 @@ package's annotations from installed distributions.
 
 ### Verify the Python-only dependency boundary
 
-The test-only `tests/support/package_boundary.py` classifies archive paths;
+The test-only `tests/support/package_boundary.py` classifies archive paths.
 `tests/support/wenmode_installation.py` prepares a local wheelhouse and creates
-fresh wheel and editable installations, while
+fresh wheel and editable installations through `install_project`, while
 `tests/support/wenmode_offline_install.py` proves a missing Wenmode wheel fails
-visibly. Reuse these helpers for package boundary tests, not production
-parsing. Run the behavioural and classifier checks with:
+visibly. The session `wheelhouse` fixture in `tests/conftest.py` is shared by
+the behavioural scenarios and the manifest contract, so the project wheel,
+runtime wheels, and build backend are downloaded and inspected once per test
+worker. Reuse these helpers for package boundary tests, not production parsing.
+Run the behavioural, manifest, and classifier checks with:
 
 ```bash
-uv run pytest -v tests/test_package_boundary.py tests/test_wenmode_dependency_bdd.py
+uv run pytest -v tests/test_package_boundary.py \
+  tests/test_package_manifest_contract.py tests/test_wenmode_dependency_bdd.py
 ```
 
 Wheelhouse preparation fetches wheels before isolation. Installation uses an

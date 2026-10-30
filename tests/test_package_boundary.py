@@ -21,6 +21,8 @@ _FORBIDDEN_NAMES = (
     "yarn.lock",
     "tsconfig.json",
     "tsconfig.build.json",
+    "tsconfig.base.json",
+    "tsconfig.test.json",
     "bun",
     "bun.exe",
     "node",
@@ -74,19 +76,36 @@ def test_node_modules_component_is_forbidden_at_any_depth() -> None:
     )
 
 
+def _forbidden_member_strategy() -> st.SearchStrategy[tuple[str, str]]:
+    """Return forbidden members drawn from every supported asset family."""
+    source = st.sampled_from(_FORBIDDEN_SUFFIXES).map(
+        lambda suffix: ("source suffix", f"payload{suffix}")
+    )
+    named = st.sampled_from(_FORBIDDEN_NAMES).map(
+        lambda name: ("manifest, lockfile or runtime", name)
+    )
+    tsconfig = st.from_regex(r"tsconfig(\.[a-z0-9_-]+)?\.json", fullmatch=True).map(
+        lambda name: ("TypeScript settings", name)
+    )
+    node_modules = st.just(("dependency tree", "node_modules/dependency/README"))
+    return st.one_of(source, named, tsconfig, node_modules)
+
+
 @given(
     prefix=st.lists(
         st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789_-", min_size=1),
         min_size=0,
         max_size=6,
     ),
-    suffix=st.sampled_from(_FORBIDDEN_SUFFIXES),
+    forbidden=_forbidden_member_strategy(),
 )
-def test_forbidden_source_is_found_at_constructed_archive_path(
-    prefix: list[str], suffix: str
+def test_forbidden_member_is_found_at_constructed_archive_path(
+    prefix: list[str], forbidden: tuple[str, str]
 ) -> None:
-    """A forbidden file remains detectable at any generated path depth."""
-    path = str(PurePosixPath(*prefix, f"payload{suffix}"))
+    """A forbidden member remains detectable at any generated path depth."""
+    family, member = forbidden
+    path = str(PurePosixPath(*prefix, *PurePosixPath(member).parts))
+    event(f"forbidden family: {family}")
     event("forbidden path at root" if not prefix else "forbidden path nested")
     assert is_javascript_asset(path), (
         f"generated forbidden asset path {path} was permitted"
@@ -97,18 +116,26 @@ def test_forbidden_source_is_found_at_constructed_archive_path(
     safe_members=st.lists(
         st.sampled_from(_SAFE_PATHS), min_size=0, max_size=8, unique=True
     ),
-    suffix=st.sampled_from(_FORBIDDEN_SUFFIXES),
+    forbidden=_forbidden_member_strategy(),
 )
-def test_archive_member_position_cannot_hide_forbidden_asset(
-    safe_members: list[str], suffix: str
+def test_archive_member_position_cannot_hide_forbidden_member(
+    safe_members: list[str], forbidden: tuple[str, str]
 ) -> None:
     """A forbidden wheel entry is found at every generated archive position."""
-    member = f"package/nested/module{suffix}"
+    family, member = forbidden
+    nested_member = str(
+        PurePosixPath("package", "nested", *PurePosixPath(member).parts)
+    )
+    event(f"forbidden family: {family}")
     event("archive with safe entries" if safe_members else "single-entry archive")
     for position in range(len(safe_members) + 1):
-        members = [*safe_members[:position], member, *safe_members[position:]]
+        members = [
+            *safe_members[:position],
+            nested_member,
+            *safe_members[position:],
+        ]
         findings = find_javascript_assets(members)
-        assert findings == [member], (
+        assert findings == [nested_member], (
             f"forbidden wheel member at archive position {position} was missed"
         )
 

@@ -144,10 +144,31 @@ def _assert_python_only_wheels(wheels: tuple[Path, ...]) -> None:
         )
 
 
-def install_and_probe(
-    wheelhouse: Wheelhouse, mode: str, environment_path: Path
-) -> tuple[str, str]:
-    """Install one fresh mode offline and return probe output and stderr."""
+def install_project(wheelhouse: Wheelhouse, mode: str, environment_path: Path) -> Path:
+    """Create a fresh environment and install the project in one mode.
+
+    Parameters
+    ----------
+    wheelhouse
+        Prepared local wheels and release evidence.
+    mode
+        ``"wheel"`` installs the built wheel; ``"editable"`` installs the
+        checkout through its declared build backend.
+    environment_path
+        New virtual-environment path. Its parent must exist and receive the
+        private installer cache.
+
+    Returns
+    -------
+    Path
+        Python executable inside the new environment.
+
+    Examples
+    --------
+    >>> python = install_project(wheelhouse, "wheel", temporary_path / "wheel")
+    >>> python.is_file()
+    True
+    """
     assert mode in {"wheel", "editable"}, f"unsupported installation mode: {mode}"
     uv = _require_tool("uv")
     _run(
@@ -178,6 +199,14 @@ def install_and_probe(
         cwd=environment_path,
         env={**_clean_dependency_environment(), "UV_CACHE_DIR": str(uv_cache)},
     )
+    return python
+
+
+def install_and_probe(
+    wheelhouse: Wheelhouse, mode: str, environment_path: Path
+) -> tuple[str, str]:
+    """Install one fresh mode offline and return probe output and stderr."""
+    python = install_project(wheelhouse, mode, environment_path)
     inventory = _run(
         [python, "-I", "-c", _runtime_inventory_probe()],
         cwd=environment_path,
@@ -208,14 +237,23 @@ def install_and_probe(
 
 
 def _runtime_inventory_probe() -> str:
-    """Return a child program checking installed Wenmode runtime contents."""
+    """Return a child program inventorying every installed distribution.
+
+    The fresh environment contains the whole runtime closure, including the
+    pytest distributions that Syrupy requires. Enumerating the environment
+    rather than three expected names keeps E-ASSETS true if that closure grows.
+
+    Returns
+    -------
+    str
+        Child program that prints a JSON inventory of installed distributions.
+    """
     return "\n".join((
         "import json",
-        "from importlib.metadata import distribution",
-        "names = ('wenmode', 'syrupy-mdast', 'syrupy')",
+        "from importlib.metadata import distributions",
         "inventory = {}",
-        "for name in names:",
-        "    item = distribution(name)",
+        "for item in distributions():",
+        "    name = item.metadata['Name']",
         "    inventory[name] = {",
         "        'version': item.version,",
         "        'requires': item.metadata.get_all('Requires-Dist') or [],",

@@ -10,22 +10,11 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.support.package_boundary import find_javascript_assets
-from tests.support.wenmode_installation import (
-    Wheelhouse,
-    install_and_probe,
-    prepare_wheelhouse,
-)
+from tests.support.wenmode_installation import Wheelhouse, install_and_probe
 from tests.support.wenmode_offline_install import install_without_wenmode
 
 _FEATURE = Path(__file__).parent / "features" / "wenmode_dependency.feature"
 scenarios(str(_FEATURE))
-
-
-@pytest.fixture(scope="session")
-def wheelhouse(tmp_path_factory: pytest.TempPathFactory) -> Wheelhouse:
-    """Prepare one local wheelhouse shared by every scenario in the worker."""
-    temporary_path = tmp_path_factory.mktemp("wenmode-wheelhouse")
-    return prepare_wheelhouse(temporary_path)
 
 
 @pytest.fixture(scope="session")

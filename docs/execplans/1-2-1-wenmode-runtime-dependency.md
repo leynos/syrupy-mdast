@@ -89,6 +89,9 @@ builds per behavioural scenario or Hypothesis example.
 - [x] EP-M2: Complete documentation, gates, and roadmap reconciliation.
 - [x] 2026-10-30: Repair the two hosted CodeScene Complex Method findings in
   the test-support harness, then rerun the full gates and republish.
+- [x] 2026-10-30: Close the assessment verification gaps: inventory the whole
+  installed runtime closure, share the wheelhouse with the manifest contract,
+  and generate every forbidden asset family in the property tests.
 
 ## Surprises & discoveries
 
@@ -140,6 +143,39 @@ at the baseline. Use `docs/contents.md` and this plan's concrete paths for
 orientation; creating a general layout guide is outside this slice.
 
 ## Decision log
+
+2026-10-30 — Accepted: the ExecPlan assessment found three verification gaps,
+and all three were valid against the published head. First, the installed
+inventory inspected only `wenmode`, `syrupy-mdast`, and `syrupy`, although the
+fresh environment also installs Syrupy's pytest closure (`pytest`, `pluggy`,
+`iniconfig`, `packaging`, `pygments`). The child probe now enumerates every
+installed distribution with `importlib.metadata.distributions()` and applies
+the forbidden-asset classifier to each distribution's file inventory, so a
+growing closure cannot fall outside E-ASSETS. Second, the manifest contract
+built a second wheel, installed it with network access, and called
+`subprocess.run` without bounds. It now consumes the session wheelhouse fixture
+moved to `tests/conftest.py`, installs through the shared offline
+`install_project` helper, and runs its import probe through the harness's
+bounded runner (30 s). Third, the generated archive-path properties sampled
+only source suffixes while the outcome claimed every forbidden family.
+`_forbidden_member_strategy` now draws source suffixes, named manifests,
+lockfiles and runtimes, generated `tsconfig*.json` names, and a `node_modules`
+tree, and both position properties use it. The finite matrix gains
+`tsconfig.base.json` and `tsconfig.test.json`.
+
+2026-10-30 — Accepted: the same assessment noted that the PR comment claimed
+eight hosted matrix jobs and that the container evidence was not inspectable.
+The actual hosted matrix is six jobs (Python 3.12/3.13/3.14 x Syrupy
+5.0.0/latest); the correction belongs in the assessment follow-up rather than
+the plan. The container evidence is now reproducible from recorded image IDs:
+`podman run --rm --network=none <image-id> sh -c ...` reports `bun`, `node`, and
+`nodejs` absent, and an outbound
+`socket.create_connection(("192.0.2.1", 443))` fails with
+`OSError: [Errno 101] Network is unreachable` on all three images
+(`/tmp/wenmode-container-evidence-20261030.out`). The retained six mode/
+interpreter parse passes are in `/tmp/wenmode-container-acceptance-final.out`,
+and the TypeScript-detection mutation fails three classifier tests in
+`/tmp/wenmode-mutation-1-2-1.out`.
 
 2026-10-30 — Accepted: the milestone CodeRabbit pass found that the installed
 runtime inventory omitted Syrupy, even though E-ASSETS requires installed
@@ -604,22 +640,31 @@ cross-links, and proves the Python-only boundary through the shared
 
 - `tests/test_package_manifest_contract.py` requires the built and installed
   metadata to agree on the exact pin; negative controls reject absent, ranged,
-  wrong-version, extra-qualified, and marker-qualified requirements.
-- `tests/test_package_boundary.py` covers 33 classifier cases, including
-  Hypothesis-generated archive positions for every forbidden asset family; a
-  synthetic nested `node_modules` archive is rejected by the same inspector
-  used on release wheels.
+  wrong-version, extra-qualified, and marker-qualified requirements. It now
+  reuses the session wheelhouse and offline `install_project` helper instead of
+  building and installing a second wheel with network access.
+- `tests/test_package_boundary.py` covers 35 classifier cases, including
+  Hypothesis-generated archive positions drawn from every forbidden family:
+  source suffixes, named manifests, lockfiles and runtimes, `tsconfig*.json`
+  settings, and `node_modules` trees. A synthetic nested `node_modules` archive
+  is rejected by the same inspector used on release wheels.
 - `tests/test_wenmode_dependency_bdd.py` runs four scenarios across wheel and
   editable installs, parses the three smoke documents offline behind audit-hook
   isolation controls, and requires a missing-Wenmode install to fail visibly.
+  Its probe inventories and inspects every distribution in the fresh runtime
+  closure, including Syrupy's pytest dependencies.
 - The Python 3.12, 3.13, and 3.14 rootless Podman matrix passed both modes with
-  `--network=none`; evidence is in
+  `--network=none`, six mode/interpreter combinations in total; evidence is in
   `/tmp/wenmode-container-acceptance-final.out` and
-  `.wenmode-acceptance.VSaqO0/images.txt`.
+  `.wenmode-acceptance.VSaqO0/images.txt`. Re-run read-only controls on the
+  recorded image IDs (`ae4e8b7c...`, `bdfc738a...`, `b37832cc...`) show `bun`,
+  `node`, and `nodejs` absent and outbound TCP denied with `Errno 101`
+  (`/tmp/wenmode-container-evidence-20261030.out`).
 
 Full gates on the rebased candidate passed sequentially: `make check-fmt`,
-`make typecheck`, `make lint`, `make test` (393 passed), `make audit`,
-`make markdownlint`, `make nixie`, and `git diff --check`. Logs follow the
+`make typecheck`, `make lint`, `make test` (395 passed after the assessment
+repairs), `make audit`, `make markdownlint`, `make nixie`, and
+`git diff --check`. Logs follow the
 `/tmp/<action>-syrupy-mdast-1-2-1-wenmode-runtime-dependency.out` pattern.
 
 No production parser adapter, public parsing function, snapshot bytes, or
