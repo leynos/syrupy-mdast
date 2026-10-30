@@ -94,6 +94,8 @@ builds per behavioural scenario or Hypothesis example.
 - [x] 2026-10-30: Close the assessment verification gaps: inventory the whole
   installed runtime closure, share the wheelhouse with the manifest contract,
   and generate every forbidden asset family in the property tests.
+- [x] 2026-10-30: Repair the follow-up review's public-docstring finding and
+  the CodeScene duplication it exposed, then rerun the full gates.
 
 ## Surprises & discoveries
 
@@ -146,6 +148,14 @@ at the baseline. Use `docs/contents.md` and this plan's concrete paths for
 orientation; creating a general layout guide is outside this slice.
 
 ## Decision log
+
+2026-10-30 — Accepted: the follow-up review asked for structured NumPy-style
+docstrings on `require_tool`, `run_command`, and
+`run_command_expecting_failure`. Writing them duplicated the two near-identical
+success/failure wrappers enough for CodeScene to report Code Duplication (9.38,
+twice). The two private status checks are now one `_require_exit_status` helper
+taking a keyword-only `expected_failure` flag; call sites read explicitly and
+the module scores 10.00.
 
 2026-10-30 — Accepted: the formal CodeRabbit review requested seven trivial
 repairs, all valid against `0c87868`. Command execution moved to a new

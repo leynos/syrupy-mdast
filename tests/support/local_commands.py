@@ -40,7 +40,23 @@ def environment_python(environment_path: Path) -> Path:
 
 
 def require_tool(executable: str) -> str:
-    """Return one required local tool executable."""
+    """Resolve one required local tool executable.
+
+    Parameters
+    ----------
+    executable
+        Command name that the packaging contract needs on ``PATH``.
+
+    Returns
+    -------
+    str
+        Absolute path of the resolved executable.
+
+    Examples
+    --------
+    >>> Path(require_tool("uv")).name
+    'uv'
+    """
     resolved = which(executable)
     assert resolved is not None, f"the Wenmode contract requires {executable} on PATH"
     return resolved
@@ -77,14 +93,32 @@ def run_command(
     env: dict[str, str] | None = None,
     timeout: int = 300,
 ) -> subprocess.CompletedProcess[str]:
-    """Run one known local command and fail the test if it exits non-zero."""
+    """Run one known local command and fail the test if it exits non-zero.
+
+    Parameters
+    ----------
+    command
+        Program and arguments to run.
+    cwd
+        Directory the child starts in.
+    env
+        Environment override; the credential-scrubbed host environment is used
+        when omitted.
+    timeout
+        Seconds to allow before the test fails.
+
+    Returns
+    -------
+    subprocess.CompletedProcess[str]
+        Captured text output from the successful command.
+
+    Examples
+    --------
+    >>> run_command([python, "-c", "pass"], cwd=temporary_path).returncode
+    0
+    """
     result = _invoke(command, cwd=cwd, env=env, timeout=timeout)
-    if result.returncode != 0:
-        _fail_on_output(
-            f"command failed ({result.returncode}): "
-            f"{[str(part) for part in command]!r}",
-            result,
-        )
+    _require_exit_status(result, command, expected_failure=False)
     return result
 
 
@@ -96,6 +130,17 @@ def run_command_expecting_failure(
     timeout: int = 300,
 ) -> subprocess.CompletedProcess[str]:
     """Run one known local command that must exit non-zero.
+
+    Parameters
+    ----------
+    command
+        Failing invocation to attempt.
+    cwd
+        Directory the child starts in.
+    env
+        Environment override for the failing attempt.
+    timeout
+        Seconds to allow before the test fails.
 
     Returns
     -------
@@ -112,11 +157,7 @@ def run_command_expecting_failure(
     1
     """
     result = _invoke(command, cwd=cwd, env=env, timeout=timeout)
-    if result.returncode == 0:
-        _fail_on_output(
-            f"command unexpectedly succeeded: {[str(part) for part in command]!r}",
-            result,
-        )
+    _require_exit_status(result, command, expected_failure=True)
     return result
 
 
@@ -152,6 +193,27 @@ def _fail_on_timeout(
         f"stdout:\n{error.stdout}\nstderr:\n{error.stderr}",
         pytrace=False,
     )
+
+
+def _require_exit_status(
+    completed: subprocess.CompletedProcess[str],
+    command: cabc.Sequence[str | Path],
+    *,
+    expected_failure: bool,
+) -> None:
+    """Fail the test when the exit status contradicts the caller's expectation."""
+    if (completed.returncode == 0) is expected_failure:
+        headline = (
+            f"command unexpectedly succeeded: {_argv(command)!r}"
+            if expected_failure
+            else f"command failed ({completed.returncode}): {_argv(command)!r}"
+        )
+        _fail_on_output(headline, completed)
+
+
+def _argv(command: cabc.Sequence[str | Path]) -> list[str]:
+    """Render an argv sequence as the strings the child received."""
+    return [str(part) for part in command]
 
 
 def _fail_on_output(
