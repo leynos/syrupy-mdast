@@ -38,6 +38,8 @@ documentation set.
 - [ADR-004: Parser profile and normalization](adr-004-parser-profile-and-normalization.md)
   records the accepted Wenmode parser profile, canonicalization rules, writer,
   and normative fixture decisions.
+- [ADR-005: Exact Wenmode runtime dependency](adr-005-exact-wenmode-runtime-dependency.md)
+  records the reviewed exact runtime dependency and upgrade policy.
 
 ## Engineering practice
 

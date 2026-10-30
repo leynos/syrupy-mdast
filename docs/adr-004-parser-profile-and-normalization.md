@@ -7,6 +7,10 @@ contract v1, including exact-shape adjacent plain text merging.
 
 [Maintainer acceptance][maintainer-acceptance].
 
+The Wenmode dependency-range and downstream-resolution clauses in this
+historical decision are superseded by
+[ADR-005](adr-005-exact-wenmode-runtime-dependency.md).
+
 ## Date
 
 2026-10-11 (last updated).

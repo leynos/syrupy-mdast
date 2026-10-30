@@ -5,13 +5,18 @@ from __future__ import annotations
 import subprocess  # ruff: ignore[suspicious-subprocess-import] -- fixed local wheel-build contract.
 import sys
 import tomllib
+from email import message_from_bytes
 from importlib import metadata
 from pathlib import Path
 from shutil import which
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
+import pytest
+from packaging.requirements import Requirement
 from syrupy.extensions.single_file import SingleFileSnapshotExtension, WriteMode
+
+from tests.support.package_boundary import find_javascript_assets
 
 
 def test_declared_ranges_match_installed_metadata() -> None:
@@ -19,16 +24,12 @@ def test_declared_ranges_match_installed_metadata() -> None:
     configuration = tomllib.loads(
         (Path(__file__).parents[1] / "pyproject.toml").read_text(encoding="utf-8")
     )
-    assert configuration["project"]["dependencies"] == ["syrupy>=5.0.0,<7.0.0"], (
-        "pyproject.toml must declare the approved Syrupy compatibility range"
-    )
+    _assert_runtime_requirements(configuration["project"]["dependencies"])
     distribution = metadata.metadata("syrupy-mdast")
     assert distribution["Requires-Python"] == ">=3.12", (
         "installed metadata must preserve the supported Python range"
     )
-    assert distribution.get_all("Requires-Dist") == ["syrupy<7.0.0,>=5.0.0"], (
-        "installed metadata must contain only the canonical Syrupy requirement"
-    )
+    _assert_runtime_requirements(distribution.get_all("Requires-Dist") or [])
     assert SingleFileSnapshotExtension.file_extension, (
         "installed Syrupy must expose SingleFileSnapshotExtension"
     )
@@ -36,6 +37,27 @@ def test_declared_ranges_match_installed_metadata() -> None:
     assert hasattr(SingleFileSnapshotExtension, "_write_mode"), (
         "installed Syrupy must retain the private text-mode hook"
     )
+
+
+@pytest.mark.parametrize(
+    "wenmode_requirement",
+    [
+        None,
+        "wenmode>=0.15.2,<0.16",
+        "wenmode==0.15.1",
+        "wenmode==0.15.2; python_version > '3'",
+        "wenmode[extra]==0.15.2",
+    ],
+)
+def test_runtime_requirement_rejects_unapproved_wenmode(
+    wenmode_requirement: str | None,
+) -> None:
+    """The required dependency cannot be absent, ranged, altered or conditional."""
+    requirements = ["syrupy>=5.0.0,<7.0.0"]
+    if wenmode_requirement is not None:
+        requirements.append(wenmode_requirement)
+    with pytest.raises(AssertionError):
+        _assert_runtime_requirements(requirements)
 
 
 def test_package_ships_py_typed_marker() -> None:
@@ -47,6 +69,12 @@ def test_package_ships_py_typed_marker() -> None:
         wheel_path = _build_wheel(uv_executable, repository_root, temporary_path)
         member_names = _wheel_member_names(wheel_path)
         _assert_required_wheel_members(member_names)
+        with ZipFile(wheel_path) as wheel:
+            metadata_path = next(
+                name for name in member_names if name.endswith(".dist-info/METADATA")
+            )
+            wheel_metadata = message_from_bytes(wheel.read(metadata_path))
+            _assert_runtime_requirements(wheel_metadata.get_all("Requires-Dist") or [])
         _assert_isolated_wheel_import(uv_executable, wheel_path, temporary_path)
     _assert_no_javascript_assets(member_names)
 
@@ -134,23 +162,25 @@ def _assert_isolated_wheel_import(
 
 
 def _assert_no_javascript_assets(member_names: set[str]) -> None:
-    """Assert that wheel members exclude JavaScript source and packaging files."""
-    forbidden_names = {
-        "package.json",
-        "package-lock.json",
-        "bun.lock",
-        "bun.lockb",
-        "pnpm-lock.yaml",
-        "yarn.lock",
-    }
-    unexpected_assets = [
-        member_name
-        for member_name in member_names
-        if member_name.endswith((".js", ".mjs", ".cjs"))
-        or member_name.rsplit("/", maxsplit=1)[-1] in forbidden_names
-        or member_name.startswith("node_modules/")
-        or "/node_modules/" in member_name
-    ]
-    assert not unexpected_assets, (
-        "the installed wheel must not contain JavaScript source or packaging assets"
+    """Assert wheel members exclude JavaScript and TypeScript assets."""
+    unexpected_assets = find_javascript_assets(member_names)
+    assert not unexpected_assets, f"forbidden wheel assets: {unexpected_assets}"
+
+
+def _assert_runtime_requirements(requirements: list[str]) -> None:
+    """Check both mandatory requirements independently of header order."""
+    parsed = [Requirement(value) for value in requirements]
+    assert len(parsed) == 2, "Expected len(parsed) == 2"
+    by_name = {item.name.lower(): item for item in parsed}
+    assert set(by_name) == {"syrupy", "wenmode"}, (
+        'Expected set(by_name) == {"syrupy", "wenmode"}'
     )
+    assert str(by_name["syrupy"].specifier) == "<7.0.0,>=5.0.0", (
+        'Expected str(by_name["syrupy"].specifier) == "<7.0.0,>=5.0.0"'
+    )
+    assert str(by_name["wenmode"].specifier) == "==0.15.2", (
+        'Expected str(by_name["wenmode"].specifier) == "==0.15.2"'
+    )
+    assert all(
+        item.marker is None and not item.extras and item.url is None for item in parsed
+    ), "Runtime requirements must be unconditional and have no extras or URLs"

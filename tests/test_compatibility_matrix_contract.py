@@ -35,7 +35,7 @@ def test_matrix_floor_matches_declared_specifier() -> None:
     assert matrix["syrupy-version"] == ["5.0.0", "latest"], (
         "the matrix must test the declared Syrupy floor and latest release"
     )
-    assert configuration["project"]["dependencies"] == ["syrupy>=5.0.0,<7.0.0"], (
+    assert "syrupy>=5.0.0,<7.0.0" in configuration["project"]["dependencies"], (
         "the tested Syrupy floor must remain the declared package floor"
     )
     assert mapping(

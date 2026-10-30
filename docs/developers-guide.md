@@ -147,9 +147,29 @@ package owns the error taxonomy and must not import Syrupy or Wenmode.
 suffix and text write mode, accepts only `str` input, and rejects unsupported
 Syrupy property controls before the unimplemented serialization seam.
 
-The package targets Python 3.12 or later and declares Syrupy `>=5.0.0,<7.0.0`.
+The package targets Python 3.12 or later and declares Syrupy `>=5.0.0,<7.0.0`
+and the reviewed `wenmode==0.15.2` release (BSD-3-Clause).
 `syrupy_mdast/py.typed` is part of the wheel so type checkers can use the
 package's annotations from installed distributions.
+
+### Verify the Python-only dependency boundary
+
+The test-only `tests/support/package_boundary.py` classifies archive paths;
+`tests/support/wenmode_installation.py` prepares a local wheelhouse and creates
+fresh wheel and editable installations. Reuse these helpers for package
+boundary tests, not production parsing. Run the behavioural and classifier
+checks with:
+
+```bash
+uv run pytest -v tests/test_package_boundary.py tests/test_wenmode_dependency_bdd.py
+```
+
+Wheelhouse preparation fetches wheels before isolation. Installation uses an
+empty cache and `--offline --no-index`; the child probe restricts `PATH` and
+uses audit-hook negative controls before parsing. The container acceptance
+matrix and its network and executable-absence controls are specified in the
+[1.2.1 execution plan](execplans/1-2-1-wenmode-runtime-dependency.md). Audit
+hooks are test instrumentation, not a security sandbox.
 
 ### Upgrade Wenmode
 

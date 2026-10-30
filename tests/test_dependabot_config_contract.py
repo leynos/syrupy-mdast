@@ -256,3 +256,11 @@ def test_dependabot_config_targets_the_supported_schema_version() -> None:
     assert _dependabot_config().get("version") == 2, (
         "the Dependabot configuration should declare version 2"
     )
+
+
+def test_wenmode_upgrades_require_manual_review() -> None:
+    """Dependabot cannot bypass the Wenmode upgrade report policy."""
+    ignored = objects(_update_for("pip").get("ignore"), subject="pip ignores")
+    assert {entry.get("dependency-name") for entry in ignored} >= {"wenmode"}, (
+        'Expected {entry.get("dependency-name") for entry in ignored} >= {"wenmode"}'
+    )
