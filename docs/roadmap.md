@@ -61,7 +61,7 @@ This step answers whether editable and installed use the same exact Wenmode
 contract without cross-runtime assets. It replaces the previous Bun package
 boundary before parsing logic depends on it.
 
-- [ ] 1.2.1. Add the exact Wenmode runtime dependency.
+- [x] 1.2.1. Add the exact Wenmode runtime dependency.
   - Requires 1.1.3.
   - Pin the reviewed Wenmode release in `pyproject.toml` and record its licence.
   - Confirm the wheel contains no Bun, Node.js, TypeScript, JavaScript manifest,

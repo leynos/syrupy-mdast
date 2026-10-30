@@ -1,9 +1,11 @@
 # Add the exact Wenmode runtime dependency
 
-Status: APPROVED — implementation in progress.
+Status: COMPLETE — implementation and local acceptance evidence recorded;
+hosted review and CI pending.
 
 Roadmap task: **1.2.1**. Baseline: `780a9081eb7f2a810165e1db2b8dc9b187b64972`.
-Prepared 2026-10-20.
+Prepared 2026-10-20. Stack base: PR #76 (`1-2-1-dependency-audit-fix`), which
+targets `main`.
 
 This execution plan is a living document. Keep its constraints, tolerances,
 risks, progress, discoveries, decisions, conformance basis, verification, and
@@ -81,10 +83,39 @@ builds per behavioural scenario or Hypothesis example.
 - [x] 2026-10-20: Six-perspective community review and revisions.
 - [x] 2026-10-20: Validate the plan and prepare it for draft publication.
 - [x] 2026-10-29: Obtain approval, including the dependency-policy amendment.
-- [ ] EP-M1: Ratify exact pin, add dependency, and prove Python-only installs.
-- [ ] EP-M2: Complete documentation, gates, and roadmap reconciliation.
+- [x] 2026-10-30: Rebase onto the audit-fix bottom layer (PR #76); focused
+  EP-M1 suites pass (291 tests).
+- [x] EP-M1: Ratify exact pin, add dependency, and prove Python-only installs.
+- [x] EP-M2: Complete documentation, gates, and roadmap reconciliation.
 
 ## Surprises & discoveries
+
+2026-10-30: The inherited audit blocker was resolved as a separate bottom
+layer. PR #76 (`1-2-1-dependency-audit-fix`) upgrades only development lockfile
+entries and targets `main`; this branch was rebased onto it, and the two PRs
+form GitHub stack #77. The focused EP-M1 suites passed (291 tests) on the
+rebased candidate, including the wheel and editable probes and the archive
+classifier property tests. Audit evidence is in
+`/tmp/audit-syrupy-mdast-1-2-1-dependency-audit-fix.out`.
+
+2026-10-29: The implementation candidate passed `make fmt`, `make check-fmt`,
+`make typecheck`, `make lint`, and `make test` (393 passed). `make audit`
+failed on 16 advisories in four pre-existing development dependencies:
+`certifi` 2026.7.22, `filelock` 3.32.2, `msgpack` 1.2.1, and `pylint` 4.0.7.
+All four versions match the base lockfile. Audit evidence is in
+`/tmp/audit-syrupy-mdast-1-2-1-wenmode-runtime-dependency.out`.
+
+The Python 3.12, 3.13, and 3.14 rootless Podman matrix passed both wheel and
+editable modes with networking disabled; logs are in
+`/tmp/wenmode-container-acceptance-final.out` and image IDs in
+`.wenmode-acceptance.VSaqO0/images.txt`. The executable inventory found no Bun
+or Node executables. An isolated mutation removing TypeScript detection caused
+three classifier tests to fail (`/tmp/wenmode-mutation-1-2-1.out`).
+
+2026-10-29: The initial manifest assertion failed as expected because Wenmode
+was absent (`/tmp/wenmode-red-1-2-1.out`). After adding the pin and locking,
+the focused metadata checks passed; Wenmode 0.15.2 reports BSD-3-Clause and no
+runtime requirements. Full boundary evidence remains in progress.
 
 Roadmap 1.1.3 is checked complete and the checkout contains its 101-case
 canonical corpus. The corpus records `wenmode_evidence_version = "0.15.2"`; it
@@ -101,6 +132,25 @@ at the baseline. Use `docs/contents.md` and this plan's concrete paths for
 orientation; creating a general layout guide is outside this slice.
 
 ## Decision log
+
+2026-10-30 — Resolved: the user directed the audit findings into a separate
+draft PR (#76) targeting `main`, with this branch stacked on it in GitHub stack
+number 77. The narrow development-dependency upgrade (`certifi`, `filelock`,
+`msgpack`, `pylint`, and `astroid`) was validated by the full gate set and
+changes no runtime dependency. The BLOCKED status is cleared without
+suppressing findings or expanding 1.2.1's production scope.
+
+2026-10-29 — Blocked: resolving the inherited audit findings requires a scope
+decision because this plan escalates unrelated tool changes. A read-only lock
+trial would update `certifi` to 2026.10.23, `filelock` to 4.2.4, `msgpack` to
+1.2.4, `pylint` to 4.1.3, and its `astroid` dependency to 4.3.4. The options
+are to approve and validate that narrow dependency update, or to repair the
+base branch separately and rebase. Do not suppress the findings or mark the
+roadmap item complete while the audit remains red.
+
+2026-10-29 — Accepted: the user approved the exact-pin amendment and
+implementation. The PR target was already the branch base; the rebase was a
+no-op and the four requested gates passed on commit `1da75a7`.
 
 2026-10-20 — Proposed: select `wenmode==0.15.2`, matching the reviewed corpus
 baseline and the current requested exact-pin requirement. On approval, add
@@ -518,18 +568,43 @@ keeps interpreter instrumentation and container isolation evidence distinct.
 
 ## Outcomes & retrospective
 
-Planning only. No runtime dependency or parser implementation has been changed.
-The six-perspective review requested concrete container commands, a bounded
-interpreter matrix, coherent milestone documentation, and an outbound rather
-than local-socket negative control. These revisions are incorporated. The
-planning candidate passed `make fmt`, `make check-fmt`, `make typecheck`,
-`make lint`, `make test` (350 passed), `make audit`, `make markdownlint`,
-`make nixie`, and `git diff --check`. The audit reported its exclusions for the
-local package and `df12-python-lints`. These results validate the planning
-checkout, not the unimplemented dependency boundary. All three Bash examples
-also passed `bash -n`. The main lesson is that an empirical release baseline
-and an allowed dependency range are distinct contracts; exact pinning needs an
-explicit policy amendment.
+Planning history. The six-perspective review requested concrete container
+commands, a bounded interpreter matrix, coherent milestone documentation, and
+an outbound rather than local-socket negative control. These revisions are
+incorporated. All three Bash examples passed `bash -n`.
+
+Implementation outcome (2026-10-30). Roadmap 1.2.1 now declares
+`wenmode==0.15.2` (BSD-3-Clause) in runtime metadata, carries ADR-005 and its
+cross-links, and proves the Python-only boundary through the shared
+`tests/support/wenmode_installation.py` harness. Focused evidence:
+
+- `tests/test_package_manifest_contract.py` requires the built and installed
+  metadata to agree on the exact pin; negative controls reject absent, ranged,
+  wrong-version, extra-qualified, and marker-qualified requirements.
+- `tests/test_package_boundary.py` covers 33 classifier cases, including
+  Hypothesis-generated archive positions for every forbidden asset family; a
+  synthetic nested `node_modules` archive is rejected by the same inspector
+  used on release wheels.
+- `tests/test_wenmode_dependency_bdd.py` runs four scenarios across wheel and
+  editable installs, parses the three smoke documents offline behind audit-hook
+  isolation controls, and requires a missing-Wenmode install to fail visibly.
+- The Python 3.12, 3.13, and 3.14 rootless Podman matrix passed both modes with
+  `--network=none`; evidence is in
+  `/tmp/wenmode-container-acceptance-final.out` and
+  `.wenmode-acceptance.VSaqO0/images.txt`.
+
+Full gates on the rebased candidate passed sequentially: `make check-fmt`,
+`make typecheck`, `make lint`, `make test` (393 passed), `make audit`,
+`make markdownlint`, `make nixie`, and `git diff --check`. Logs follow the
+`/tmp/<action>-syrupy-mdast-1-2-1-wenmode-runtime-dependency.out` pattern.
+
+No production parser adapter, public parsing function, snapshot bytes, or
+canonical corpus changed. Hosted CodeRabbit review and CI are not established
+by local gates and remain delivery work for `pr-babysitting`. The main lesson
+is that an empirical release baseline and an allowed dependency range are
+distinct contracts; exact pinning needed an explicit policy amendment. A second
+lesson is that an inherited red audit gate must be repaired at its own layer
+rather than suppressed or folded into unrelated scope.
 
 ## Revision notes
 
@@ -547,3 +622,7 @@ removal. Implementation acceptance remains pending approval and execution.
 
 2026-10-29: User approved the plan and its dependency-policy amendment and
 requested implementation after rebasing onto the PR target.
+
+2026-10-30: Cleared the inherited audit blocker through stacked PR #76, rebased
+the implementation candidate onto it, and completed EP-M1 and EP-M2. Full local
+gates pass (393 tests). Hosted review and CI remain outstanding.
