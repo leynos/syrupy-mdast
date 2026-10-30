@@ -135,9 +135,13 @@ def attempt_offline_install(
 
 @then("installation fails because Wenmode cannot be resolved")
 def missing_wenmode_is_named(scenario_state: dict[str, object]) -> None:
-    """Require the failed offline resolver to name its missing dependency."""
-    assert "wenmode" in str(scenario_state["failure"]).lower(), (
-        "the offline installation failure must name the missing Wenmode wheel"
+    """Require the resolver to report the missing exact Wenmode requirement."""
+    failure = str(scenario_state["failure"])
+    assert "wenmode==0.15.2" in failure, (
+        "the offline installation failure must report the missing Wenmode pin"
+    )
+    assert "not found" in failure.lower(), (
+        "the offline installation failure must say the Wenmode candidate is absent"
     )
 
 

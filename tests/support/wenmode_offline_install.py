@@ -19,7 +19,27 @@ if typ.TYPE_CHECKING:
 
 
 def install_without_wenmode(wheelhouse: Wheelhouse, environment_path: Path) -> str:
-    """Show a fresh offline installation fails when Wenmode is unavailable."""
+    """Show a fresh offline installation fails when Wenmode is unavailable.
+
+    Parameters
+    ----------
+    wheelhouse
+        Prepared wheelhouse from which the Wenmode wheel is withheld.
+    environment_path
+        New virtual-environment path; its parent holds the staged wheelhouse
+        and the empty installer cache.
+
+    Returns
+    -------
+    str
+        Combined standard output and standard error from the failed resolver.
+
+    Examples
+    --------
+    >>> failure = install_without_wenmode(wheelhouse, environment_path)
+    >>> "wenmode==0.15.2" in failure
+    True
+    """
     uv = _require_tool("uv")
     no_wenmode = _stage_wheelhouse_without_wenmode(wheelhouse, environment_path)
     _run(
@@ -30,8 +50,12 @@ def install_without_wenmode(wheelhouse: Wheelhouse, environment_path: Path) -> s
         uv, no_wenmode, wheelhouse, environment_path
     )
     output = (completed.stdout or "") + (completed.stderr or "")
-    assert "wenmode" in output.lower(), (
-        f"failure did not identify missing Wenmode:\n{output}"
+    normalized = output.lower()
+    assert "wenmode==0.15.2" in normalized, (
+        f"failure did not report the missing Wenmode 0.15.2 candidate:\n{output}"
+    )
+    assert "not found" in normalized, (
+        f"failure did not report the candidate as not found:\n{output}"
     )
     return output
 

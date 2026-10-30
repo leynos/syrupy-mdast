@@ -150,6 +150,13 @@ to `_assert_python_only_wheels` is declined: E-ASSETS scopes archive-member
 inspection to the built project and selected Wenmode wheels, and the installed
 inventory already covers Syrupy.
 
+2026-10-30 — Accepted: the second review pass asked for full parameter
+documentation on `install_without_wenmode` and a stronger missing-candidate
+assertion. Both are applied; the helper and the behavioural step now require
+the resolver's `wenmode==0.15.2` "not found" diagnostic. An unrelated-wheel
+negative control is declined because the exact pin, the withheld wheel, and the
+empty offline index already isolate the failure cause.
+
 2026-10-30 — Resolved: the user directed the audit findings into a separate
 draft PR (#76) targeting `main`, with this branch stacked on it in GitHub stack
 number 77. The narrow development-dependency upgrade (`certifi`, `filelock`,
