@@ -96,6 +96,8 @@ builds per behavioural scenario or Hypothesis example.
   and generate every forbidden asset family in the property tests.
 - [x] 2026-10-30: Repair the follow-up review's public-docstring finding and
   the CodeScene duplication it exposed, then rerun the full gates.
+- [x] 2026-10-30: Move the ADR-003 and ADR-004 supersession notices into
+  appended, labelled addenda so the historical bodies stay untouched.
 
 ## Surprises & discoveries
 
@@ -148,6 +150,13 @@ at the baseline. Use `docs/contents.md` and this plan's concrete paths for
 orientation; creating a general layout guide is outside this slice.
 
 ## Decision log
+
+2026-10-30 — Accepted: the Developer Documentation pre-merge row kept a warning
+because the supersession notice sat inside each ADR's Status section rather
+than in a labelled addendum. ADR-003 and ADR-004 now add only a final
+`## Addendum (2026-10-30)` section; the net diff against `main` contains no
+deleted historical line, and each addendum names only sections that exist in
+its own document.
 
 2026-10-30 — Accepted: the follow-up review asked for structured NumPy-style
 docstrings on `require_tool`, `run_command`, and
