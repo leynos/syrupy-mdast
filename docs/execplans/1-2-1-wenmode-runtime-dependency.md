@@ -27,8 +27,10 @@ direct Wenmode call in a test is a dependency smoke test, not that adapter.
 
 ## Constraints
 
-Implementation requires explicit approval of this plan. The current planning
-change must not add dependencies, modify accepted policy, or mark 1.2.1 done.
+Execution approval was supplied with the implementation assignment on
+2026-10-30; this revision records the delivered slice and its evidence. Adding
+further dependencies, changing accepted policy, or widening the slice still
+requires fresh approval.
 
 Retain Python >=3.12, `syrupy>=5.0.0,<7.0.0`, the public exports, and the
 Python-only architecture. Do not import Wenmode into `syrupy_mdast/_core/`. Do
@@ -110,10 +112,11 @@ classifier property tests. Audit evidence is in
 `/tmp/audit-syrupy-mdast-1-2-1-dependency-audit-fix.out`.
 
 2026-10-29: The implementation candidate passed `make fmt`, `make check-fmt`,
-`make typecheck`, `make lint`, and `make test` (393 passed). `make audit`
-failed on 16 advisories in four pre-existing development dependencies:
-`certifi` 2026.7.22, `filelock` 3.32.2, `msgpack` 1.2.1, and `pylint` 4.0.7.
-All four versions match the base lockfile. Audit evidence is in
+`make typecheck`, `make lint`, and `make test` (393 passed at that candidate,
+superseded by the 395 below). `make audit` failed on 16 advisories in four
+pre-existing development dependencies: `certifi` 2026.7.22, `filelock` 3.32.2,
+`msgpack` 1.2.1, and `pylint` 4.0.7. All four versions match the base lockfile.
+Audit evidence is in
 `/tmp/audit-syrupy-mdast-1-2-1-wenmode-runtime-dependency.out`.
 
 The Python 3.12, 3.13, and 3.14 rootless Podman matrix passed both wheel and
@@ -143,6 +146,23 @@ at the baseline. Use `docs/contents.md` and this plan's concrete paths for
 orientation; creating a general layout guide is outside this slice.
 
 ## Decision log
+
+2026-10-30 — Accepted: the formal CodeRabbit review requested seven trivial
+repairs, all valid against `0c87868`. Command execution moved to a new
+`tests/support/local_commands.py`, which exposes `run_command`,
+`run_command_expecting_failure`, `require_tool`, `environment_python`, and
+`clean_dependency_environment` without leading underscores, so cross-module use
+no longer relies on private names and the harness module stays under the
+400-line limit; the offline installer reuses the shared runner instead of
+duplicating `subprocess.run`. `Wheelhouse.project_version` carries the
+`Version:` header from the built wheel, so installed metadata is compared with
+the artefact instead of a `0.1.0` literal. `clean_dependency_environment` keeps
+only credential-routing removals, because a host-specific `PATH` filter and a
+forced `GIT_SSH_COMMAND` path are not portable. The manifest contract compares
+`SpecifierSet` objects and reports the actual requirements on failure; the
+Dependabot contract requires exactly one unconditional `wenmode` ignore; and
+the index entry and plan text now describe the completed record with one
+consistent 395-test count.
 
 2026-10-30 — Accepted: the ExecPlan assessment found three verification gaps,
 and all three were valid against the published head. First, the installed
@@ -498,10 +518,10 @@ Implement `tests/support/wenmode_runtime_probe.py` as a standard-library-only
 executable test probe. It reads `WENMODE_INSTALL_MODE` (`wheel` or `editable`)
 and `WENMODE_CHECKOUT_PATH` from the environment, performs E-RUNTIME, and prints
 `wenmode=0.15.2 mode=<mode> isolation=passed` only after all assertions pass.
-Its absence now is intentional: implementing it belongs to EP-M1. Do not
-require pytest or Cyclopts inside the consumer environment. If this becomes a
-maintainer CLI instead of test support, follow the scripting standards and
-escalate the added dependency scope.
+The delivered probe remains standard-library-only. Do not require pytest or
+Cyclopts inside the consumer environment. If this becomes a maintainer CLI
+instead of test support, follow the scripting standards and escalate the added
+dependency scope.
 
 The following Bash recipe runs from the repository root after EP-M1's tests and
 probe exist. It provisions public official Python images online, records their
@@ -694,4 +714,5 @@ requested implementation after rebasing onto the PR target.
 
 2026-10-30: Cleared the inherited audit blocker through stacked PR #76, rebased
 the implementation candidate onto it, and completed EP-M1 and EP-M2. Full local
-gates pass (393 tests). Hosted review and CI remain outstanding.
+gates pass (395 tests after the assessment repairs). Hosted review and CI
+remain outstanding.

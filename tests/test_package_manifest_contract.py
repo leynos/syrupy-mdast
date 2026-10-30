@@ -10,10 +10,12 @@ from zipfile import ZipFile
 
 import pytest
 from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
 from syrupy.extensions.single_file import SingleFileSnapshotExtension, WriteMode
 
+from tests.support.local_commands import run_command
 from tests.support.package_boundary import find_javascript_assets
-from tests.support.wenmode_installation import Wheelhouse, _run, install_project
+from tests.support.wenmode_installation import Wheelhouse, install_project
 
 
 def test_declared_ranges_match_installed_metadata() -> None:
@@ -96,7 +98,7 @@ def _assert_isolated_wheel_import(wheelhouse: Wheelhouse, temporary_path: Path) 
     wheel_python = install_project(
         wheelhouse, "wheel", temporary_path / "wheel-environment"
     )
-    _run(
+    run_command(
         [
             wheel_python,
             "-I",
@@ -129,17 +131,22 @@ def _assert_no_javascript_assets(member_names: set[str]) -> None:
 def _assert_runtime_requirements(requirements: list[str]) -> None:
     """Check both mandatory requirements independently of header order."""
     parsed = [Requirement(value) for value in requirements]
-    assert len(parsed) == 2, "Expected len(parsed) == 2"
+    assert len(parsed) == 2, (
+        f"expected exactly the two mandatory runtime requirements: {requirements!r}"
+    )
     by_name = {item.name.lower(): item for item in parsed}
     assert set(by_name) == {"syrupy", "wenmode"}, (
-        'Expected set(by_name) == {"syrupy", "wenmode"}'
+        f"runtime requirements must be exactly Syrupy and Wenmode: {requirements!r}"
     )
-    assert str(by_name["syrupy"].specifier) == "<7.0.0,>=5.0.0", (
-        'Expected str(by_name["syrupy"].specifier) == "<7.0.0,>=5.0.0"'
+    assert by_name["syrupy"].specifier == SpecifierSet(">=5.0.0,<7.0.0"), (
+        f"Syrupy must be required across the approved range: {requirements!r}"
     )
-    assert str(by_name["wenmode"].specifier) == "==0.15.2", (
-        'Expected str(by_name["wenmode"].specifier) == "==0.15.2"'
+    assert by_name["wenmode"].specifier == SpecifierSet("==0.15.2"), (
+        f"Wenmode must be required at the reviewed exact release: {requirements!r}"
     )
     assert all(
         item.marker is None and not item.extras and item.url is None for item in parsed
-    ), "Runtime requirements must be unconditional and have no extras or URLs"
+    ), (
+        "runtime requirements must be unconditional, without extras or URLs: "
+        f"{requirements!r}"
+    )

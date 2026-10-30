@@ -56,4 +56,5 @@ documentation set.
 ## Execution plans
 
 - [Exact Wenmode runtime dependency](execplans/1-2-1-wenmode-runtime-dependency.md)
-  proposes roadmap 1.2.1 and its approval-gated verification work.
+  records delivery of roadmap 1.2.1, including the reviewed exact pin and its
+  installation-boundary evidence.

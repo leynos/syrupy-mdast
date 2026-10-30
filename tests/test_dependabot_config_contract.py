@@ -261,6 +261,14 @@ def test_dependabot_config_targets_the_supported_schema_version() -> None:
 def test_wenmode_upgrades_require_manual_review() -> None:
     """Dependabot cannot bypass the Wenmode upgrade report policy."""
     ignored = objects(_update_for("pip").get("ignore"), subject="pip ignores")
-    assert {entry.get("dependency-name") for entry in ignored} >= {"wenmode"}, (
-        'Expected {entry.get("dependency-name") for entry in ignored} >= {"wenmode"}'
+    wenmode_entries = [
+        entry for entry in ignored if entry.get("dependency-name") == "wenmode"
+    ]
+    assert len(wenmode_entries) == 1, (
+        f"expected exactly one Wenmode ignore entry, found {wenmode_entries!r}"
+    )
+    dependency_name = wenmode_entries[0]
+    assert set(dependency_name) == {"dependency-name"}, (
+        "the Wenmode ignore must be unconditional, because narrowing keys such as "
+        f"versions or update-types would admit automatic upgrades: {dependency_name!r}"
     )

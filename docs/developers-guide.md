@@ -155,6 +155,10 @@ package's annotations from installed distributions.
 ### Verify the Python-only dependency boundary
 
 The test-only `tests/support/package_boundary.py` classifies archive paths.
+`tests/support/local_commands.py` supplies the bounded runner, the
+virtual-environment interpreter lookup, and the credential-scrubbed environment
+shared by the packaging helpers: `run_command` fails on a non-zero exit, while
+`run_command_expecting_failure` returns the process for a deliberate failure.
 `tests/support/wenmode_installation.py` prepares a local wheelhouse and creates
 fresh wheel and editable installations through `install_project`, while
 `tests/support/wenmode_offline_install.py` proves a missing Wenmode wheel fails

@@ -5,19 +5,18 @@ from __future__ import annotations
 import dataclasses
 import hashlib
 import json
-import os
-import subprocess  # ruff: ignore[suspicious-subprocess-import] -- used only for fixed argv vectors.
 import sys
-import typing as typ
 from pathlib import Path
 from zipfile import ZipFile
 
-import pytest
-
+from tests.support.local_commands import (
+    clean_dependency_environment,
+    environment_python,
+    require_tool,
+    run_command,
+)
 from tests.support.package_boundary import find_javascript_assets
 
-if typ.TYPE_CHECKING:
-    import collections.abc as cabc
 _EXPECTED_WENMODE_SHA256 = (
     "a1be9a2d91ef7f5020148daf615edca0c9a4a6d54d074a808e6d5e9de95726f6"
 )
@@ -37,6 +36,7 @@ class Wheelhouse:
     project_wheel: Path
     wenmode_wheel: Path
     repository: Path
+    project_version: str
     project_sha256: str
     wenmode_sha256: str
 
@@ -54,13 +54,14 @@ def prepare_wheelhouse(temporary_path: Path) -> Wheelhouse:
     )
     wenmode_wheel = wenmode_wheels[0]
     wenmode_digest = _assert_wenmode_wheel(wenmode_wheel)
-    _assert_project_wheel(project_wheel)
+    project_version = _assert_project_wheel(project_wheel)
     _assert_python_only_wheels((project_wheel, wenmode_wheel))
     return Wheelhouse(
         output,
         project_wheel,
         wenmode_wheel,
         repository,
+        project_version,
         hashlib.sha256(project_wheel.read_bytes()).hexdigest(),
         wenmode_digest,
     )
@@ -70,8 +71,8 @@ def _build_project_wheel(repository: Path, temporary_path: Path, output: Path) -
     """Build and copy exactly one project wheel into the prepared wheelhouse."""
     project_output = temporary_path / "project-wheel"
     project_output.mkdir()
-    _run(
-        [_require_tool("uv"), "build", "--wheel", "--out-dir", str(project_output)],
+    run_command(
+        [require_tool("uv"), "build", "--wheel", "--out-dir", str(project_output)],
         cwd=repository,
     )
     project_wheels = tuple(project_output.glob("*.whl"))
@@ -85,9 +86,9 @@ def _build_project_wheel(repository: Path, temporary_path: Path, output: Path) -
 
 def _download_runtime_wheels(output: Path, temporary_path: Path) -> None:
     """Download runtime and editable build requirements into the wheelhouse."""
-    _run(
+    run_command(
         [
-            _require_tool("uvx"),
+            require_tool("uvx"),
             "--from",
             "pip",
             "pip",
@@ -118,11 +119,26 @@ def _assert_wenmode_wheel(wheel_path: Path) -> str:
     return digest
 
 
-def _assert_project_wheel(wheel_path: Path) -> None:
-    """Validate the built project wheel licence and exact dependency metadata."""
+def _assert_project_wheel(wheel_path: Path) -> str:
+    """Validate the built project wheel licence and exact dependency metadata.
+
+    Returns
+    -------
+    str
+        Version recorded in the built wheel, so installed metadata can be
+        compared with the wheel instead of a duplicated literal.
+    """
     project_metadata = _wheel_metadata(wheel_path)
     assert "License: ISC" in project_metadata, (
         "the built project wheel must retain its ISC licence"
+    )
+    versions = [
+        line.removeprefix("Version: ")
+        for line in project_metadata.splitlines()
+        if line.startswith("Version: ")
+    ]
+    assert len(versions) == 1, (
+        f"project wheel must record exactly one version: {versions!r}"
     )
     requirements = {
         line.removeprefix("Requires-Dist: ")
@@ -132,6 +148,7 @@ def _assert_project_wheel(wheel_path: Path) -> None:
     assert requirements == {"syrupy<7.0.0,>=5.0.0", "wenmode==0.15.2"}, (
         f"project wheel has unexpected runtime requirements: {requirements!r}"
     )
+    return versions[0]
 
 
 def _assert_python_only_wheels(wheels: tuple[Path, ...]) -> None:
@@ -170,12 +187,12 @@ def install_project(wheelhouse: Wheelhouse, mode: str, environment_path: Path) -
     True
     """
     assert mode in {"wheel", "editable"}, f"unsupported installation mode: {mode}"
-    uv = _require_tool("uv")
-    _run(
+    uv = require_tool("uv")
+    run_command(
         [uv, "venv", "--python", sys.executable, environment_path],
         cwd=environment_path.parent,
     )
-    python = _environment_python(environment_path)
+    python = environment_python(environment_path)
     uv_cache = environment_path / "uv-cache"
     uv_cache.mkdir()
     install_arguments = [
@@ -194,10 +211,10 @@ def install_project(wheelhouse: Wheelhouse, mode: str, environment_path: Path) -
         install_arguments.extend(("--editable", str(wheelhouse.repository)))
     else:
         install_arguments.append(str(wheelhouse.project_wheel))
-    _run(
+    run_command(
         install_arguments,
         cwd=environment_path,
-        env={**_clean_dependency_environment(), "UV_CACHE_DIR": str(uv_cache)},
+        env={**clean_dependency_environment(), "UV_CACHE_DIR": str(uv_cache)},
     )
     return python
 
@@ -207,13 +224,13 @@ def install_and_probe(
 ) -> tuple[str, str]:
     """Install one fresh mode offline and return probe output and stderr."""
     python = install_project(wheelhouse, mode, environment_path)
-    inventory = _run(
+    inventory = run_command(
         [python, "-I", "-c", _runtime_inventory_probe()],
         cwd=environment_path,
         timeout=30,
     )
     installed_metadata = json.loads(inventory.stdout)
-    _assert_installed_metadata(installed_metadata)
+    _assert_installed_metadata(installed_metadata, wheelhouse.project_version)
     for distribution_name, details in installed_metadata.items():
         unexpected_assets = find_javascript_assets(details["files"])
         assert not unexpected_assets, (
@@ -227,7 +244,7 @@ def install_and_probe(
         "HOME": str(environment_path),
     }
     probe_path = Path(__file__).with_name("wenmode_runtime_probe.py").resolve()
-    probe = _run(
+    probe = run_command(
         [python, "-I", "-W", "error", probe_path],
         cwd=environment_path.parent,
         env=probe_env,
@@ -267,58 +284,6 @@ def _runtime_inventory_probe() -> str:
     ))
 
 
-def _environment_python(environment_path: Path) -> Path:
-    """Return the Python executable in a new virtual environment."""
-    return (
-        environment_path / "Scripts" / "python.exe"
-        if os.name == "nt"
-        else environment_path / "bin" / "python"
-    )
-
-
-def _require_tool(executable: str) -> str:
-    """Return one required local tool executable."""
-    from shutil import which
-
-    resolved = which(executable)
-    assert resolved is not None, f"the Wenmode contract requires {executable} on PATH"
-    return resolved
-
-
-def _run(
-    command: cabc.Sequence[str | Path],
-    *,
-    cwd: Path,
-    env: dict[str, str] | None = None,
-    timeout: int = 300,
-) -> subprocess.CompletedProcess[str]:
-    """Run one known local command with bounded output and failure evidence."""
-    arguments = [str(argument) for argument in command]
-    try:
-        result = subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- argv contains no shell text.
-            arguments,
-            cwd=cwd,
-            env=_clean_dependency_environment() if env is None else env,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-    except subprocess.TimeoutExpired as error:
-        pytest.fail(
-            f"command timed out after {timeout}s: {arguments!r}\n"
-            f"stdout:\n{error.stdout}\nstderr:\n{error.stderr}",
-            pytrace=False,
-        )
-    except subprocess.CalledProcessError as error:
-        pytest.fail(
-            f"command failed ({error.returncode}): {arguments!r}\n"
-            f"stdout:\n{error.stdout}\nstderr:\n{error.stderr}",
-            pytrace=False,
-        )
-    return result
-
-
 def _wheel_metadata(wheel_path: Path) -> str:
     """Read the sole METADATA payload from a built wheel."""
     with ZipFile(wheel_path) as archive:
@@ -331,11 +296,23 @@ def _wheel_metadata(wheel_path: Path) -> str:
         return archive.read(metadata_files[0]).decode("utf-8")
 
 
-def _assert_installed_metadata(installed: dict[str, dict[str, object]]) -> None:
-    """Check the real wheel and editable installs expose the approved metadata."""
+def _assert_installed_metadata(
+    installed: dict[str, dict[str, object]], expected_version: str
+) -> None:
+    """Check the real wheel and editable installs expose the approved metadata.
+
+    Parameters
+    ----------
+    installed
+        Distribution name to recorded metadata for the fresh environment.
+    expected_version
+        Version recorded in the built project wheel. Taken from the artefact so
+        a release bump cannot leave a duplicated literal behind in the harness.
+    """
     project = installed["syrupy-mdast"]
-    assert project["version"] == "0.1.0", (
-        f"unexpected installed project metadata: {project!r}"
+    assert project["version"] == expected_version, (
+        f"unexpected installed project metadata: {project!r}; "
+        f"expected version {expected_version!r}"
     )
     assert project["license"] == "ISC", (
         f"unexpected installed project metadata: {project!r}"
@@ -358,25 +335,3 @@ def _assert_installed_metadata(installed: dict[str, dict[str, object]]) -> None:
     assert not wenmode["requires"], (
         f"Wenmode has runtime dependencies: {wenmode['requires']!r}"
     )
-
-
-def _clean_dependency_environment() -> dict[str, str]:
-    """Remove credential routing before preparing remote dependency wheels."""
-    environment = os.environ.copy()
-    for key in list(environment):
-        if key.startswith("GIT_CONFIG_") or key in {
-            "GH_TOKEN",
-            "GITHUB_TOKEN",
-            "BASH_ENV",
-            "GIT_SSH",
-            "GIT_SSH_COMMAND",
-        }:
-            environment.pop(key, None)
-    lody_path = str(Path.home() / ".lody")
-    environment["PATH"] = os.pathsep.join(
-        part
-        for part in environment.get("PATH", "").split(os.pathsep)
-        if part != lody_path and not part.startswith(lody_path + os.sep)
-    )
-    environment["GIT_SSH_COMMAND"] = "/usr/bin/ssh"
-    return environment

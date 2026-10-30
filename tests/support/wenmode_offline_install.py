@@ -2,20 +2,22 @@
 
 from __future__ import annotations
 
-import subprocess  # ruff: ignore[suspicious-subprocess-import] -- fixed argv vectors only.
 import sys
 import typing as typ
 
-from tests.support.wenmode_installation import (
-    Wheelhouse,
-    _clean_dependency_environment,
-    _environment_python,
-    _require_tool,
-    _run,
+from tests.support.local_commands import (
+    clean_dependency_environment,
+    environment_python,
+    require_tool,
+    run_command,
+    run_command_expecting_failure,
 )
 
 if typ.TYPE_CHECKING:
+    import subprocess
     from pathlib import Path
+
+    from tests.support.wenmode_installation import Wheelhouse
 
 
 def install_without_wenmode(wheelhouse: Wheelhouse, environment_path: Path) -> str:
@@ -40,13 +42,13 @@ def install_without_wenmode(wheelhouse: Wheelhouse, environment_path: Path) -> s
     >>> "wenmode==0.15.2" in failure
     True
     """
-    uv = _require_tool("uv")
+    uv = require_tool("uv")
     no_wenmode = _stage_wheelhouse_without_wenmode(wheelhouse, environment_path)
-    _run(
+    run_command(
         [uv, "venv", "--python", sys.executable, environment_path],
         cwd=environment_path.parent,
     )
-    completed = _run_offline_install_expecting_failure(
+    completed = _install_from_missing_wenmode(
         uv, no_wenmode, wheelhouse, environment_path
     )
     output = (completed.stdout or "") + (completed.stderr or "")
@@ -72,7 +74,7 @@ def _stage_wheelhouse_without_wenmode(
     return no_wenmode
 
 
-def _run_offline_install_expecting_failure(
+def _install_from_missing_wenmode(
     uv: str,
     no_wenmode: Path,
     wheelhouse: Wheelhouse,
@@ -81,35 +83,20 @@ def _run_offline_install_expecting_failure(
     """Attempt the dependency-free install and require a non-zero exit."""
     cache = environment_path.parent / "empty-uv-cache"
     cache.mkdir()
-    try:
-        completed = subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed uv executable and controlled test paths.
-            [
-                uv,
-                "pip",
-                "install",
-                "--offline",
-                "--no-index",
-                "--no-cache",
-                "--find-links",
-                str(no_wenmode),
-                "--python",
-                str(_environment_python(environment_path)),
-                str(wheelhouse.project_wheel),
-            ],
-            cwd=environment_path,
-            env={**_clean_dependency_environment(), "UV_CACHE_DIR": str(cache)},
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=300,
-        )
-    except subprocess.TimeoutExpired as error:
-        message = (
-            "offline missing-dependency install timed out after 300s\n"
-            f"stdout:\n{error.stdout}\nstderr:\n{error.stderr}"
-        )
-        raise AssertionError(message) from error
-    if completed.returncode == 0:
-        message = "offline installation unexpectedly succeeded without Wenmode"
-        raise AssertionError(message)
-    return completed
+    return run_command_expecting_failure(
+        [
+            uv,
+            "pip",
+            "install",
+            "--offline",
+            "--no-index",
+            "--no-cache",
+            "--find-links",
+            str(no_wenmode),
+            "--python",
+            str(environment_python(environment_path)),
+            str(wheelhouse.project_wheel),
+        ],
+        cwd=environment_path,
+        env={**clean_dependency_environment(), "UV_CACHE_DIR": str(cache)},
+    )
