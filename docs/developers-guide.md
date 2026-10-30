@@ -156,9 +156,10 @@ package's annotations from installed distributions.
 
 The test-only `tests/support/package_boundary.py` classifies archive paths;
 `tests/support/wenmode_installation.py` prepares a local wheelhouse and creates
-fresh wheel and editable installations. Reuse these helpers for package
-boundary tests, not production parsing. Run the behavioural and classifier
-checks with:
+fresh wheel and editable installations, while
+`tests/support/wenmode_offline_install.py` proves a missing Wenmode wheel fails
+visibly. Reuse these helpers for package boundary tests, not production
+parsing. Run the behavioural and classifier checks with:
 
 ```bash
 uv run pytest -v tests/test_package_boundary.py tests/test_wenmode_dependency_bdd.py

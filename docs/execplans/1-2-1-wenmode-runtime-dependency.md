@@ -87,8 +87,16 @@ builds per behavioural scenario or Hypothesis example.
   EP-M1 suites pass (291 tests).
 - [x] EP-M1: Ratify exact pin, add dependency, and prove Python-only installs.
 - [x] EP-M2: Complete documentation, gates, and roadmap reconciliation.
+- [x] 2026-10-30: Repair the two hosted CodeScene Complex Method findings in
+  the test-support harness, then rerun the full gates and republish.
 
 ## Surprises & discoveries
+
+2026-10-30: The hosted CodeScene code-health check scans test-support Python,
+not only production modules, and failed both new harness files on Complex
+Method (9.69 each). Splitting the offline-install attempt and the isolation
+negative controls into small helpers raises each file to 10.00 locally
+(`cs check`), without weakening any assertion.
 
 2026-10-30: The inherited audit blocker was resolved as a separate bottom
 layer. PR #76 (`1-2-1-dependency-audit-fix`) upgrades only development lockfile
@@ -132,6 +140,15 @@ at the baseline. Use `docs/contents.md` and this plan's concrete paths for
 orientation; creating a general layout guide is outside this slice.
 
 ## Decision log
+
+2026-10-30 — Accepted: the milestone CodeRabbit pass found that the installed
+runtime inventory omitted Syrupy, even though E-ASSETS requires installed
+distribution inventories and Syrupy is a declared runtime dependency. The
+inventory probe now includes `syrupy`, so its installed files receive the same
+forbidden-asset check. A second suggestion to add the third-party Syrupy wheel
+to `_assert_python_only_wheels` is declined: E-ASSETS scopes archive-member
+inspection to the built project and selected Wenmode wheels, and the installed
+inventory already covers Syrupy.
 
 2026-10-30 — Resolved: the user directed the audit findings into a separate
 draft PR (#76) targeting `main`, with this branch stacked on it in GitHub stack

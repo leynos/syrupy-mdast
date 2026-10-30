@@ -11,6 +11,9 @@ import sys
 from importlib import metadata
 from pathlib import Path
 
+_JAVASCRIPT_RUNTIMES = ("bun", "node", "nodejs")
+_CONTAINER_NETWORK_WITNESS = ("192.0.2.1", 443)
+
 
 class IsolationDeniedError(RuntimeError):
     """Signal that an isolation audit event was denied."""
@@ -31,37 +34,54 @@ def deny_external_activity(event: str, _args: tuple[object, ...]) -> None:
 
 def verify_isolation() -> None:
     """Check network and process controls before importing the parser."""
-    binaries = ("bun", "node", "nodejs")
-    assert all(shutil.which(binary) is None for binary in binaries), (
+    _assert_no_javascript_runtimes()
+    if os.environ.get("WENMODE_CONTAINER_ACCEPTANCE") == "1":
+        _assert_container_network_denied()
+    sys.addaudithook(deny_external_activity)
+    _assert_socket_denied()
+    _assert_process_denied()
+
+
+def _assert_no_javascript_runtimes() -> None:
+    """Require Bun and Node to be absent from the restricted PATH."""
+    assert all(shutil.which(binary) is None for binary in _JAVASCRIPT_RUNTIMES), (
         "Expected all(shutil.which(binary) is None for binary in binaries)"
     )
-    if os.environ.get("WENMODE_CONTAINER_ACCEPTANCE") == "1":
-        original_path = os.environ["WENMODE_ORIGINAL_PATH"]
-        assert all(
-            shutil.which(binary, path=original_path) is None for binary in binaries
-        ), "Original image PATH must contain no JavaScript runtime"
-        try:
-            socket.create_connection(("192.0.2.1", 443), timeout=1)
-        except OSError:
-            pass
-        else:
-            message = "container network control unexpectedly connected"
-            raise AssertionError(message)
-    sys.addaudithook(deny_external_activity)
+
+
+def _assert_container_network_denied() -> None:
+    """Require the container to have no JavaScript runtime or network route."""
+    original_path = os.environ["WENMODE_ORIGINAL_PATH"]
+    assert all(
+        shutil.which(binary, path=original_path) is None
+        for binary in _JAVASCRIPT_RUNTIMES
+    ), "Original image PATH must contain no JavaScript runtime"
+    try:
+        socket.create_connection(_CONTAINER_NETWORK_WITNESS, timeout=1)
+    except OSError:
+        return
+    message = "container network control unexpectedly connected"
+    raise AssertionError(message)
+
+
+def _assert_socket_denied() -> None:
+    """Require the audit hook to deny socket creation before a side effect."""
     try:
         socket.socket()
     except IsolationDeniedError:
-        pass
-    else:
-        message = "socket audit control did not deny the operation"
-        raise AssertionError(message)
+        return
+    message = "socket audit control did not deny the operation"
+    raise AssertionError(message)
+
+
+def _assert_process_denied() -> None:
+    """Require the audit hook to deny child-process creation."""
     try:
         subprocess.run([sys.executable, "-c", "pass"], check=True)
     except IsolationDeniedError:
-        pass
-    else:
-        message = "process audit control did not deny the operation"
-        raise AssertionError(message)
+        return
+    message = "process audit control did not deny the operation"
+    raise AssertionError(message)
 
 
 def main() -> None:

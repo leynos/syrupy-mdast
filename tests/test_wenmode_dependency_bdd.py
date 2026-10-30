@@ -13,9 +13,9 @@ from tests.support.package_boundary import find_javascript_assets
 from tests.support.wenmode_installation import (
     Wheelhouse,
     install_and_probe,
-    install_without_wenmode,
     prepare_wheelhouse,
 )
+from tests.support.wenmode_offline_install import install_without_wenmode
 
 _FEATURE = Path(__file__).parent / "features" / "wenmode_dependency.feature"
 scenarios(str(_FEATURE))

@@ -207,64 +207,12 @@ def install_and_probe(
     return probe.stdout.strip(), probe.stderr
 
 
-def install_without_wenmode(wheelhouse: Wheelhouse, environment_path: Path) -> str:
-    """Show a fresh offline installation fails when Wenmode is unavailable."""
-    uv = _require_tool("uv")
-    no_wenmode = environment_path.parent / "wheelhouse-without-wenmode"
-    no_wenmode.mkdir()
-    for wheel in wheelhouse.path.glob("*.whl"):
-        if wheel.name != wheelhouse.wenmode_wheel.name:
-            (no_wenmode / wheel.name).symlink_to(wheel)
-    cache = environment_path.parent / "empty-uv-cache"
-    cache.mkdir()
-    _run(
-        [uv, "venv", "--python", sys.executable, environment_path],
-        cwd=environment_path.parent,
-    )
-    try:
-        subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed uv executable and controlled test paths.
-            [
-                uv,
-                "pip",
-                "install",
-                "--offline",
-                "--no-index",
-                "--no-cache",
-                "--find-links",
-                str(no_wenmode),
-                "--python",
-                str(_environment_python(environment_path)),
-                str(wheelhouse.project_wheel),
-            ],
-            cwd=environment_path,
-            env={**_clean_dependency_environment(), "UV_CACHE_DIR": str(cache)},
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=300,
-        )
-    except subprocess.CalledProcessError as error:
-        output = (error.stdout or "") + (error.stderr or "")
-        assert "wenmode" in output.lower(), (
-            f"failure did not identify missing Wenmode:\n{output}"
-        )
-        return output
-    except subprocess.TimeoutExpired as error:
-        message = (
-            "offline missing-dependency install timed out after 300s\n"
-            f"stdout:\n{error.stdout}\nstderr:\n{error.stderr}"
-        )
-        raise AssertionError(message) from error
-    message = "offline installation unexpectedly succeeded without Wenmode"
-    raise AssertionError(message)
-
-
 def _runtime_inventory_probe() -> str:
     """Return a child program checking installed Wenmode runtime contents."""
     return "\n".join((
         "import json",
         "from importlib.metadata import distribution",
-        "names = ('wenmode', 'syrupy-mdast')",
+        "names = ('wenmode', 'syrupy-mdast', 'syrupy')",
         "inventory = {}",
         "for name in names:",
         "    item = distribution(name)",
