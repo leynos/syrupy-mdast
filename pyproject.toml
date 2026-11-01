@@ -12,11 +12,12 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
-dependencies = ["syrupy>=5.0.0,<7.0.0"]
+dependencies = ["syrupy>=5.0.0,<7.0.0", "wenmode==0.15.2"]
 
 [dependency-groups]
 dev = [
     "pytest",
+    "pytest-bdd",
     "interrogate",
     "pip-audit",
     # Pin ruff so the lockfile-installed linter matches RUFF_VERSION in the

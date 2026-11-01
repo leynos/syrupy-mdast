@@ -147,9 +147,38 @@ package owns the error taxonomy and must not import Syrupy or Wenmode.
 suffix and text write mode, accepts only `str` input, and rejects unsupported
 Syrupy property controls before the unimplemented serialization seam.
 
-The package targets Python 3.12 or later and declares Syrupy `>=5.0.0,<7.0.0`.
+The package targets Python 3.12 or later and declares Syrupy `>=5.0.0,<7.0.0`
+and the reviewed `wenmode==0.15.2` release (BSD-3-Clause).
 `syrupy_mdast/py.typed` is part of the wheel so type checkers can use the
 package's annotations from installed distributions.
+
+### Verify the Python-only dependency boundary
+
+The test-only `tests/support/package_boundary.py` classifies archive paths.
+`tests/support/local_commands.py` supplies the bounded runner, the
+virtual-environment interpreter lookup, and the credential-scrubbed environment
+shared by the packaging helpers: `run_command` fails on a non-zero exit, while
+`run_command_expecting_failure` returns the process for a deliberate failure.
+`tests/support/wenmode_installation.py` prepares a local wheelhouse and creates
+fresh wheel and editable installations through `install_project`, while
+`tests/support/wenmode_offline_install.py` proves a missing Wenmode wheel fails
+visibly. The session `wheelhouse` fixture in `tests/conftest.py` is shared by
+the behavioural scenarios and the manifest contract, so the project wheel,
+runtime wheels, and build backend are downloaded and inspected once per test
+worker. Reuse these helpers for package boundary tests, not production parsing.
+Run the behavioural, manifest, and classifier checks with:
+
+```bash
+uv run pytest -v tests/test_package_boundary.py \
+  tests/test_package_manifest_contract.py tests/test_wenmode_dependency_bdd.py
+```
+
+Wheelhouse preparation fetches wheels before isolation. Installation uses an
+empty cache and `--offline --no-index`; the child probe restricts `PATH` and
+uses audit-hook negative controls before parsing. The container acceptance
+matrix and its network and executable-absence controls are specified in the
+[1.2.1 execution plan](execplans/1-2-1-wenmode-runtime-dependency.md). Audit
+hooks are test instrumentation, not a security sandbox.
 
 ### Upgrade Wenmode
 

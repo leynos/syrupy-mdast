@@ -31,6 +31,9 @@ updates:
   # Enable version updates for Python (pip / requirements*.txt)
   - package-ecosystem: "pip"
     directory: "/"
+    # Wenmode upgrades require the reviewed snapshot-contract report.
+    ignore:
+      - dependency-name: "wenmode"
     groups:
       minor-and-patch:
         patterns:

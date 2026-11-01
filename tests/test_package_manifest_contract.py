@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-import subprocess  # ruff: ignore[suspicious-subprocess-import] -- fixed local wheel-build contract.
-import sys
 import tomllib
+from email import message_from_bytes
 from importlib import metadata
 from pathlib import Path
-from shutil import which
-from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
+import pytest
+from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
 from syrupy.extensions.single_file import SingleFileSnapshotExtension, WriteMode
+
+from tests.support.local_commands import run_command
+from tests.support.package_boundary import find_javascript_assets
+from tests.support.wenmode_installation import Wheelhouse, install_project
 
 
 def test_declared_ranges_match_installed_metadata() -> None:
@@ -19,16 +23,12 @@ def test_declared_ranges_match_installed_metadata() -> None:
     configuration = tomllib.loads(
         (Path(__file__).parents[1] / "pyproject.toml").read_text(encoding="utf-8")
     )
-    assert configuration["project"]["dependencies"] == ["syrupy>=5.0.0,<7.0.0"], (
-        "pyproject.toml must declare the approved Syrupy compatibility range"
-    )
+    _assert_runtime_requirements(configuration["project"]["dependencies"])
     distribution = metadata.metadata("syrupy-mdast")
     assert distribution["Requires-Python"] == ">=3.12", (
         "installed metadata must preserve the supported Python range"
     )
-    assert distribution.get_all("Requires-Dist") == ["syrupy<7.0.0,>=5.0.0"], (
-        "installed metadata must contain only the canonical Syrupy requirement"
-    )
+    _assert_runtime_requirements(distribution.get_all("Requires-Dist") or [])
     assert SingleFileSnapshotExtension.file_extension, (
         "installed Syrupy must expose SingleFileSnapshotExtension"
     )
@@ -38,36 +38,39 @@ def test_declared_ranges_match_installed_metadata() -> None:
     )
 
 
-def test_package_ships_py_typed_marker() -> None:
+@pytest.mark.parametrize(
+    "wenmode_requirement",
+    [
+        None,
+        "wenmode>=0.15.2,<0.16",
+        "wenmode==0.15.1",
+        "wenmode==0.15.2; python_version > '3'",
+        "wenmode[extra]==0.15.2",
+    ],
+)
+def test_runtime_requirement_rejects_unapproved_wenmode(
+    wenmode_requirement: str | None,
+) -> None:
+    """The required dependency cannot be absent, ranged, altered or conditional."""
+    requirements = ["syrupy>=5.0.0,<7.0.0"]
+    if wenmode_requirement is not None:
+        requirements.append(wenmode_requirement)
+    with pytest.raises(AssertionError):
+        _assert_runtime_requirements(requirements)
+
+
+def test_package_ships_py_typed_marker(wheelhouse: Wheelhouse, tmp_path: Path) -> None:
     """Built wheels contain every package module and no JavaScript assets."""
-    repository_root = Path(__file__).parents[1]
-    uv_executable = _require_uv()
-    with TemporaryDirectory() as temporary_directory:
-        temporary_path = Path(temporary_directory)
-        wheel_path = _build_wheel(uv_executable, repository_root, temporary_path)
-        member_names = _wheel_member_names(wheel_path)
-        _assert_required_wheel_members(member_names)
-        _assert_isolated_wheel_import(uv_executable, wheel_path, temporary_path)
+    member_names = _wheel_member_names(wheelhouse.project_wheel)
+    _assert_required_wheel_members(member_names)
+    with ZipFile(wheelhouse.project_wheel) as wheel:
+        metadata_path = next(
+            name for name in member_names if name.endswith(".dist-info/METADATA")
+        )
+        wheel_metadata = message_from_bytes(wheel.read(metadata_path))
+        _assert_runtime_requirements(wheel_metadata.get_all("Requires-Dist") or [])
+    _assert_isolated_wheel_import(wheelhouse, tmp_path)
     _assert_no_javascript_assets(member_names)
-
-
-def _require_uv() -> str:
-    """Return the required local uv executable."""
-    uv_executable = which("uv")
-    assert uv_executable is not None, "the wheel contract requires uv on PATH"
-    return uv_executable
-
-
-def _build_wheel(
-    uv_executable: str, repository_root: Path, output_directory: Path
-) -> Path:
-    """Build one wheel in the supplied output directory."""
-    subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed local build command.
-        [uv_executable, "build", "--wheel", "--out-dir", output_directory],
-        check=True,
-        cwd=repository_root,
-    )
-    return next(output_directory.glob("*.whl"))
 
 
 def _wheel_member_names(wheel_path: Path) -> set[str]:
@@ -90,29 +93,15 @@ def _assert_required_wheel_members(member_names: set[str]) -> None:
     )
 
 
-def _assert_isolated_wheel_import(
-    uv_executable: str, wheel_path: Path, temporary_path: Path
-) -> None:
-    """Install a wheel in isolation and assert its public import contract."""
-    virtual_environment = temporary_path / "wheel-environment"
-    subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed local environment command.
-        [uv_executable, "venv", "--python", sys.executable, virtual_environment],
-        check=True,
-        cwd=temporary_path,
+def _assert_isolated_wheel_import(wheelhouse: Wheelhouse, temporary_path: Path) -> None:
+    """Install the shared wheel in isolation and assert its import contract."""
+    wheel_python = install_project(
+        wheelhouse, "wheel", temporary_path / "wheel-environment"
     )
-    wheel_python = (
-        virtual_environment / "Scripts" / "python.exe"
-        if sys.platform == "win32"
-        else virtual_environment / "bin" / "python"
-    )
-    subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed local wheel-install command.
-        [uv_executable, "pip", "install", "--python", wheel_python, wheel_path],
-        check=True,
-        cwd=temporary_path,
-    )
-    subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] -- fixed isolated import contract.
+    run_command(
         [
             wheel_python,
+            "-I",
             "-c",
             "\n".join((
                 "from pathlib import Path",
@@ -128,29 +117,36 @@ def _assert_isolated_wheel_import(
                 "assert Extension.__module__ == 'syrupy_mdast._extension'",
             )),
         ],
-        check=True,
         cwd=temporary_path,
+        timeout=30,
     )
 
 
 def _assert_no_javascript_assets(member_names: set[str]) -> None:
-    """Assert that wheel members exclude JavaScript source and packaging files."""
-    forbidden_names = {
-        "package.json",
-        "package-lock.json",
-        "bun.lock",
-        "bun.lockb",
-        "pnpm-lock.yaml",
-        "yarn.lock",
-    }
-    unexpected_assets = [
-        member_name
-        for member_name in member_names
-        if member_name.endswith((".js", ".mjs", ".cjs"))
-        or member_name.rsplit("/", maxsplit=1)[-1] in forbidden_names
-        or member_name.startswith("node_modules/")
-        or "/node_modules/" in member_name
-    ]
-    assert not unexpected_assets, (
-        "the installed wheel must not contain JavaScript source or packaging assets"
+    """Assert wheel members exclude JavaScript and TypeScript assets."""
+    unexpected_assets = find_javascript_assets(member_names)
+    assert not unexpected_assets, f"forbidden wheel assets: {unexpected_assets}"
+
+
+def _assert_runtime_requirements(requirements: list[str]) -> None:
+    """Check both mandatory requirements independently of header order."""
+    parsed = [Requirement(value) for value in requirements]
+    assert len(parsed) == 2, (
+        f"expected exactly the two mandatory runtime requirements: {requirements!r}"
+    )
+    by_name = {item.name.lower(): item for item in parsed}
+    assert set(by_name) == {"syrupy", "wenmode"}, (
+        f"runtime requirements must be exactly Syrupy and Wenmode: {requirements!r}"
+    )
+    assert by_name["syrupy"].specifier == SpecifierSet(">=5.0.0,<7.0.0"), (
+        f"Syrupy must be required across the approved range: {requirements!r}"
+    )
+    assert by_name["wenmode"].specifier == SpecifierSet("==0.15.2"), (
+        f"Wenmode must be required at the reviewed exact release: {requirements!r}"
+    )
+    assert all(
+        item.marker is None and not item.extras and item.url is None for item in parsed
+    ), (
+        "runtime requirements must be unconditional, without extras or URLs: "
+        f"{requirements!r}"
     )

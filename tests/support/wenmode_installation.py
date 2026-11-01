@@ -1,0 +1,337 @@
+"""Build and exercise isolated Wenmode installations for package contracts."""
+
+from __future__ import annotations
+
+import dataclasses
+import hashlib
+import json
+import sys
+from pathlib import Path
+from zipfile import ZipFile
+
+from tests.support.local_commands import (
+    clean_dependency_environment,
+    environment_python,
+    require_tool,
+    run_command,
+)
+from tests.support.package_boundary import find_javascript_assets
+
+_EXPECTED_WENMODE_SHA256 = (
+    "a1be9a2d91ef7f5020148daf615edca0c9a4a6d54d074a808e6d5e9de95726f6"
+)
+_WHEELHOUSE_REQUIREMENTS = (
+    "wenmode==0.15.2",
+    "syrupy>=5.0.0,<7.0.0",
+    "hatchling",
+    "editables",
+)
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class Wheelhouse:
+    """Paths and inspected release evidence for one immutable local wheelhouse."""
+
+    path: Path
+    project_wheel: Path
+    wenmode_wheel: Path
+    repository: Path
+    project_version: str
+    project_sha256: str
+    wenmode_sha256: str
+
+
+def prepare_wheelhouse(temporary_path: Path) -> Wheelhouse:
+    """Build the project wheel and prepare all runtime/build wheels locally."""
+    repository = Path(__file__).parents[2].resolve()
+    output = temporary_path / "wheelhouse"
+    output.mkdir()
+    project_wheel = _build_project_wheel(repository, temporary_path, output)
+    _download_runtime_wheels(output, temporary_path)
+    wenmode_wheels = tuple(output.glob("wenmode-0.15.2-*.whl"))
+    assert len(wenmode_wheels) == 1, (
+        f"expected one Wenmode wheel, found {wenmode_wheels!r}"
+    )
+    wenmode_wheel = wenmode_wheels[0]
+    wenmode_digest = _assert_wenmode_wheel(wenmode_wheel)
+    project_version = _assert_project_wheel(project_wheel)
+    _assert_python_only_wheels((project_wheel, wenmode_wheel))
+    return Wheelhouse(
+        output,
+        project_wheel,
+        wenmode_wheel,
+        repository,
+        project_version,
+        hashlib.sha256(project_wheel.read_bytes()).hexdigest(),
+        wenmode_digest,
+    )
+
+
+def _build_project_wheel(repository: Path, temporary_path: Path, output: Path) -> Path:
+    """Build and copy exactly one project wheel into the prepared wheelhouse."""
+    project_output = temporary_path / "project-wheel"
+    project_output.mkdir()
+    run_command(
+        [require_tool("uv"), "build", "--wheel", "--out-dir", str(project_output)],
+        cwd=repository,
+    )
+    project_wheels = tuple(project_output.glob("*.whl"))
+    assert len(project_wheels) == 1, (
+        f"expected one project wheel, found {project_wheels!r}"
+    )
+    project_wheel = output / project_wheels[0].name
+    project_wheel.write_bytes(project_wheels[0].read_bytes())
+    return project_wheel
+
+
+def _download_runtime_wheels(output: Path, temporary_path: Path) -> None:
+    """Download runtime and editable build requirements into the wheelhouse."""
+    run_command(
+        [
+            require_tool("uvx"),
+            "--from",
+            "pip",
+            "pip",
+            "download",
+            "--only-binary=:all:",
+            "--dest",
+            str(output),
+            *_WHEELHOUSE_REQUIREMENTS,
+        ],
+        cwd=temporary_path,
+    )
+
+
+def _assert_wenmode_wheel(wheel_path: Path) -> str:
+    """Validate the reviewed Wenmode digest, licence and dependency metadata."""
+    digest = hashlib.sha256(wheel_path.read_bytes()).hexdigest()
+    assert digest == _EXPECTED_WENMODE_SHA256, f"Wenmode wheel digest changed: {digest}"
+    release_metadata = _wheel_metadata(wheel_path)
+    assert "License-Expression: BSD-3-Clause" in release_metadata, (
+        "Wenmode wheel metadata must record the BSD-3-Clause licence"
+    )
+    dependencies = [
+        line
+        for line in release_metadata.splitlines()
+        if line.startswith("Requires-Dist:")
+    ]
+    assert not dependencies, f"Wenmode gained runtime dependencies: {dependencies!r}"
+    return digest
+
+
+def _assert_project_wheel(wheel_path: Path) -> str:
+    """Validate the built project wheel licence and exact dependency metadata.
+
+    Returns
+    -------
+    str
+        Version recorded in the built wheel, so installed metadata can be
+        compared with the wheel instead of a duplicated literal.
+    """
+    project_metadata = _wheel_metadata(wheel_path)
+    assert "License: ISC" in project_metadata, (
+        "the built project wheel must retain its ISC licence"
+    )
+    versions = [
+        line.removeprefix("Version: ")
+        for line in project_metadata.splitlines()
+        if line.startswith("Version: ")
+    ]
+    assert len(versions) == 1, (
+        f"project wheel must record exactly one version: {versions!r}"
+    )
+    requirements = {
+        line.removeprefix("Requires-Dist: ")
+        for line in project_metadata.splitlines()
+        if line.startswith("Requires-Dist: ")
+    }
+    assert requirements == {"syrupy<7.0.0,>=5.0.0", "wenmode==0.15.2"}, (
+        f"project wheel has unexpected runtime requirements: {requirements!r}"
+    )
+    return versions[0]
+
+
+def _assert_python_only_wheels(wheels: tuple[Path, ...]) -> None:
+    """Reject cross-runtime files from the project and Wenmode archives."""
+    for wheel_path in wheels:
+        with ZipFile(wheel_path) as archive:
+            unexpected = find_javascript_assets(archive.namelist())
+        assert not unexpected, (
+            f"{wheel_path.name} contains JavaScript assets: {unexpected!r}"
+        )
+
+
+def install_project(wheelhouse: Wheelhouse, mode: str, environment_path: Path) -> Path:
+    """Create a fresh environment and install the project in one mode.
+
+    Parameters
+    ----------
+    wheelhouse
+        Prepared local wheels and release evidence.
+    mode
+        ``"wheel"`` installs the built wheel; ``"editable"`` installs the
+        checkout through its declared build backend.
+    environment_path
+        New virtual-environment path. Its parent must exist and receive the
+        private installer cache.
+
+    Returns
+    -------
+    Path
+        Python executable inside the new environment.
+
+    Examples
+    --------
+    >>> python = install_project(wheelhouse, "wheel", temporary_path / "wheel")
+    >>> python.is_file()
+    True
+    """
+    assert mode in {"wheel", "editable"}, f"unsupported installation mode: {mode}"
+    uv = require_tool("uv")
+    run_command(
+        [uv, "venv", "--python", sys.executable, environment_path],
+        cwd=environment_path.parent,
+    )
+    python = environment_python(environment_path)
+    uv_cache = environment_path / "uv-cache"
+    uv_cache.mkdir()
+    install_arguments = [
+        uv,
+        "pip",
+        "install",
+        "--offline",
+        "--no-index",
+        "--no-cache",
+        "--find-links",
+        str(wheelhouse.path),
+        "--python",
+        str(python),
+    ]
+    if mode == "editable":
+        install_arguments.extend(("--editable", str(wheelhouse.repository)))
+    else:
+        install_arguments.append(str(wheelhouse.project_wheel))
+    run_command(
+        install_arguments,
+        cwd=environment_path,
+        env={**clean_dependency_environment(), "UV_CACHE_DIR": str(uv_cache)},
+    )
+    return python
+
+
+def install_and_probe(
+    wheelhouse: Wheelhouse, mode: str, environment_path: Path
+) -> tuple[str, str]:
+    """Install one fresh mode offline and return probe output and stderr."""
+    python = install_project(wheelhouse, mode, environment_path)
+    inventory = run_command(
+        [python, "-I", "-c", _runtime_inventory_probe()],
+        cwd=environment_path,
+        timeout=30,
+    )
+    installed_metadata = json.loads(inventory.stdout)
+    _assert_installed_metadata(installed_metadata, wheelhouse.project_version)
+    for distribution_name, details in installed_metadata.items():
+        unexpected_assets = find_javascript_assets(details["files"])
+        assert not unexpected_assets, (
+            f"installed {distribution_name} contains JavaScript assets: "
+            f"{unexpected_assets!r}"
+        )
+    probe_env = {
+        "PATH": str(python.parent),
+        "WENMODE_INSTALL_MODE": mode,
+        "WENMODE_CHECKOUT_PATH": str(wheelhouse.repository),
+        "HOME": str(environment_path),
+    }
+    probe_path = Path(__file__).with_name("wenmode_runtime_probe.py").resolve()
+    probe = run_command(
+        [python, "-I", "-W", "error", probe_path],
+        cwd=environment_path.parent,
+        env=probe_env,
+        timeout=30,
+    )
+    return probe.stdout.strip(), probe.stderr
+
+
+def _runtime_inventory_probe() -> str:
+    """Return a child program inventorying every installed distribution.
+
+    The fresh environment contains the whole runtime closure, including the
+    pytest distributions that Syrupy requires. Enumerating the environment
+    rather than three expected names keeps E-ASSETS true if that closure grows.
+
+    Returns
+    -------
+    str
+        Child program that prints a JSON inventory of installed distributions.
+    """
+    return "\n".join((
+        "import json",
+        "from importlib.metadata import distributions",
+        "inventory = {}",
+        "for item in distributions():",
+        "    name = item.metadata['Name']",
+        "    inventory[name] = {",
+        "        'version': item.version,",
+        "        'requires': item.metadata.get_all('Requires-Dist') or [],",
+        "        'license': (",
+        "            item.metadata.get('License-Expression')",
+        "            or item.metadata.get('License')",
+        "        ),",
+        "        'files': [str(path) for path in item.files or ()],",
+        "    }",
+        "print(json.dumps(inventory))",
+    ))
+
+
+def _wheel_metadata(wheel_path: Path) -> str:
+    """Read the sole METADATA payload from a built wheel."""
+    with ZipFile(wheel_path) as archive:
+        metadata_files = [
+            name for name in archive.namelist() if name.endswith(".dist-info/METADATA")
+        ]
+        assert len(metadata_files) == 1, (
+            f"expected one METADATA file in {wheel_path.name}"
+        )
+        return archive.read(metadata_files[0]).decode("utf-8")
+
+
+def _assert_installed_metadata(
+    installed: dict[str, dict[str, object]], expected_version: str
+) -> None:
+    """Check the real wheel and editable installs expose the approved metadata.
+
+    Parameters
+    ----------
+    installed
+        Distribution name to recorded metadata for the fresh environment.
+    expected_version
+        Version recorded in the built project wheel. Taken from the artefact so
+        a release bump cannot leave a duplicated literal behind in the harness.
+    """
+    project = installed["syrupy-mdast"]
+    assert project["version"] == expected_version, (
+        f"unexpected installed project metadata: {project!r}; "
+        f"expected version {expected_version!r}"
+    )
+    assert project["license"] == "ISC", (
+        f"unexpected installed project metadata: {project!r}"
+    )
+    requirements = project["requires"]
+    assert isinstance(requirements, list), (
+        f"unexpected installed project requirements: {project!r}"
+    )
+    assert set(requirements) == {
+        "syrupy<7.0.0,>=5.0.0",
+        "wenmode==0.15.2",
+    }, f"unexpected installed project requirements: {project!r}"
+    wenmode = installed["wenmode"]
+    assert wenmode["version"] == "0.15.2", (
+        f"unexpected installed Wenmode metadata: {wenmode!r}"
+    )
+    assert wenmode["license"] == "BSD-3-Clause", (
+        f"unexpected installed Wenmode metadata: {wenmode!r}"
+    )
+    assert not wenmode["requires"], (
+        f"Wenmode has runtime dependencies: {wenmode['requires']!r}"
+    )

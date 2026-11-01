@@ -575,5 +575,13 @@ supersede this normalization record.
 None. The maintainer selected Option G and accepted this written record on
 2026-10-11.
 
+## Addendum (2026-10-30)
+
+This addendum records [ADR-005](adr-005-exact-wenmode-runtime-dependency.md)
+without altering the historical decision above. From this date, the Wenmode
+dependency-range and downstream-resolution clauses in "Technical requirements",
+"Decision outcome / proposed direction", "Wenmode release", and "Known risks
+and limitations" are superseded; every other statement continues to apply.
+
 [maintainer-acceptance]:
   https://github.com/leynos/syrupy-mdast/pull/58#issuecomment-6113067258

@@ -47,6 +47,11 @@ except MarkdownAstError as error:
     print(error.category)
 ```
 
+The package installs `wenmode==0.15.2` (BSD-3-Clause) as a Python runtime
+dependency. Parsing with that dependency does not require a JavaScript runtime
+or network access. The public snapshot serialization interface is not yet
+implemented.
+
 ## Quality Gates
 
 Generated projects use `make all` as the standard local quality gate. It runs

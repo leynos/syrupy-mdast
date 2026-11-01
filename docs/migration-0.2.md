@@ -17,9 +17,12 @@ keyword-only value from the documented failure taxonomy.
 
 ## Runtime requirements
 
-The package now requires Python 3.12 or later and declares Syrupy
-`>=5.0.0,<7.0.0`. Update environments and dependency constraints before
-installing the 0.2.x release.
+The package now requires Python 3.12 or later, declares Syrupy
+`>=5.0.0,<7.0.0`, and pins the reviewed `wenmode==0.15.2` release
+(BSD-3-Clause) as its Markdown parser. Wenmode adds no further runtime
+dependencies, and parsing needs neither a JavaScript runtime nor network
+access. Update environments and dependency constraints before installing the
+0.2.x release.
 
 Register the extension through Syrupy's existing assertion configuration:
 
