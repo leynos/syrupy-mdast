@@ -14,7 +14,7 @@ considered complete.
 across `$(PYTHON_TARGETS)`, the PyPy-backed Pylint runner, the
 `df12-python-lints` Pylint pass under CPython `$(DF12_PYTHON)`, `ambrleaks` over
 `tests/`, and the strict Skylos dead-code gate. See
-[ADR-001](adr-001-python-lint-architecture.md) for the four-tier lint
+[ADR-001](adrs/adr-0001-python-lint-architecture.md) for the four-tier lint
 architecture.
 
 Ruff and ty versions are pinned in three places: `RUFF_VERSION` and
@@ -291,8 +291,8 @@ composite action fails the suite until Dependabot is configured to watch it.
 
 ### CodeScene coverage publication
 
-[ADR-002](adr-002-main-owns-codescene-coverage-publication.md) records the
-decision and the options it rejected.
+[ADR-002](adrs/adr-0002-main-owns-codescene-coverage-publication.md) records
+the decision and the options it rejected.
 
 Main owns CodeScene. `.github/workflows/coverage-main.yml` is the one
 publisher: on each push to `main` it measures coverage, writes the ratchet

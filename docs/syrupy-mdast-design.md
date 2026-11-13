@@ -485,7 +485,7 @@ JavaScript packages.
 
 The wheel declares `syrupy>=5.0.0,<7.0.0` and `wenmode==0.15.2`. Wenmode is
 licensed under BSD-3-Clause.
-[ADR-005](adr-005-exact-wenmode-runtime-dependency.md) records the exact
+[ADR-005](adrs/adr-0005-exact-wenmode-runtime-dependency.md) records the exact
 dependency policy. Syrupy supplies lifecycle behaviour, so the supported range
 permits reviewed compatible releases; Wenmode defines persisted snapshot bytes,
 so it requires an exact pin. The wheel contains no language-runtime binaries,

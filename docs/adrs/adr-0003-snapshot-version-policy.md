@@ -17,7 +17,7 @@ recorded contract/package release and Wenmode upgrade policy.
 snapshot. The policy for communicating snapshot versions and releasing changes
 must avoid broad, uninformative rewrites while giving maintainers a clear
 migration path when payloads change. The
-[normalization contract in ADR-004](adr-004-parser-profile-and-normalization.md)
+[normalization contract in ADR-004](adr-0004-parser-profile-and-normalization.md)
 defines the parser, canonical payload bytes, and the integer contract version
 to which this policy applies.
 
@@ -121,7 +121,7 @@ payload change.
 
 ### Normalization contract
 
-[ADR-004](adr-004-parser-profile-and-normalization.md) is the authoritative
+[ADR-004](adr-0004-parser-profile-and-normalization.md) is the authoritative
 record for the parser profile, normalization rules, member order, JSON writer,
 and comparison key. This ADR owns the versioning and release policy; it does
 not duplicate ADR-004's manifest.
@@ -238,7 +238,7 @@ record on 2026-10-11.
 
 ## Addendum (2026-10-30)
 
-This addendum records [ADR-005](adr-005-exact-wenmode-runtime-dependency.md)
+This addendum records [ADR-005](adr-0005-exact-wenmode-runtime-dependency.md)
 without altering the historical decision above. From this date, the Wenmode
 dependency-range and downstream-resolution clauses in "Technical requirements",
 "Decision outcome / proposed direction", "Wenmode upgrade workflow", and "Known

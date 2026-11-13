@@ -54,10 +54,11 @@ than regenerate them from the implementation under test.
 
 - Obtain explicit approval of this plan before changing fixtures, tests, or
   implementation. The initial planning revision changed documentation only.
-- Accepted [ADR-004](../adr-004-parser-profile-and-normalization.md) governs
-  parser construction, normalization, and normative fixtures (NF-1 to NF-13).
-  [ADR-003](../adr-003-snapshot-version-policy.md) governs versioning. Preserve
-  contract version 1, its no-marker policy, and its comparison scope.
+- Accepted [ADR-004](../adrs/adr-0004-parser-profile-and-normalization.md)
+  governs parser construction, normalization, and normative fixtures (NF-1 to
+  NF-13). [ADR-003](../adrs/adr-0003-snapshot-version-policy.md) governs
+  versioning. Preserve contract version 1, its no-marker policy, and its
+  comparison scope.
 - Keep the Python-only package boundary. Do not introduce a Rust extension,
   JavaScript oracle, parser dependency, production canonicalizer, writer, or
   changes under `syrupy_mdast/`. Do not implement later roadmap tasks early.
@@ -563,9 +564,9 @@ Read these repository documents before implementation:
 
 - [Documentation index](../contents.md), [roadmap](../roadmap.md), and
   [technical design](../syrupy-mdast-design.md), especially §§2–4, 7–8, 11, 13.
-- [ADR-003](../adr-003-snapshot-version-policy.md) and
-  [ADR-004](../adr-004-parser-profile-and-normalization.md), including the
-  contract manifest, normative fixtures, and raw-parser probe limitations.
+- [ADR-003](../adrs/adr-0003-snapshot-version-policy.md) and
+  [ADR-004](../adrs/adr-0004-parser-profile-and-normalization.md), including
+  the contract manifest, normative fixtures, and raw-parser probe limitations.
 - [Developer guide](../developers-guide.md), [user guide](../users-guide.md),
   [documentation style](../documentation-style-guide.md), and
   [complexity guidance](../complexity-antipatterns-and-refactoring-strategies.md).

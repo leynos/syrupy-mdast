@@ -80,8 +80,8 @@ against breaching fixtures.
   coverage on a push, or changes the coverage selection on one side only fails
   the contract, which names the clause.
 
-The [developers' guide](developers-guide.md) records the publisher's shape and
-its operational exceptions.
+The [developers' guide](../developers-guide.md) records the publisher's shape
+and its operational exceptions.
 
 ## Addendum, 2026-09-30: the contract moved to a shared library
 

@@ -411,7 +411,7 @@ Implementation observations are appended after the planning discoveries.
   during review remediation on 2026-09-16 when the guide was updated to
   document the current v1 consumer contract pending roadmap 3.1.1's replacement.
 
-- DEC-13: Leave `docs/adr-001-python-lint-architecture.md` and the
+- DEC-13: Leave `docs/adrs/adr-0001-python-lint-architecture.md` and the
   Pyright-versus-`ty` tension in `.rules/python-00.md` alone. Rationale:
   ADR-001 uses a Nygard-style layout where `docs/documentation-style-guide.md`
   prescribes a different template, but it concerns lint architecture and has no
@@ -597,7 +597,7 @@ upstream artefacts are:
 1. `docs/syrupy-mdast-design.md`, revision dated 2026-07-28, status "Proposed
    living design". Sections §2.1, §2.3, §5, §6, §9, and §13 bind this task.
 2. `docs/roadmap.md` task 1.1.1, as amended by DEC-3.
-3. `docs/adr-001-python-lint-architecture.md` — governs the Skylos
+3. `docs/adrs/adr-0001-python-lint-architecture.md` — governs the Skylos
    false-positive policy that DEC-7 operates within.
 4. `AGENTS.md`, `.rules/python-*.md`, and `docs/documentation-style-guide.md`
    as governing standards.
