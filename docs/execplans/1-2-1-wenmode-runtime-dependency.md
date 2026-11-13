@@ -253,11 +253,11 @@ no-op and the four requested gates passed on commit `1da75a7`.
 
 2026-10-20 — Proposed: select `wenmode==0.15.2`, matching the reviewed corpus
 baseline and the current requested exact-pin requirement. On approval, add
-`docs/adr-005-exact-wenmode-runtime-dependency.md` (check numbering first),
-superseding only the range and downstream-resolution clauses of ADR-003 and
-ADR-004. Link it from both ADRs and the design. Preserve their dated historical
-rationale; update active manifest/policy text and affected guide statements. No
-normalization or snapshot-version decision changes.
+`docs/adrs/adr-0005-exact-wenmode-runtime-dependency.md` (check numbering
+first), superseding only the range and downstream-resolution clauses of ADR-003
+and ADR-004. Link it from both ADRs and the design. Preserve their dated
+historical rationale; update active manifest/policy text and affected guide
+statements. No normalization or snapshot-version decision changes.
 
 2026-10-20 — Proposed: use one shared test-only packaging harness, extending
 existing wheel helpers, for pytest and pytest-bdd. It owns environment setup,

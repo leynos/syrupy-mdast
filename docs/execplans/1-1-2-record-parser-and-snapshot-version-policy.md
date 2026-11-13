@@ -26,8 +26,8 @@ complete contract, "accepted before committing any related implementation or
 fixture change".
 
 After this work a maintainer or contributor can read two linked records:
-`docs/adr-003-snapshot-version-policy.md` governs versioning, and
-`docs/adr-004-parser-profile-and-normalization.md` defines the normalized
+`docs/adrs/adr-0003-snapshot-version-policy.md` governs versioning, and
+`docs/adrs/adr-0004-parser-profile-and-normalization.md` defines the normalized
 payload. Together they record:
 
 1. the snapshot contract version (`1`) and the rules that decide when it, and
@@ -702,16 +702,16 @@ outside its examples.
 
 - DEC-24. Decision: split the combined proposal into two ADRs at the
   maintainer's explicit request on 2026-10-11:
-  `docs/adr-003-snapshot-version-policy.md` owns snapshot/package versioning,
-  contract evolution, dependency upgrade policy, and options A to E;
-  `docs/adr-004-parser-profile-and-normalization.md` owns parser construction,
-  the normalization/comparison/writer contract, and options F and G. The
-  maintainer explicitly accepts option A (no payload version marker) and option
-  G (merge adjacent exact-shape plain text siblings); preserve their original
-  labels and record their acceptance date in the corresponding ADR. This is
-  decision acceptance, not blanket acceptance of the rewritten texts. Both
-  complete records remained Proposed at the split; DEC-25 subsequently records
-  explicit acceptance of both written texts.
+  `docs/adrs/adr-0003-snapshot-version-policy.md` owns snapshot/package
+  versioning, contract evolution, dependency upgrade policy, and options A to E;
+  `docs/adrs/adr-0004-parser-profile-and-normalization.md` owns parser
+  construction, the normalization/comparison/writer contract, and options F and
+  G. The maintainer explicitly accepts option A (no payload version marker) and
+  option G (merge adjacent exact-shape plain text siblings); preserve their
+  original labels and record their acceptance date in the corresponding ADR.
+  This is decision acceptance, not blanket acceptance of the rewritten texts.
+  Both complete records remained Proposed at the split; DEC-25 subsequently
+  records explicit acceptance of both written texts.
 
   ADR-004 owns the single unchanged `[snapshot-contract]` manifest, including
   its contract version and Wenmode requirement, NF-1 to NF-13, and the raw
@@ -879,7 +879,7 @@ Read these, in this order, before editing:
    spelling, footnote, and table-caption rules.
 4. `docs/execplans/1-1-1-replace-package-stub-with-v1-public-contract.md`
    DEC-13 and `Conformance basis`: the template handoff obligation.
-5. `docs/adr-002-main-owns-codescene-coverage-publication.md`: house tone.
+5. `docs/adrs/adr-0002-main-owns-codescene-coverage-publication.md`: house tone.
 6. `tests/test_toolchain_contract.py` and `tests/support/make_contract.py`:
    the cross-site contract-test pattern and `REPO_ROOT`.
 7. `.rules/python-00.md` and `.rules/python-typing.md`, plus
@@ -1294,8 +1294,8 @@ complete the retrospective, set this plan to `COMPLETE`.
   B's:
 
   ```bash
-  git log --oneline -- docs/adr-003-snapshot-version-policy.md \
-    docs/adr-004-parser-profile-and-normalization.md \
+  git log --oneline -- docs/adrs/adr-0003-snapshot-version-policy.md \
+    docs/adrs/adr-0004-parser-profile-and-normalization.md \
     tests/test_snapshot_contract_adr.py
   ```
 

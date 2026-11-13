@@ -18,10 +18,10 @@ syntax tree (AST) rather than raw source text. Its parser profile,
 normalization rules, and JSON writer determine snapshot payload bytes and need
 one explicit, machine-readable contract.
 
-The [technical design](syrupy-mdast-design.md) §11 requires a versioned record
-of the parser, normalization policy, comparison contract, and normative
+The [technical design](../syrupy-mdast-design.md) §11 requires a versioned
+record of the parser, normalization policy, comparison contract, and normative
 fixtures before implementation or fixture changes. This record defines those
-payload details. [ADR-003](adr-003-snapshot-version-policy.md) separately
+payload details. [ADR-003](adr-0003-snapshot-version-policy.md) separately
 defines how contract and package versions govern payload changes, and how
 Wenmode upgrades are reviewed.
 
@@ -488,7 +488,7 @@ The policy is informed by Wenmode's
 
 ### Versioning policy
 
-[ADR-003](adr-003-snapshot-version-policy.md) defines package releases,
+[ADR-003](adr-0003-snapshot-version-policy.md) defines package releases,
 contract-version changes, and the Wenmode upgrade workflow. It owns versioning
 policy independently of this normalization record.
 
@@ -577,7 +577,7 @@ None. The maintainer selected Option G and accepted this written record on
 
 ## Addendum (2026-10-30)
 
-This addendum records [ADR-005](adr-005-exact-wenmode-runtime-dependency.md)
+This addendum records [ADR-005](adr-0005-exact-wenmode-runtime-dependency.md)
 without altering the historical decision above. From this date, the Wenmode
 dependency-range and downstream-resolution clauses in "Technical requirements",
 "Decision outcome / proposed direction", "Wenmode release", and "Known risks

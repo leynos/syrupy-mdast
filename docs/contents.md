@@ -25,20 +25,20 @@ documentation set.
 
 ## Decision records
 
-- [ADR-001: Four-tier Python lint architecture](adr-001-python-lint-architecture.md)
+- [ADR-001: Four-tier Python lint architecture](adrs/adr-0001-python-lint-architecture.md)
   records the blocking lint tiers (Ruff, Interrogate, Pylint, and Skylos
   dead-code detection), their version pins, and the verified false-positive
   policy.
-- [ADR-002: `main` owns CodeScene coverage publication](adr-002-main-owns-codescene-coverage-publication.md)
+- [ADR-002: `main` owns CodeScene coverage publication](adrs/adr-0002-main-owns-codescene-coverage-publication.md)
   records why only the push-to-`main` publisher contacts CodeScene, and how
   pull requests ratchet coverage without it.
-- [ADR-003: Snapshot-version policy](adr-003-snapshot-version-policy.md)
+- [ADR-003: Snapshot-version policy](adrs/adr-0003-snapshot-version-policy.md)
   records the accepted absence of a payload marker, package and contract
   versioning, and Wenmode upgrade policy.
-- [ADR-004: Parser profile and normalization](adr-004-parser-profile-and-normalization.md)
+- [ADR-004: Parser profile and normalization](adrs/adr-0004-parser-profile-and-normalization.md)
   records the accepted Wenmode parser profile, canonicalization rules, writer,
   and normative fixture decisions.
-- [ADR-005: Exact Wenmode runtime dependency](adr-005-exact-wenmode-runtime-dependency.md)
+- [ADR-005: Exact Wenmode runtime dependency](adrs/adr-0005-exact-wenmode-runtime-dependency.md)
   records the reviewed exact runtime dependency and upgrade policy.
 
 ## Engineering practice
