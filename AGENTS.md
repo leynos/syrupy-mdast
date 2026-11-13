@@ -89,9 +89,9 @@
       Pylint runner against `$(PYLINT_TARGETS)`, runs the df12-python-lints
       Pylint pass under CPython `$(DF12_PYTHON)` against `$(PYLINT_TARGETS)`,
       sweeps syrupy snapshots with `ambrleaks tests`, and runs the strict
-      Skylos dead-code gate (pinned to `$(SKYLOS_VERSION)`, under
-      Python 3.14) against `$(SKYLOS_PRODUCTION_TARGETS)` only, excluding
-      `$(SKYLOS_EXCLUDE_FOLDERS)`.
+      Skylos dead-code gate through the installed `df12-skylos` command
+      (`make skylos`, under Python 3.14), which reads the production roots
+      from `[tool.df12_skylos]` and the exclusions from `[tool.skylos]`.
     - Skylos false positives are recorded only after verification. Prefer a
       typed `[[tool.skylos.dead_code.entrypoints]]` rule in `pyproject.toml`
       for implicit runtime callers. Class attributes need a documented bare

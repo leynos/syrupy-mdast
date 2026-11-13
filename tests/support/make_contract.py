@@ -8,8 +8,8 @@ cached at module level, so the suite never observes stale parse results.
 
 Examples
 --------
->>> variable_tokens("SKYLOS_VERSION")
-('4.33.2',)
+>>> variable_tokens("DF12_PYTHON")
+('3.14',)
 """
 
 from __future__ import annotations

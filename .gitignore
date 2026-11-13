@@ -205,7 +205,7 @@ target/
 
 .crush/
 
-# Skylos documented-whitelist lock (see the skylos-allow Make target)
-.skylos-whitelist.lock
+# Lock written by the df12-skylos allow command (see the skylos-allow target)
+.pyproject.toml.df12.lock
 
 .wenmode-acceptance.*

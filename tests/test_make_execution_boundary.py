@@ -38,7 +38,7 @@ _INTERROGATE: typ.Final = "interrogate"
 _PYPY_PYLINT: typ.Final = PYPY_PYLINT
 _DF12_PYLINT: typ.Final = "pylint"
 _AMBRLEAKS: typ.Final = "ambrleaks"
-_SKYLOS: typ.Final = "skylos"
+_SKYLOS: typ.Final = "df12-skylos"
 _TY: typ.Final = "ty"
 # The order `lint-python` must dispatch its tiers in.
 _LINT_TIERS: typ.Final = (
@@ -54,17 +54,7 @@ _RUFF_FLAGS: typ.Final = ("check",)
 _INTERROGATE_FLAGS: typ.Final = ("--fail-under", "100")
 _PYPY_PYLINT_FLAGS: typ.Final = ("--load-plugins=",)
 _DF12_PYLINT_FLAGS: typ.Final = ("--disable=all", "--load-plugins=df12_python_lints")
-_SKYLOS_LEADING_FLAGS: typ.Final = ("--config-file", "pyproject.toml")
-_SKYLOS_TRAILING_FLAGS: typ.Final = (
-    "--category",
-    "dead_code",
-    "--gate",
-    "--format",
-    "concise",
-    "--no-upload",
-    "--no-provenance",
-    "--no-grep-verify",
-)
+_SKYLOS_ARGUMENTS: typ.Final = ("check", "--repository", ".")
 _TY_VERSION_ARGUMENTS: typ.Final = ("--version",)
 # Tokens that uniquely identify one invocation, used to tell the recorder
 # which call should fail. Matching tokens keeps the recorder free of any
@@ -109,13 +99,7 @@ def _expected_tier_arguments() -> dict[str, tuple[str, ...]]:
             *pylint_targets,
         ),
         _AMBRLEAKS: ("tests",),
-        _SKYLOS: (
-            *_SKYLOS_LEADING_FLAGS,
-            *variable_tokens("SKYLOS_PRODUCTION_TARGETS"),
-            "--exclude",
-            *variable_tokens("SKYLOS_EXCLUDE_FOLDERS"),
-            *_SKYLOS_TRAILING_FLAGS,
-        ),
+        _SKYLOS: _SKYLOS_ARGUMENTS,
     }
 
 

@@ -422,7 +422,12 @@ enable = [
 ]
 
 
+[tool.df12_skylos]
+roots = ["syrupy_mdast"]
+python = "3.14"
+
 [tool.skylos]
+exclude = ["tests"]
 
 [tool.skylos.gate]
 # Fail the lint gate on any unreviewed production dead-code finding.

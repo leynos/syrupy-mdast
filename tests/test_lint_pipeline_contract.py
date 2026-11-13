@@ -40,23 +40,10 @@ _EXPECTED_LINT_PIPELINE: typ.Final = (
     ("$(PYLINT)", "$(PYLINT_TARGETS)"),
     ("$(DF12_PYLINT)", "$(PYLINT_TARGETS)"),
     ("$(AMBRLEAKS)", "tests"),
-    (
-        "$(SKYLOS)",
-        "$(SKYLOS_PRODUCTION_TARGETS)",
-        "--exclude",
-        "$(SKYLOS_EXCLUDE_FOLDERS)",
-        "--category",
-        "dead_code",
-        "--gate",
-        "--format",
-        "concise",
-        "--no-upload",
-        "--no-provenance",
-        "--no-grep-verify",
-    ),
+    ("$(SKYLOS)", "check", "--repository", "."),
 )
 # Each tier that pins its own interpreter must build an isolated environment.
-_ISOLATED_TOOL_MACROS: typ.Final = ("PYLINT", "DF12_PYLINT", "AMBRLEAKS", "SKYLOS_CLI")
+_ISOLATED_TOOL_MACROS: typ.Final = ("PYLINT", "DF12_PYLINT", "AMBRLEAKS", "SKYLOS")
 _DF12_PYLINT_TOKENS: typ.Final = (
     "$(UV_ENV)",
     "$(UV)",
