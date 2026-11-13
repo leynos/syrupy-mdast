@@ -25,12 +25,16 @@ sites agree; bump them together.
 
 ### Skylos dead-code gate
 
-Skylos (pinned to `$(SKYLOS_VERSION)`) scans production modules only —
-`$(SKYLOS_PRODUCTION_TARGETS)`, excluding `$(SKYLOS_EXCLUDE_FOLDERS)` — with
-the strict gate configuration in `pyproject.toml`, so any unreviewed production
+Skylos runs through the installed `df12-skylos` command from
+[df12-python-lints](https://github.com/leynos/df12-python-lints), provisioned by
+`make skylos` at the commit in `$(DF12_SKYLOS_SHA)` (its `skylos` extra
+carries the one Skylos pin). It scans the production roots in
+`[tool.df12_skylos]`, excluding the paths in `[tool.skylos] exclude`, with the
+strict gate configuration in `pyproject.toml`, so any unreviewed production
 dead-code finding fails `make lint`. The tool runs under Python 3.14 because
 Skylos parses source with its own runtime AST; pinning the interpreter prevents
-phantom findings on newer syntax.
+phantom findings on newer syntax. CI also runs the shared-actions `df12-skylos`
+action.
 
 Investigate every finding before responding to it. Remove genuine dead code.
 For verified false positives, prefer a typed
@@ -44,15 +48,14 @@ make skylos-allow SYMBOL=<symbol> REASON="<evidence for the runtime caller>"
 ```
 
 `SYMBOL` and `REASON` are both required and must contain non-whitespace text;
-the target exits with status 2 otherwise. The variable is named `SYMBOL` (not
-`NAME`) because WSL injects `NAME` with the hostname. The write is serialized
-with `flock` on the ignored `.skylos-whitelist.lock` file, so concurrent
-recordings cannot lose entries.
+`df12-skylos allow` exits with status 2 otherwise. The variable is named
+`SYMBOL` (not `NAME`) because WSL injects `NAME` with the hostname. The write
+is serialized with a lock on the ignored `.pyproject.toml.df12.lock` file, so
+concurrent recordings cannot lose entries.
 
 Bare-name allow-list entries apply repository-wide. Record a concrete runtime
-reader in the reason and update `tests/test_skylos_lint_contract.py` in the
-same change, so a later symbol with the same name cannot inherit an exception
-silently.
+reader in the reason, so a later symbol with the same name cannot inherit an
+exception silently.
 
 ### How the Makefile workflows are covered
 

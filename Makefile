@@ -67,21 +67,17 @@ DF12_PYLINT = $(UV_ENV) $(UV) tool run --python $(DF12_PYTHON) \
 	--disable=all --load-plugins=df12_python_lints --enable=$(DF12_PYLINT_MESSAGES)
 AMBRLEAKS = $(UV_ENV) $(UV) tool run --python $(DF12_PYTHON) \
 	--from '$(DF12_PYTHON_LINTS)' ambrleaks
-SKYLOS_VERSION = 4.33.2
-# Skylos parses source using its own Python AST, so Python 3.14 prevents
-# phantom dead-code findings from syntax older tool runtimes cannot parse.
-# SKYLOS_CLI stays command-only so `skylos-allow` can dispatch the
-# `whitelist` subcommand before any scan option; SKYLOS adds the scan-only
-# global options used by the lint target.
-SKYLOS_CLI = $(UV_ENV) $(UV) tool run --python 3.14 --from 'skylos==$(SKYLOS_VERSION)' skylos
-SKYLOS = $(SKYLOS_CLI) --config-file pyproject.toml
-SKYLOS_PRODUCTION_TARGETS ?= syrupy_mdast
-SKYLOS_EXCLUDE_FOLDERS ?= tests
-SKYLOS_WHITELIST_LOCK ?= .skylos-whitelist.lock
+# The dead-code gate is the installed df12-skylos command; its `skylos` extra
+# carries the one Skylos pin. Skylos parses source with its own runtime AST, so
+# the tool environment runs Python 3.14.
+DF12_SKYLOS_SHA = 56ad71721c3f1f2164ec84b69150582488f1a927
+SKYLOS = $(UV_ENV) $(UV) tool run --python 3.14 --from \
+	'df12-python-lints[skylos] @ git+https://github.com/leynos/df12-python-lints.git@$(DF12_SKYLOS_SHA)' \
+	df12-skylos
 
 
 .PHONY: help all audit clean build build-release lint lint-python fmt check-fmt \
-        makeutil markdownlint nixie skylos-allow test typecheck \
+        makeutil markdownlint nixie skylos skylos-allow test typecheck \
         $(TOOLS) $(VENV_TOOLS) test-workflow-contracts
 
 .DEFAULT_GOAL := all
@@ -162,15 +158,15 @@ lint-python: build ## Run Python linters
 	$(PYLINT) $(PYLINT_TARGETS)
 	$(DF12_PYLINT) $(PYLINT_TARGETS)
 	$(AMBRLEAKS) tests
-	$(SKYLOS) $(SKYLOS_PRODUCTION_TARGETS) --exclude $(SKYLOS_EXCLUDE_FOLDERS) --category dead_code --gate --format concise --no-upload --no-provenance --no-grep-verify
+	$(SKYLOS) check --repository .
 
+skylos: ## Detect dead production code
+	$(SKYLOS) check --repository .
 
 skylos-allow: export SKYLOS_SYMBOL = $(value SYMBOL)
 skylos-allow: export SKYLOS_REASON = $(value REASON)
-skylos-allow: ## Document one named Skylos exception, not an entry point
-	@case "$${SKYLOS_SYMBOL}" in *[![:space:]]*) ;; *) printf "Error: SYMBOL is required for a named whitelist exception\\n" >&2; exit 2;; esac
-	@case "$${SKYLOS_REASON}" in *[![:space:]]*) ;; *) printf "Error: REASON is required for a named whitelist exception\\n" >&2; exit 2;; esac
-	flock "$(SKYLOS_WHITELIST_LOCK)" env $(SKYLOS_CLI) whitelist "$${SKYLOS_SYMBOL}" --reason "$${SKYLOS_REASON}"
+skylos-allow: ## Document one named Skylos exception (SYMBOL=name REASON=text)
+	$(SKYLOS) allow --repository . --symbol="$${SKYLOS_SYMBOL}" --reason="$${SKYLOS_REASON}"
 
 
 makeutil: ## Verify the Makefile parser used by contract tests

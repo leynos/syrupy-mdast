@@ -31,6 +31,13 @@
         }
       }
     },
+    "leynos/shared-actions/.github/actions/df12-skylos": {
+      "a0519a1476ab769ca7b8badfa794f3751213f1ea": {
+        "nested_uses": {
+          "astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7": "full SHA"
+        }
+      }
+    },
     "leynos/shared-actions/.github/actions/install-makeutil": {
       "ebe2f3105334283441f4c915eb979a0f4b9f2c04": {
         "nested_uses": {

@@ -90,8 +90,11 @@ jobs:
         with:
           globs: '**/*.md'
 
-      - name: Run lint, including Skylos dead-code detection
+      - name: Run lint gates
         run: make lint
+
+      - name: Dead-code gate
+        uses: leynos/shared-actions/.github/actions/df12-skylos@a0519a1476ab769ca7b8badfa794f3751213f1ea
 
       - name: Run typechecker
         run: make typecheck

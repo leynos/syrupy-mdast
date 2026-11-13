@@ -81,8 +81,9 @@ PyPy-backed Pylint pass runs `uv tool run` with `--python $(PYLINT_PYTHON)`
 (pinned to `pypy@3.12`) and `--from 'pylint==$(PYLINT_VERSION)'`, with plugins
 disabled; PyPy 8 implements Python 3.12, so this pass runs Pylint's classic
 messages without a compatibility shim. The `df12-python-lints` plugin is
-installed from the pinned `$(DF12_PYTHON_LINTS_REF)` tag; Skylos is installed
-through `uv tool run` pinned to `$(SKYLOS_VERSION)` under Python 3.14.
+installed from the pinned `$(DF12_PYTHON_LINTS_REF)` tag; Skylos runs through
+the installed `df12-skylos` command, provisioned by `make skylos` at the commit
+in `$(DF12_SKYLOS_SHA)` under Python 3.14.
 
 Pytest discovery is limited to the top-level `tests/` tree. Keep generated
 project unit tests there rather than in package module directories or

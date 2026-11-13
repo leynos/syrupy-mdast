@@ -27,32 +27,30 @@ survives review, and misleads readers about which code paths matter.
    The original PyPy pass ran through the pinned `pylint-pypy-shim` runner; see
    the [2026-09-25 amendment](#amendment-2026-09-25-plain-pylint-on-pypy-312)
    for the current shape.
-4. **Skylos** — strict production dead-code detection, pinned to
-   `SKYLOS_VERSION` and run under Python 3.14.
+4. **Skylos** — strict production dead-code detection through the installed
+   `df12-skylos` command from df12-python-lints (its `skylos` extra carries the
+   one Skylos pin), run under Python 3.14.
 
 `ambrleaks` accompanies the tiers as a snapshot-hygiene sweep of `tests/`.
 
-Skylos scans production targets only (`SKYLOS_PRODUCTION_TARGETS`), excludes
-the test tree (`SKYLOS_EXCLUDE_FOLDERS`), and uses the strict gate
-configuration in `pyproject.toml`. Its standalone tool environment is pinned to
-Python 3.14 because Skylos parses source with its own runtime AST; an older
-interpreter would report phantom findings on newer syntax.
+Skylos scans the production roots in `[tool.df12_skylos]`, excludes the test
+tree through `[tool.skylos] exclude`, and uses the strict gate configuration in
+`pyproject.toml`. Its standalone tool environment is pinned to Python 3.14
+because Skylos parses source with its own runtime AST; an older interpreter
+would report phantom findings on newer syntax.
 
 False positives follow a verified-exception policy. Implicit runtime callers
 are modelled as typed `[[tool.skylos.dead_code.entrypoints]]` rules with
 reasons. Only when an entry-point rule cannot model the boundary is a
 documented allow-list entry recorded, through
 `make skylos-allow SYMBOL=<symbol> REASON="<evidence>"`. The `skylos-allow`
-target validates that both values contain non-whitespace text, reads `SYMBOL`
-rather than WSL's caller-owned `NAME` environment variable, and serializes the
-read-modify-write update with `flock` on an ignored repository-local lock file,
-so concurrent recordings remain intact.
-
-Contract tests in `tests/test_skylos_lint_contract.py` and
-`tests/test_skylos_whitelist_boundary.py` parse the Makefile with the pinned
-`makeutil` binary and the workflows with PyYAML, asserting the tier order, tool
-pins, strict configuration, and whitelist argument forwarding rather than
-matching source text.
+target reads `SYMBOL` rather than WSL's caller-owned `NAME` environment
+variable and passes both values to `df12-skylos allow`, which validates that
+they contain non-whitespace text and serializes the read-modify-write update
+with a lock file (`.pyproject.toml.df12.lock`, git-ignored), so concurrent
+recordings remain intact. The command and its behaviour are tested in
+df12-python-lints, and CI runs the shared-actions `df12-skylos` action; this
+repository keeps only its configuration and exceptions.
 
 ## Consequences
 
