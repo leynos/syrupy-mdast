@@ -58,3 +58,6 @@ documentation set.
 - [Exact Wenmode runtime dependency](execplans/1-2-1-wenmode-runtime-dependency.md)
   records delivery of roadmap 1.2.1, including the reviewed exact pin and its
   installation-boundary evidence.
+- [Internal Wenmode adapter seam](execplans/1-2-2-define-internal-wenmode-seam.md)
+  proposes roadmap 1.2.2 and its per-call parser isolation evidence;
+  implementation requires approval.
