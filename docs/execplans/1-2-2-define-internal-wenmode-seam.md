@@ -50,12 +50,13 @@ format, or architecture must change. Also escalate if implementation needs more
 than 24 non-ExecPlan files or 2400 net lines of code and other documentation.
 ExecPlan files are excluded from both counts. The original limits were 16 files
 and 900 net lines; after the completed change measured 19 files and 1596 net
-lines, the reviewer raised both limits on 2026-11-15, and the Decision log
-records the measurements, the escalation, and that decision. A required
-third-party annotation workaround involving `Any`, a cast, or a suppression
-requires evidence and review before adoption. Three unsuccessful fixes for the
-same failure trigger reassessment, not a weaker assertion. There is no
-elapsed-time cutoff.
+lines at that point, the reviewer raised both limits on 2026-11-15, and the
+Decision log records the measurements, the escalation, and that decision. The
+change measures 1606 net lines at the review-reconciliation head, still within
+both limits. A required third-party annotation workaround involving `Any`, a
+cast, or a suppression requires evidence and review before adoption. Three
+unsuccessful fixes for the same failure trigger reassessment, not a weaker
+assertion. There is no elapsed-time cutoff.
 
 ## Risks
 
@@ -156,6 +157,12 @@ not add a dummy production caller or a blanket suppression.
       behavioural requirement was already satisfied by
       `tests/test_public_api_contract.py`, and removing the failure-propagation
       double is declined with evidence in the Decision log.
+- [x] (2026-11-15) Assessment of `0e267bc` withdrew the double-removal request
+      and confirmed the ADR and E6 corrections, but found two valid items: four
+      references said the comparison pipeline was scheduled for 1.2.3, while
+      the roadmap puts parsing at 2.1.1 and snapshot serialisation at 2.3.1;
+      and the recorded size predated the review reconciliation. Both are
+      corrected here, and the reconciliation head measures 1606 net lines.
 
 ## Surprises & discoveries
 
@@ -272,8 +279,8 @@ reviewed configuration instead.
   `SKY-U001 unused function: parse_markdown` as one typed entry-point rule in
   `pyproject.toml`, not a dummy caller or a blanket suppression. The seam has
   no caller inside the scanned `syrupy_mdast` tree yet; its runtime callers are
-  the installed probe in a child process and the pipeline scheduled for 1.2.3.
-  The rule names `syrupy_mdast._wenmode.parse_markdown` exactly, and
+  the installed probe in a child process and the parsing pipeline scheduled for
+  2.1.1. The rule names `syrupy_mdast._wenmode.parse_markdown` exactly, and
   `tests/test_skylos_lint_contract.py` lists the same name so a future symbol
   cannot inherit the exception silently.
 - 2026-11-15: The completed change exceeds the original size limits: 19
@@ -295,9 +302,11 @@ reviewed configuration instead.
   to obtain approval before EP-M1 finished was lost to a tool failure, and the
   task instruction required delivery to continue rather than block. On
   2026-11-15 the reviewer raised the limits to 24 non-ExecPlan files and 2400
-  net lines, so the completed change now fits both at 19 files and 1596 net
-  lines. Reverting this branch's commits remains the recovery path if that
-  decision is reversed.
+  net lines. At the review-reconciliation head `0e267bc` the same change
+  measures 19 non-ExecPlan files, 1658 insertions, 52 deletions, and 1606 net
+  lines, so it fits both revised limits; 1596 was the measurement before that
+  reconciliation. Reverting this branch's commits remains the recovery path if
+  that decision is reversed.
 - 2026-11-15: Put the E5 sensitivity control in its own module,
   `tests/support/wenmode_seam_sensitivity.py`, and call it from
   `install_and_probe`. A separate module names one responsibility, keeps
@@ -371,12 +380,23 @@ reviewed configuration instead.
   be made to fail deterministically on demand, and the double is already
   documented as test machinery rather than an extension point. Removing it
   would delete a named witness and replace it with nothing.
+- 2026-11-15: The assessment of `0e267bc` withdrew the double-removal request
+  and confirmed the ADR and E6 corrections, then found two valid documentation
+  items. The roadmap schedules normative AST probes at 1.2.3, parsing at 2.1.1,
+  and snapshot serialisation at 2.3.1, so the four places that treated the
+  comparison pipeline as a 1.2.3 deliverable now name 2.1.1, and 2.3.1 where
+  the public entrypoint is meant: this plan's two statements, the developers'
+  guide, and the Skylos rationale in `pyproject.toml`. The size record also
+  predated the review reconciliation; the reconciliation head measures 19
+  non-ExecPlan files, 1658 insertions, 52 deletions, and 1606 net lines, and
+  1596 is retained as the earlier measurement.
 
 ## Outcomes & retrospective
 
 Both milestones are implemented and locally validated, and roadmap 1.2.2 is
-claimed done; 1.2.3 and the deferred corpus, canonicalizer, and public pipeline
-remain open.
+claimed done; roadmap 1.2.3 and later work, including the deferred corpus, the
+canonicalizer, and the public pipeline (2.1.1 parsing, 2.3.1 snapshot
+serialisation), remain open.
 
 The seam is one production function that constructs
 `Parser(github(), positions=False)`, parses once, and returns `to_ast()`
@@ -609,12 +629,13 @@ Feature: Contract scenarios for independent internal Wenmode adapter calls
 
 These are contract scenarios for the internal seam, written in BDD form, not
 behavioural acceptance of the public package: no public entrypoint is reachable
-for the seam until 1.2.3 exposes the comparison pipeline. The installed probe
-is installation and isolation evidence about the same seam and is likewise not
-a behavioural acceptance test. Keep real-parser scenarios and deliberate double
-failures clearly distinguished. Update the existing installation feature's
-parsing step to name the internal adapter, keeping its wheel/editable scenarios
-and missing-dependency failure.
+for the seam until roadmap 2.1.1 implements the parsing pipeline and 2.3.1 the
+snapshot serialisation. The installed probe is installation and isolation
+evidence about the same seam and is likewise not a behavioural acceptance test.
+Keep real-parser scenarios and deliberate double failures clearly
+distinguished. Update the existing installation feature's parsing step to name
+the internal adapter, keeping its wheel/editable scenarios and
+missing-dependency failure.
 
 ## Milestones and plateaus
 

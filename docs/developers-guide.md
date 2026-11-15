@@ -252,8 +252,9 @@ the seam. `install_and_probe` runs the control in both installation modes,
 which keeps the wheel and editable reports equally sensitive. The probe is
 installation and isolation evidence about the seam, not a behavioural
 acceptance test of the public package: the seam has no public entrypoint until
-1.2.3, so public behaviour is covered by `tests/test_public_api_contract.py`
-instead.
+roadmap 2.1.1 implements the parsing pipeline and 2.3.1 the snapshot
+serialisation, so public behaviour is covered by
+`tests/test_public_api_contract.py` instead.
 
 Run the installed evidence directly:
 
