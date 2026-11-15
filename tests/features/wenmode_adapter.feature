@@ -1,4 +1,4 @@
-Feature: Independent Wenmode adapter calls
+Feature: Contract scenarios for independent internal Wenmode adapter calls
   Scenario: Definitions do not escape their document
     Given a document defining an ordinary reference and a footnote
     When it is parsed before a document using those labels without definitions

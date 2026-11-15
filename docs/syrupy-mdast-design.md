@@ -271,7 +271,9 @@ fresh wheel and a fresh editable installation, and a sensitivity control reruns
 that probe with the seam replaced by a raising callable and requires the probe
 to fail. The control matters because a probe that imported Wenmode directly
 still succeeds under that replacement, so only a failing control makes the
-passing run evidence about the seam rather than about the dependency alone.
+passing run evidence about the seam rather than about the dependency alone. It
+is installation and isolation evidence, not a behavioural acceptance test of
+the public package.
 
 The GitHub profile extends the CommonMark preset and enables tables,
 strikethrough, task lists, extended autolinks, and footnotes.[^2] It also

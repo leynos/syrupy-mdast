@@ -249,7 +249,11 @@ fail with that name. The control is not ceremonial: a probe that imported
 Wenmode directly succeeds under the same replacement, as the recorded negative
 control showed, so only a failing control makes the passing run evidence about
 the seam. `install_and_probe` runs the control in both installation modes,
-which keeps the wheel and editable reports equally sensitive.
+which keeps the wheel and editable reports equally sensitive. The probe is
+installation and isolation evidence about the seam, not a behavioural
+acceptance test of the public package: the seam has no public entrypoint until
+1.2.3, so public behaviour is covered by `tests/test_public_api_contract.py`
+instead.
 
 Run the installed evidence directly:
 

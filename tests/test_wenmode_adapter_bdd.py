@@ -1,9 +1,13 @@
-"""Behavioural contracts for independent internal Wenmode adapter calls.
+"""Contract scenarios for independent internal Wenmode adapter calls.
+
+These are contract scenarios for the private seam, expressed in BDD form. They
+are not behavioural acceptance of the public package: the seam has no public
+entrypoint, and public behaviour is covered by `tests/test_public_api_contract.py`.
 
 The first two scenarios use the real parser and are compared with a fresh
 direct Wenmode parse. The third uses a recording parser double so a failure can
 be raised on demand; that double is test machinery, not a package extension
-point.
+point, and the real parser cannot be made to fail deterministically.
 """
 
 from __future__ import annotations

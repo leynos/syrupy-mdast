@@ -145,6 +145,17 @@ not add a dummy production caller or a blanket suppression.
       the escalation is resolved; the revised limits and the decision are
       recorded in Tolerances and the Decision log, and a candidate-bound
       assessment of this plan revision follows.
+- [x] (2026-11-15) CodeRabbit returned a clear whole-plan completeness verdict
+      for candidate `f20d74f` and plan blob `4a50acdd`, and the pull request was
+      marked ready. The formal review that followed raised two inline findings
+      and one failed pre-merge check. Both inline findings were valid: the
+      Outcomes E6 paragraph cited only `rebase-2`, which precedes the review
+      repairs, and R1 and R4 named ADR files that do not exist. Both are
+      corrected below. Of the pre-merge items, the scenario relabelling and the
+      probe-scope clarification are accepted and applied, the public-boundary
+      behavioural requirement was already satisfied by
+      `tests/test_public_api_contract.py`, and removing the failure-propagation
+      double is declined with evidence in the Decision log.
 
 ## Surprises & discoveries
 
@@ -337,6 +348,29 @@ reviewed configuration instead.
   remained escalated to the reviewer until the limit increase recorded above,
   and the Module-Level pre-merge check remains to be re-run once the pull
   request is ready.
+- 2026-11-15: CodeRabbit's formal review of `f20d74f` raised two valid inline
+  findings, both corrected: Outcomes now cites `cap-2` on `f20d74f` alongside
+  the earlier labels and points later record-only revisions at the pull
+  request's validation table, because a plan edit cannot cite the run of the
+  commit it creates; and R1 and R4 now name
+  `docs/adrs/adr-0005-exact-wenmode-runtime-dependency.md` and
+  `docs/adrs/adr-0004-parser-profile-and-normalization.md`, which are the paths
+  `docs/contents.md` publishes. The same review failed its
+  `Testing (Unit And Behavioural)` pre-merge check with four items. Two are
+  accepted: the scenarios in `tests/features/wenmode_adapter.feature` are now
+  presented as contract scenarios for the internal seam rather than as
+  behavioural acceptance of the public package, and the design and developers'
+  guides now state that the installed probe is installation and isolation
+  evidence, not a behavioural acceptance test. The third is already discharged:
+  `tests/test_public_api_contract.py` asserts the two ratified public names,
+  `__all__` equality, and the `NotImplementedError` contract through both the
+  direct and the Syrupy-registered extension path. The fourth, removing the
+  recording double from the propagation scenario, is declined: the plan's own
+  behavioural specification requires the scenario
+  `An upstream failure does not poison the next call`, the real parser cannot
+  be made to fail deterministically on demand, and the double is already
+  documented as test machinery rather than an extension point. Removing it
+  would delete a named witness and replace it with nothing.
 
 ## Outcomes & retrospective
 
@@ -359,13 +393,18 @@ built and installed, in a child process with JavaScript runtimes absent and
 socket and subprocess audit events denied, exercising the seam in both wheel
 and editable modes and failing when the seam is replaced.
 
-All seven gates pass on the candidate under label `ep-m2-attempt3` (427 tests
-on the pre-rebase base) and again under `rebase-2` (415 tests after `main`
-removed the Skylos contract suites), with 100% docstring coverage, both Pylint
-passes at 10.00/10, a passing strict Skylos gate, and no known audit
-vulnerabilities. The two earlier EP-M2 labels are red or abandoned and are not
-evidence for this candidate. Hosted CI, the two CodeRabbit assessments, and the
-merge belong to the pull request and were not part of this local plateau.
+All seven gates pass under label `ep-m2-attempt3` (427 tests on the pre-rebase
+base), again under `rebase-2` (415 tests after `main` removed the Skylos
+contract suites), and again under `cap-2` on the implementation candidate
+`f20d74f`, which is the tree after the review repairs, with 100% docstring
+coverage, both Pylint passes at 10.00/10, a passing strict Skylos gate, and no
+known audit vulnerabilities. The two earlier EP-M2 labels are red or abandoned
+and are not evidence. A later record-only ExecPlan revision cannot cite the run
+of the commit it creates, so each such run is recorded with its label and
+candidate in the pull request's validation table instead; that table is the E6
+index for revisions after `f20d74f`. Hosted CI, the two CodeRabbit assessments,
+and the merge belong to the pull request and were not part of this local
+plateau.
 
 Residual limitations are recorded rather than hidden. The serialized-lock
 negative control deadlocks the nested-call test until the global pytest
@@ -417,17 +456,17 @@ All repository references in this section refer to the baseline commit above.
 There is no separate Terms of Reference document for this slice.
 
 - R1: `docs/roadmap.md` 1.2.1 and
-  `docs/adr-005-exact-wenmode-runtime-dependency.md` establish the exact Python
-  dependency prerequisite. ADR-005 supersedes only ADR-004's earlier bounded
-  dependency range; the exact pin takes precedence. EP-M2 discharges
+  `docs/adrs/adr-0005-exact-wenmode-runtime-dependency.md` establish the exact
+  Python dependency prerequisite. ADR-005 supersedes only ADR-004's earlier
+  bounded dependency range; the exact pin takes precedence. EP-M2 discharges
   installed-use evidence E5.
 - R2: roadmap 1.2.2 and `docs/syrupy-mdast-design.md` sections 5 and 7 require
   fresh construction and unchanged public AST data. EP-M1 discharges E1.
 - R3: roadmap 1.2.2 and design sections 10 and 11 require sequential,
   overlapping, re-entrant, and worker independence. EP-M1 discharges E2–E4.
-- R4: `docs/adr-004-parser-profile-and-normalization.md` and design section 7
-  fix the GitHub profile and absent positions. EP-M1 discharges E1 and E2;
-  canonicalization and the full normative corpus stay out of scope.
+- R4: `docs/adrs/adr-0004-parser-profile-and-normalization.md` and design
+  section 7 fix the GitHub profile and absent positions. EP-M1 discharges E1
+  and E2; canonicalization and the full normative corpus stay out of scope.
 - R5: `AGENTS.md`, the developer guide, Python rules, and documentation style
   guide govern tests, types, documentation, and gates. Both milestones require
   E6; EP-M2 updates the roadmap only after all evidence passes.
@@ -549,7 +588,7 @@ Add `tests/features/wenmode_adapter.feature` and bind its scenarios in
 `tests/test_wenmode_adapter_bdd.py` using existing pytest-bdd conventions:
 
 ```gherkin
-Feature: Independent Wenmode adapter calls
+Feature: Contract scenarios for independent internal Wenmode adapter calls
   Scenario: Definitions do not escape their document
     Given a document defining an ordinary reference and a footnote
     When it is parsed before a document using those labels without definitions
@@ -568,10 +607,14 @@ Feature: Independent Wenmode adapter calls
     And the second call uses a new parser and succeeds
 ```
 
-Keep real-parser scenarios and deliberate double failures clearly
-distinguished. Update the existing installation feature's parsing step to name
-the internal adapter, keeping its wheel/editable scenarios and
-missing-dependency failure.
+These are contract scenarios for the internal seam, written in BDD form, not
+behavioural acceptance of the public package: no public entrypoint is reachable
+for the seam until 1.2.3 exposes the comparison pipeline. The installed probe
+is installation and isolation evidence about the same seam and is likewise not
+a behavioural acceptance test. Keep real-parser scenarios and deliberate double
+failures clearly distinguished. Update the existing installation feature's
+parsing step to name the internal adapter, keeping its wheel/editable scenarios
+and missing-dependency failure.
 
 ## Milestones and plateaus
 
