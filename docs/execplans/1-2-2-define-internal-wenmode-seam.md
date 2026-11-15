@@ -1,8 +1,8 @@
 # Define the internal Wenmode seam (1.2.2)
 
-Status: COMPLETE — implemented and locally validated (2026-11-15); the
-cumulative size-tolerance deviation is recorded in the Decision log for
-reviewer rejection, and hosted assessment and merge remain with the pull
+Status: COMPLETE — implemented and locally validated (2026-11-15). The change
+fits the size tolerances after the reviewer raised them to 24 non-ExecPlan
+files and 2400 net lines; hosted assessment and merge remain with the pull
 request.
 
 This execution plan is a living document. Keep Constraints, Tolerances, Risks,
@@ -47,11 +47,15 @@ never use `/tmp` as a build target. Do not commit failing candidates.
 Stop implementation, record options and impacts in Decision log, set status to
 BLOCKED, and seek explicit approval if a public API, dependency pin, canonical
 format, or architecture must change. Also escalate if implementation needs more
-than 16 non-ExecPlan files or 900 net lines of code and other documentation.
-ExecPlan files are excluded from both counts. A required third-party annotation
-workaround involving `Any`, a cast, or a suppression requires evidence and
-review before adoption. Three unsuccessful fixes for the same failure trigger
-reassessment, not a weaker assertion. There is no elapsed-time cutoff.
+than 24 non-ExecPlan files or 2400 net lines of code and other documentation.
+ExecPlan files are excluded from both counts. The original limits were 16 files
+and 900 net lines; after the completed change measured 19 files and 1596 net
+lines, the reviewer raised both limits on 2026-11-15, and the Decision log
+records the measurements, the escalation, and that decision. A required
+third-party annotation workaround involving `Any`, a cast, or a suppression
+requires evidence and review before adoption. Three unsuccessful fixes for the
+same failure trigger reassessment, not a weaker assertion. There is no
+elapsed-time cutoff.
 
 ## Risks
 
@@ -136,6 +140,11 @@ not add a dummy production caller or a blanket suppression.
       parametrisations by bounded assertion in 10.22 s, the dedicated
       `-n 2 --dist=each` run passes both tests on `gw0` and `gw1`, and the
       recorded measurement is 1596 net lines at `ec3f7c9`.
+- [x] (2026-11-15) The reviewer raised the size limits to 24 non-ExecPlan
+      files and 2400 net lines. The 19-file, 1596-line change now fits both, so
+      the escalation is resolved; the revised limits and the decision are
+      recorded in Tolerances and the Decision log, and a candidate-bound
+      assessment of this plan revision follows.
 
 ## Surprises & discoveries
 
@@ -256,7 +265,7 @@ reviewed configuration instead.
   The rule names `syrupy_mdast._wenmode.parse_markdown` exactly, and
   `tests/test_skylos_lint_contract.py` lists the same name so a future symbol
   cannot inherit the exception silently.
-- 2026-11-15: The completed change breaches both size tolerances: 19
+- 2026-11-15: The completed change exceeds the original size limits: 19
   non-ExecPlan files against a limit of 16, and 1596 net lines against a limit
   of 900 (1648 insertions and 52 deletions at `ec3f7c9`; the same candidate
   measured 1594 at `9962ff4`, 1572 at `98cfed3`, and 1419 before the rebase).
@@ -271,11 +280,13 @@ reviewed configuration instead.
   compress or merge the evidence suites, to raise the budgets, or to accept the
   overage. Compressing would drop witnesses the Verification plan names
   individually, and raising a budget after the fact would hide the estimate
-  error. The overage is recorded here and in the PR description for explicit
-  reviewer rejection; an attempt to obtain approval before EP-M1 finished was
-  lost to a tool failure, and the task instruction required delivery to
-  continue rather than block. Reverting this branch's commits is the recovery
-  path if a reviewer rejects the deviation.
+  error. The overage was escalated here and in the PR description; an attempt
+  to obtain approval before EP-M1 finished was lost to a tool failure, and the
+  task instruction required delivery to continue rather than block. On
+  2026-11-15 the reviewer raised the limits to 24 non-ExecPlan files and 2400
+  net lines, so the completed change now fits both at 19 files and 1596 net
+  lines. Reverting this branch's commits remains the recovery path if that
+  decision is reversed.
 - 2026-11-15: Put the E5 sensitivity control in its own module,
   `tests/support/wenmode_seam_sensitivity.py`, and call it from
   `install_and_probe`. A separate module names one responsibility, keeps
@@ -322,9 +333,10 @@ reviewed configuration instead.
   `AssertionError: both calls must be inside parse before either proceeds` once
   the five-second bound expires, with no pytest timeout, and the mutant is
   restored before the gates. The same assessment measured 1596 net lines at
-  `ec3f7c9`, which the size entry above now records. The size deviation remains
-  escalated to the reviewer, and the Module-Level pre-merge check remains to be
-  re-run once the pull request is ready.
+  `ec3f7c9`, which the size entry above now records. The size deviation
+  remained escalated to the reviewer until the limit increase recorded above,
+  and the Module-Level pre-merge check remains to be re-run once the pull
+  request is ready.
 
 ## Outcomes & retrospective
 
