@@ -1,4 +1,14 @@
-"""Build and exercise isolated Wenmode installations for package contracts."""
+"""Build and exercise isolated Wenmode installations for package contracts.
+
+``install_and_probe`` builds one wheelhouse, installs the project into a fresh
+wheel environment and a fresh editable environment, and runs the installed
+runtime probe in each, followed by the seam-sensitivity control that requires
+the probe to fail when the adapter is replaced. Three suites consume the
+harness: ``tests/test_wenmode_dependency_bdd.py`` drives it behaviourally,
+``tests/conftest.py`` exposes ``Wheelhouse`` and ``prepare_wheelhouse``, and
+``tests/test_package_manifest_contract.py`` checks the built artefacts through
+``Wheelhouse`` and ``install_project``.
+"""
 
 from __future__ import annotations
 

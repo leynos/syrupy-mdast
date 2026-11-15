@@ -1,4 +1,16 @@
-"""Exercise the installed adapter seam with process and network denial."""
+"""Exercise the installed adapter seam with process and network denial.
+
+``install_and_probe`` in ``tests/support/wenmode_installation.py`` runs this
+module as a standalone script in a child process, once for a wheel installation
+and once for an editable one. Before trusting a result it asserts that socket
+and child-process audit events are denied and that no JavaScript runtime is
+reachable, that Wenmode 0.15.2 and both package modules import from the expected
+installation, and that five smoke documents parse with the expected semantics,
+including one that keeps labels unresolved because an earlier document defined
+them. ``tests/support/wenmode_seam_sensitivity.py`` reruns this script with
+``parse_markdown`` replaced by a raising callable, so whether this probe
+succeeds is what shows it exercises the seam rather than Wenmode directly.
+"""
 
 from __future__ import annotations
 
