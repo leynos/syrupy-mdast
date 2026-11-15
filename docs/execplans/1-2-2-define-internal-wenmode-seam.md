@@ -129,6 +129,13 @@ not add a dummy production caller or a blanket suppression.
       item is declined with evidence, and the reply also caught an unrecorded
       E5 ordering deviation, which is corrected in the code. The follow-up
       assessment is pending.
+- [x] (2026-11-15) Follow-up assessment of `ec3f7c9`. It found no production
+      defect and withdrew the E3 request, leaving three asks: a fresh mutant
+      log, the current-head size measurement, and the Module-Level pre-merge
+      re-run after readiness. The serialized-lock mutant now fails both overlap
+      parametrisations by bounded assertion in 10.22 s, the dedicated
+      `-n 2 --dist=each` run passes both tests on `gw0` and `gw1`, and the
+      recorded measurement is 1596 net lines at `ec3f7c9`.
 
 ## Surprises & discoveries
 
@@ -250,26 +257,25 @@ reviewed configuration instead.
   `tests/test_skylos_lint_contract.py` lists the same name so a future symbol
   cannot inherit the exception silently.
 - 2026-11-15: The completed change breaches both size tolerances: 19
-  non-ExecPlan files against a limit of 16, and 1594 net lines against a limit
-  of 900 (1646 insertions and 52 deletions at the published head `9962ff4`; the
-  same candidate measured 1572 at `98cfed3` before the docstring repair, and
-  1419 before the rebase). EP-M1 alone accounted for 12 files and 1311 net
-  lines; EP-M2 added seven touched files and about 108 net lines. The
-  composition is 52 production lines in `syrupy_mdast/_wenmode.py`, roughly
-  1225 lines of the unit, property, behavioural, concurrency, worker, and
-  installed-evidence tests and support this plan names individually, and
-  roughly 140 lines of documentation and configuration. Production code plus
-  its design and developer documentation remains about 160 net lines; the
-  estimate under-counted the verification suite and the number of files that
-  evidence touches. The options were to compress or merge the evidence suites,
-  to raise the budgets, or to accept the overage. Compressing would drop
-  witnesses the Verification plan names individually, and raising a budget
-  after the fact would hide the estimate error. The overage is recorded here
-  and in the PR description for explicit reviewer rejection; an attempt to
-  obtain approval before EP-M1 finished was lost to a tool failure, and the
-  task instruction required delivery to continue rather than block. Reverting
-  this branch's commits is the recovery path if a reviewer rejects the
-  deviation.
+  non-ExecPlan files against a limit of 16, and 1596 net lines against a limit
+  of 900 (1648 insertions and 52 deletions at `ec3f7c9`; the same candidate
+  measured 1594 at `9962ff4`, 1572 at `98cfed3`, and 1419 before the rebase).
+  EP-M1 alone accounted for 12 files and 1311 net lines; EP-M2 added seven
+  touched files and about 108 net lines. The composition is 52 production lines
+  in `syrupy_mdast/_wenmode.py`, roughly 1225 lines of the unit, property,
+  behavioural, concurrency, worker, and installed-evidence tests and support
+  this plan names individually, and roughly 140 lines of documentation and
+  configuration. Production code plus its design and developer documentation
+  remains about 160 net lines; the estimate under-counted the verification
+  suite and the number of files that evidence touches. The options were to
+  compress or merge the evidence suites, to raise the budgets, or to accept the
+  overage. Compressing would drop witnesses the Verification plan names
+  individually, and raising a budget after the fact would hide the estimate
+  error. The overage is recorded here and in the PR description for explicit
+  reviewer rejection; an attempt to obtain approval before EP-M1 finished was
+  lost to a tool failure, and the task instruction required delivery to
+  continue rather than block. Reverting this branch's commits is the recovery
+  path if a reviewer rejects the deviation.
 - 2026-11-15: Put the E5 sensitivity control in its own module,
   `tests/support/wenmode_seam_sensitivity.py`, and call it from
   `install_and_probe`. A separate module names one responsibility, keeps
@@ -309,6 +315,16 @@ reviewed configuration instead.
   deviation: the successful probe ran before the sensitivity control, while E5
   requires the control first. `install_and_probe` now runs the control first,
   so that deviation is removed rather than recorded.
+- 2026-11-15: The follow-up assessment of `ec3f7c9` found no production defect
+  and withdrew the E3 request, but asked for the mutation log rather than the
+  report. Rerunning the serialized-lock mutant against the overlap tests alone
+  fails both parametrisations with
+  `AssertionError: both calls must be inside parse before either proceeds` once
+  the five-second bound expires, with no pytest timeout, and the mutant is
+  restored before the gates. The same assessment measured 1596 net lines at
+  `ec3f7c9`, which the size entry above now records. The size deviation remains
+  escalated to the reviewer, and the Module-Level pre-merge check remains to be
+  re-run once the pull request is ready.
 
 ## Outcomes & retrospective
 
@@ -340,12 +356,13 @@ evidence for this candidate. Hosted CI, the two CodeRabbit assessments, and the
 merge belong to the pull request and were not part of this local plateau.
 
 Residual limitations are recorded rather than hidden. The serialized-lock
-negative control deadlocks the nested-call test until the global pytest timeout
-instead of failing a bounded assertion. Hypothesis reports entropy overruns as
-"invalid" cases, and the property samples rather than proves. The concurrency
-evidence covers two controlled interleavings plus one nested level, not every
-schedule. None of these leaves a required criterion undischarged, but none of
-them should be read as a broader guarantee than it is.
+negative control deadlocks the nested-call test until the global pytest
+timeout, although its designated witness, the overlapping-call test, fails by
+bounded assertion in 10.22 s. Hypothesis reports entropy overruns as "invalid"
+cases, and the property samples rather than proves. The concurrency evidence
+covers two controlled interleavings plus one nested level, not every schedule.
+None of these leaves a required criterion undischarged, but none of them should
+be read as a broader guarantee than it is.
 
 ## Context and orientation
 
