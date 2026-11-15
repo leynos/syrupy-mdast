@@ -122,6 +122,13 @@ not add a dummy production caller or a blanket suppression.
       `e1aaeca`; `make lint`'s Skylos tier reports the `df12-skylos` gate
       passing under Skylos 4.33.2, so the typed entry-point rule still
       discharges the finding.
+- [x] (2026-11-15) Reconcile the CodeRabbit completeness assessment of
+      `9962ff4`. Two of its three remaining items were valid and are repaired:
+      the installation module docstring misattributed wheelhouse construction,
+      and the recorded size measurement lagged the published head. The third
+      item is declined with evidence, and the reply also caught an unrecorded
+      E5 ordering deviation, which is corrected in the code. The follow-up
+      assessment is pending.
 
 ## Surprises & discoveries
 
@@ -148,6 +155,16 @@ test deadlock until pytest-timeout rather than fail a bounded witness, because
 a nested call cannot acquire a lock its own outer call holds. The overlapping
 tests do fail the bounded overlap witness as intended. Treat the deadlock plus
 the timeout report as that mutant's evidence, not as a harness defect.
+
+The nested call deliberately runs on the outer call's own thread, because
+same-thread re-entry is what rejects a thread-local parser cache; moving the
+inner call to a worker thread to buy a timeout would let that mutation pass. A
+synchronous same-thread nested call cannot be time-bounded from inside, so a
+global lock necessarily blocks it. E3 names the bounded overlap witness as that
+mutant's required failure, and the overlap tests supply it within their
+five-second bounds. The deadlocked nested test is therefore an accepted,
+recorded consequence of keeping the stronger witness, not an undischarged
+criterion.
 
 Hypothesis reports roughly 5% of generated document sequences as "invalid test
 cases" in its statistics. These are entropy overruns (inputs whose generation
@@ -233,9 +250,10 @@ reviewed configuration instead.
   `tests/test_skylos_lint_contract.py` lists the same name so a future symbol
   cannot inherit the exception silently.
 - 2026-11-15: The completed change breaches both size tolerances: 19
-  non-ExecPlan files against a limit of 16, and 1572 net lines against a limit
-  of 900 (1623 insertions and 51 deletions; the pre-rebase measurement of the
-  same candidate was 1419). EP-M1 alone accounted for 12 files and 1311 net
+  non-ExecPlan files against a limit of 16, and 1594 net lines against a limit
+  of 900 (1646 insertions and 52 deletions at the published head `9962ff4`; the
+  same candidate measured 1572 at `98cfed3` before the docstring repair, and
+  1419 before the rebase). EP-M1 alone accounted for 12 files and 1311 net
   lines; EP-M2 added seven touched files and about 108 net lines. The
   composition is 52 production lines in `syrupy_mdast/_wenmode.py`, roughly
   1225 lines of the unit, property, behavioural, concurrency, worker, and
@@ -277,6 +295,20 @@ reviewed configuration instead.
   goes with the suite. The alternative, a new suite that pins the symbol again,
   would reverse a deliberate repository decision and widen this slice for a
   guarantee the reviewed configuration already provides.
+- 2026-11-15: Reconcile the CodeRabbit completeness assessment of `9962ff4`.
+  Two of its three remaining items were valid. The installation module
+  docstring said `install_and_probe` built the wheelhouse, but
+  `prepare_wheelhouse` builds it and `install_and_probe` serves one mode per
+  call; the docstring now says so. The recorded size measurement was the
+  `98cfed3` figure; the Decision log now records the `9962ff4` measurement. The
+  third item, the serialized-lock control deadlocking the nested witness, is
+  declined with the evidence recorded under Surprises & discoveries: the nested
+  call stays on the outer thread because same-thread re-entry is what rejects a
+  thread-local parser cache, and E3 names the bounded overlap witness as that
+  mutant's required failure. The assessment also caught a real E5 sequencing
+  deviation: the successful probe ran before the sensitivity control, while E5
+  requires the control first. `install_and_probe` now runs the control first,
+  so that deviation is removed rather than recorded.
 
 ## Outcomes & retrospective
 
