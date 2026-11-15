@@ -16,6 +16,7 @@ from tests.support.local_commands import (
     run_command,
 )
 from tests.support.package_boundary import find_javascript_assets
+from tests.support.wenmode_seam_sensitivity import assert_replaced_seam_fails_probe
 
 _EXPECTED_WENMODE_SHA256 = (
     "a1be9a2d91ef7f5020148daf615edca0c9a4a6d54d074a808e6d5e9de95726f6"
@@ -249,6 +250,9 @@ def install_and_probe(
         cwd=environment_path.parent,
         env=probe_env,
         timeout=30,
+    )
+    assert_replaced_seam_fails_probe(
+        python, probe_path, cwd=environment_path.parent, env=probe_env
     )
     return probe.stdout.strip(), probe.stderr
 

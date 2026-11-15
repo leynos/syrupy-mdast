@@ -265,6 +265,14 @@ failing operation. The module name is underscore-prefixed and excluded from
 `syrupy_mdast.__all__`, so the seam is internal to the package and the tests
 that exercise it, and is not a consumer entrypoint.
 
+Installed evidence exercises the same seam. The probe in
+`tests/support/wenmode_runtime_probe.py` parses five documents through it in a
+fresh wheel and a fresh editable installation, and a sensitivity control reruns
+that probe with the seam replaced by a raising callable and requires the probe
+to fail. The control matters because a probe that imported Wenmode directly
+still succeeds under that replacement, so only a failing control makes the
+passing run evidence about the seam rather than about the dependency alone.
+
 The GitHub profile extends the CommonMark preset and enables tables,
 strikethrough, task lists, extended autolinks, and footnotes.[^2] It also
 inherits CommonMark reference links and images and applies the GitHub

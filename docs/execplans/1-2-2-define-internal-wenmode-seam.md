@@ -1,7 +1,9 @@
 # Define the internal Wenmode seam (1.2.2)
 
-Status: APPROVED — implementation in progress (2026-11-15); the EP-M1
-size-tolerance deviation is recorded in the Decision log for reviewer rejection.
+Status: COMPLETE — implemented and locally validated (2026-11-15); the
+cumulative size-tolerance deviation is recorded in the Decision log for
+reviewer rejection, and hosted assessment and merge remain with the pull
+request.
 
 This execution plan is a living document. Keep Constraints, Tolerances, Risks,
 Progress, Surprises & discoveries, Decision log, Outcomes & retrospective,
@@ -90,8 +92,24 @@ not add a dummy production caller or a blanket suppression.
       attempt stopped at interrogate's 100% docstring gate and the second at
       df12-pylint assert-message and Skylos entry-point findings; both were
       repaired rather than waived.
-- [ ] EP-M2: validate installed use, reconcile documentation, and mark 1.2.2
-      done.
+- [x] (2026-11-15) EP-M2: route the installed probe through the seam and add
+      the E5 sensitivity control. The old direct-parser probe was rerun under
+      the seam replacement first and exited 0, recording the sensitivity gap
+      the plan predicted; the updated probe then failed on the sentinel at its
+      first adapter call. The probe now parses five documents, and
+      `install_and_probe` runs the control in both installation modes. The
+      wheel/editable BDD suite passes 4 tests, including the new resolved
+      reference, resolved footnote, and later-document-stays-literal
+      assertions. Design section 7, the developers' guide, the users' guide,
+      and roadmap 1.2.2 were reconciled.
+- [x] (2026-11-15) EP-M2 gates (E6, label `ep-m2-attempt3`): `check-fmt`,
+      `typecheck`, `lint` (including the strict Skylos gate), `test` (427
+      passed, all four installed-dependency behavioural tests included),
+      `audit`, `markdownlint`, and `nixie` all exit 0. `ep-m2-attempt1` was
+      red on `typecheck` and `lint` in the refactored probe and `ep-m2-attempt2`
+      was abandoned mid-run because a candidate edit landed after dispatch; both
+      are superseded by `ep-m2-attempt3`, which ran against this exact working
+      tree on top of commit `053e415`.
 
 ## Surprises & discoveries
 
@@ -126,6 +144,32 @@ report 2 overruns, 500 report 25, and no health check fires. All classification
 classes remain populated (about 85% of sequences define a label, 33% redefine
 one, and 12% define none), so the property is not vacuous and no filtering
 workaround is needed.
+
+The predictor for the E5 sensitivity gap held exactly. Rerunning the previous
+direct-parser probe with `syrupy_mdast._wenmode.parse_markdown` replaced by a
+raising callable exited 0 and printed
+`wenmode=0.15.2 mode=editable isolation=passed`, because that probe never named
+the seam. The updated probe fails at its first adapter call with the sentinel
+in the traceback, so the control separates the two probes for the intended
+reason rather than through a collection error, a timeout, or an unrelated
+import failure.
+
+The probe cannot import the shared test documents. It runs under `python -I` in
+a fresh environment, where the `tests` package is not importable, so the five
+document literals are duplicated from `tests/support/wenmode_adapter.py`. The
+installed BDD assertion charges that duplication to a failure instead of a
+silent mismatch: it compares the probe's fifth document with
+`plain_text_root(UNRESOLVED_DOCUMENT)`, which fails loudly if either side
+drifts.
+
+The replacement survives the probe's own import. The probe writes
+`import syrupy_mdast._wenmode as wenmode_adapter`, which returns the module
+object already held in `sys.modules`, and only then reads
+`wenmode_adapter.parse_markdown`; replacing the attribute first therefore
+reaches the call site without editing the probe. Running the replacement
+program with `runpy.run_path(..., run_name="__main__")` keeps the probe file
+unmodified and still exercises its real entrypoint, which is why no
+fault-injection interface was added to production code.
 
 ## Decision log
 
@@ -166,34 +210,77 @@ workaround is needed.
   The rule names `syrupy_mdast._wenmode.parse_markdown` exactly, and
   `tests/test_skylos_lint_contract.py` lists the same name so a future symbol
   cannot inherit the exception silently.
-- 2026-11-15: EP-M1 breaches the 900-net-line tolerance and stays within the
-  16-file limit. The non-ExecPlan change is 12 files and 1311 net lines: 52
-  production lines in `syrupy_mdast/_wenmode.py`, 1180 lines of the unit,
-  property, behavioural, concurrency, and worker evidence this plan explicitly
-  requires, and about 100 lines of documentation and configuration. The options
-  were to compress or merge the evidence suites, to raise the budget, or to
+- 2026-11-15: The completed change breaches both size tolerances: 19
+  non-ExecPlan files against a limit of 16, and 1419 net lines against a limit
+  of 900. EP-M1 alone accounted for 12 files and 1311 net lines; EP-M2 added
+  seven touched files and about 108 net lines. The composition is 52 production
+  lines in `syrupy_mdast/_wenmode.py`, roughly 1225 lines of the unit,
+  property, behavioural, concurrency, worker, and installed-evidence tests and
+  support this plan names individually, and roughly 140 lines of documentation
+  and configuration. Production code plus its design and developer
+  documentation remains about 160 net lines; the estimate under-counted the
+  verification suite and the number of files that evidence touches. The options
+  were to compress or merge the evidence suites, to raise the budgets, or to
   accept the overage. Compressing would drop witnesses the Verification plan
-  names individually, and raising the budget after the fact would hide the
-  estimate error. Accept the overage, record it here and in the PR description,
-  and let a reviewer reject it explicitly. Production code plus documentation
-  is 154 net lines, so the implementation did not grow; the estimate
-  under-counted its own verification suite.
+  names individually, and raising a budget after the fact would hide the
+  estimate error. The overage is recorded here and in the PR description for
+  explicit reviewer rejection; an attempt to obtain approval before EP-M1
+  finished was lost to a tool failure, and the task instruction required
+  delivery to continue rather than block. Reverting this branch's commits is
+  the recovery path if a reviewer rejects the deviation.
+- 2026-11-15: Put the E5 sensitivity control in its own module,
+  `tests/support/wenmode_seam_sensitivity.py`, and call it from
+  `install_and_probe`. A separate module names one responsibility, keeps
+  `wenmode_installation.py` well inside the 400-line ceiling, and puts the
+  control on the path of both installation modes instead of one test case.
+- 2026-11-15: Assert the installed adapter's semantics with the existing
+  `reference_urls`, `footnote_texts`, and `plain_text_root` helpers from
+  `tests/support/wenmode_adapter.py` rather than new walkers or `json.dumps`
+  substring checks. The helpers assert node semantics, and reusing them avoids
+  a second definition of "resolved link" or "literal text".
+- 2026-11-15: Keep the probe's five document literals local to the probe,
+  because it runs with `-I` in a fresh environment where `tests` is not
+  importable. Charge the duplication to a loud failure by comparing the probe's
+  fifth document with `plain_text_root(UNRESOLVED_DOCUMENT)`.
+- 2026-11-15: Mark roadmap 1.2.2 done and leave 1.2.3 and later items open.
+  The success criteria for 1.2.2 name parser independence only; normative AST
+  decisions and canonicalization belong to 1.2.3 and later slices.
 
 ## Outcomes & retrospective
 
-EP-M1 is implemented and locally validated; EP-M2 and the roadmap marker remain
-open, so roadmap 1.2.2 is still not claimed complete.
+Both milestones are implemented and locally validated, and roadmap 1.2.2 is
+claimed done; 1.2.3 and the deferred corpus, canonicalizer, and public pipeline
+remain open.
 
-The seam is 30 lines of production code plus a module docstring: one function
-that constructs `Parser(github(), positions=False)`, parses once, and returns
-`to_ast()` unchanged. Everything else the plateau needed was test machinery and
-the evidence that the machinery is sensitive. Seeded faults (wrong profile,
-positions enabled, copied output, translated failure, cached parser, cached
-concurrency, per-worker singleton, leaking double) each failed focused tests
-for their intended reason, and the logs are recorded under `/tmp` with an
-`ep-m1` label. On completion of EP-M2, add the installation evidence, exact
-commits, gate logs, and any residual limitations, and reconcile the discoveries
-against every conformance source before changing this plan to COMPLETE.
+The seam is one production function that constructs
+`Parser(github(), positions=False)`, parses once, and returns `to_ast()`
+unchanged. Everything else the two plateaus needed was test machinery and the
+evidence that the machinery is sensitive. Seeded faults and negative controls
+(wrong profile, positions enabled, copied output, translated failure, cached
+parser, cached concurrency, per-worker singleton, leaking double, and a
+direct-parser probe under the seam replacement) each failed focused checks for
+their intended reason, and the logs are recorded under `/tmp` with `ep-m1` and
+`ep-m2` labels.
+
+The installed evidence now covers what a unit double cannot: the package as
+built and installed, in a child process with JavaScript runtimes absent and
+socket and subprocess audit events denied, exercising the seam in both wheel
+and editable modes and failing when the seam is replaced.
+
+All seven gates pass on the final candidate under label `ep-m2-attempt3`, with
+427 tests, 100% docstring coverage, both Pylint passes at 10.00/10, a silent
+strict Skylos gate, and no known audit vulnerabilities. The two earlier EP-M2
+labels are red or abandoned and are not evidence for this candidate. Hosted CI,
+the two CodeRabbit assessments, and the merge belong to the pull request and
+were not part of this local plateau.
+
+Residual limitations are recorded rather than hidden. The serialized-lock
+negative control deadlocks the nested-call test until the global pytest timeout
+instead of failing a bounded assertion. Hypothesis reports entropy overruns as
+"invalid" cases, and the property samples rather than proves. The concurrency
+evidence covers two controlled interleavings plus one nested level, not every
+schedule. None of these leaves a required criterion undischarged, but none of
+them should be read as a broader guarantee than it is.
 
 ## Context and orientation
 

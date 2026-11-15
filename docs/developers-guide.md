@@ -236,6 +236,27 @@ statistics report a few "invalid" cases (about 5% of examples); those are
 entropy overruns, not rejected inputs, and the classification events must still
 show definition, redefinition, and definition-free sequences.
 
+Installed evidence covers the same seam from outside the checkout.
+`tests/support/wenmode_runtime_probe.py` runs in a fresh wheel installation and
+a fresh editable installation with JavaScript runtimes absent and socket and
+subprocess audit events denied, then parses five documents through
+`syrupy_mdast._wenmode.parse_markdown`. The fifth document repeats the labels
+of the fourth without defining them, so its literal text proves the two calls
+kept separate reference and footnote state.
+`tests/support/wenmode_seam_sensitivity.py` reruns that probe with the seam
+replaced by a callable that raises `SeamBypassError` and requires the probe to
+fail with that name. The control is not ceremonial: a probe that imported
+Wenmode directly succeeds under the same replacement, as the recorded negative
+control showed, so only a failing control makes the passing run evidence about
+the seam. `install_and_probe` runs the control in both installation modes,
+which keeps the wheel and editable reports equally sensitive.
+
+Run the installed evidence directly:
+
+```bash
+uv run pytest -v tests/test_wenmode_dependency_bdd.py tests/test_package_boundary.py
+```
+
 ### Run the verification layers
 
 - Run dependency-free domain tests directly.

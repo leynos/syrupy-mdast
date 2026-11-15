@@ -23,8 +23,9 @@ The extension accepts Markdown source as `str` and is configured for text
 snapshots with the `mdast.json` suffix after serialization is implemented. The
 `exclude`, `include`, and `matcher` controls are not supported and are rejected
 with `ValueError`; non-string input is rejected with `TypeError`. Valid `str`
-input currently raises `NotImplementedError` until the parser and canonical
-serialization milestone is delivered.
+input currently raises `NotImplementedError` until the canonical serialization
+milestone is delivered; the parser itself is already present internally but is
+not a supported entrypoint.
 
 The
 [canonical Markdown contract corpus](../tests/fixtures/markdown_contract/README.md)
