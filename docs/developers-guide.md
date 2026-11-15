@@ -197,6 +197,45 @@ hooks are test instrumentation, not a security sandbox.
 3. Inspect the wheel and reject JavaScript source, JavaScript manifests,
    JavaScript lockfiles, and installed JavaScript package directories.
 
+### Verify the internal Wenmode seam
+
+`syrupy_mdast/_wenmode.py` owns the only call into Wenmode. Every call builds a
+fresh GitHub-profile parser with positions disabled, parses once, and returns
+`to_ast()` unchanged; the module caches nothing and stays out of
+`syrupy_mdast.__all__`. Its contract and isolation evidence live in
+`tests/test_wenmode_adapter.py`, `tests/test_wenmode_adapter_properties.py`,
+`tests/test_wenmode_adapter_concurrency.py`, and
+`tests/test_wenmode_adapter_workers.py`, with shared doubles and documents in
+`tests/support/wenmode_adapter.py`. The doubles patch the module's own `Parser`
+and `github` names, and `parse_directly` supplies an expectation that does not
+come from the code under test.
+
+Wenmode resets its reference and footnote tables when a parser is reused, so a
+correct tree proves nothing about parser ownership. Assert construction counts
+and retained instances instead of comparing sequential output alone; that is
+what rejects a cached parser. The concurrency tests coordinate through a
+two-party barrier and per-source events rather than sleeps, and every wait,
+join, and future result carries a five-second bound. A global lock around
+`parse` is a known limitation of the negative control: it deadlocks the nested
+call until the global pytest timeout instead of failing a bounded assertion.
+
+Run the focused suites sequentially:
+
+```bash
+uv run pytest -v tests/test_wenmode_adapter.py \
+  tests/test_wenmode_adapter_bdd.py
+uv run pytest -v tests/test_wenmode_adapter_properties.py \
+  --hypothesis-show-statistics
+uv run pytest -v tests/test_wenmode_adapter_concurrency.py
+uv run pytest -v -n 2 --dist=each tests/test_wenmode_adapter_workers.py
+```
+
+`--dist=each` is required for worker evidence: it runs the worker test once per
+xdist worker, so the report must name both `gw0` and `gw1`. The Hypothesis
+statistics report a few "invalid" cases (about 5% of examples); those are
+entropy overruns, not rejected inputs, and the classification events must still
+show definition, redefinition, and definition-free sequences.
+
 ### Run the verification layers
 
 - Run dependency-free domain tests directly.

@@ -1,6 +1,7 @@
 # Define the internal Wenmode seam (1.2.2)
 
-Status: DRAFT — approval required before implementation.
+Status: APPROVED — implementation in progress (2026-11-15); the EP-M1
+size-tolerance deviation is recorded in the Decision log for reviewer rejection.
 
 This execution plan is a living document. Keep Constraints, Tolerances, Risks,
 Progress, Surprises & discoveries, Decision log, Outcomes & retrospective,
@@ -77,9 +78,18 @@ not add a dummy production caller or a blanket suppression.
 - [x] (2026-11-03) Inspect roadmap, design, package boundary, and tooling.
 - [x] (2026-11-03) Rename branch to `1-2-2-define-internal-wenmode-seam`.
 - [x] (2026-11-03) Complete six-perspective expert review and revise the plan.
-- [ ] Complete plan-only validation and publish draft PR.
-- [ ] Obtain explicit approval for implementation.
-- [ ] EP-M1: implement and validate the seam and isolation obligations.
+- [x] (2026-11-03) Complete plan-only validation and publish draft PR.
+- [x] (2026-11-15) Obtain explicit approval for implementation.
+- [x] (2026-11-15) EP-M1: implement and validate the seam and isolation
+      obligations. Red stage observed as `ModuleNotFoundError`; 23 unit, 1
+      property, 3 behavioural, 3 concurrency, and 4 worker results pass; every
+      seeded fault and negative control failed for its intended reason.
+- [x] (2026-11-15) EP-M1 gates (E6, label `ep-m1-attempt2`): `check-fmt`,
+      `typecheck`, `lint` (including the strict Skylos gate), `test` (427
+      passed), `audit`, `markdownlint`, and `nixie` all exit 0. The first
+      attempt stopped at interrogate's 100% docstring gate and the second at
+      df12-pylint assert-message and Skylos entry-point findings; both were
+      repaired rather than waived.
 - [ ] EP-M2: validate installed use, reconcile documentation, and mark 1.2.2
       done.
 
@@ -93,6 +103,29 @@ for this slice's integration evidence.
 `docs/repository-layout.md` is referenced by instructions but absent at the
 planning baseline. Use `docs/contents.md` and the explicit paths below for
 orientation; creating a repository-wide layout document is outside this slice.
+
+Wenmode 0.15.2 resets its per-document reference and footnote tables when a
+parser is reused, so sequential AST equality cannot detect parser reuse. The
+first definition document followed by an unresolved document produces the
+correct trees on a deliberately cached parser. Identity and construction counts
+(the E1 recording double, E3 retained instances, E4 per-worker counts) are what
+actually reject reuse; the `cached-parser` mutation confirmed this by failing
+12 tests while the plain sequence assertions passed.
+
+The E3 serialized-call negative control behaves differently from the plan's
+expectation. A global non-reentrant lock around `parse` makes the nested-call
+test deadlock until pytest-timeout rather than fail a bounded witness, because
+a nested call cannot acquire a lock its own outer call holds. The overlapping
+tests do fail the bounded overlap witness as intended. Treat the deadlock plus
+the timeout report as that mutant's evidence, not as a harness defect.
+
+Hypothesis reports roughly 5% of generated document sequences as "invalid test
+cases" in its statistics. These are entropy overruns (inputs whose generation
+exceeded the default buffer), not `assume()` or filter rejections: 50 examples
+report 2 overruns, 500 report 25, and no health check fires. All classification
+classes remain populated (about 85% of sequences define a label, 33% redefine
+one, and 12% define none), so the property is not vacuous and no filtering
+workaround is needed.
 
 ## Decision log
 
@@ -113,13 +146,54 @@ orientation; creating a repository-wide layout document is outside this slice.
 - 2026-11-03: Record the eventual concrete seam and its lifecycle in the design
   document. No new ADR is needed for a direct realization of section 7 and
   ADR-004; any substantive departure requires approval and an ADR first.
+- 2026-11-15: Implementation approved by the task request; plan status moved to
+  APPROVED before any production edit. EP-M1 then proceeded red-to-green in the
+  order recorded in Progress.
+- 2026-11-15: Name the constructor's rule-source type once, as
+  `type RuleSource = cabc.Iterable[type[Rule] | Rule] | PresetFactory`, in
+  `tests/support/wenmode_adapter.py` and annotate the doubles' `rules`
+  parameters with it. Passing `Parser(rules, ...)` a bare `object` was the only
+  `ty` diagnostic; the alias states the upstream contract without a cast or a
+  suppression, and no `Any` was introduced.
+- 2026-11-15: Keep the test doubles' failure stages (`construct`, `parse`,
+  `to_ast`) enumerated in one place so the sentinel tests cover every
+  propagation point instead of a single representative call.
+- 2026-11-15: Record the Skylos finding
+  `SKY-U001 unused function: parse_markdown` as one typed entry-point rule in
+  `pyproject.toml`, not a dummy caller or a blanket suppression. The seam has
+  no caller inside the scanned `syrupy_mdast` tree yet; its runtime callers are
+  the installed probe in a child process and the pipeline scheduled for 1.2.3.
+  The rule names `syrupy_mdast._wenmode.parse_markdown` exactly, and
+  `tests/test_skylos_lint_contract.py` lists the same name so a future symbol
+  cannot inherit the exception silently.
+- 2026-11-15: EP-M1 breaches the 900-net-line tolerance and stays within the
+  16-file limit. The non-ExecPlan change is 12 files and 1311 net lines: 52
+  production lines in `syrupy_mdast/_wenmode.py`, 1180 lines of the unit,
+  property, behavioural, concurrency, and worker evidence this plan explicitly
+  requires, and about 100 lines of documentation and configuration. The options
+  were to compress or merge the evidence suites, to raise the budget, or to
+  accept the overage. Compressing would drop witnesses the Verification plan
+  names individually, and raising the budget after the fact would hide the
+  estimate error. Accept the overage, record it here and in the PR description,
+  and let a reviewer reject it explicitly. Production code plus documentation
+  is 154 net lines, so the implementation did not grow; the estimate
+  under-counted its own verification suite.
 
 ## Outcomes & retrospective
 
-Planning only. No feature code is implemented, and roadmap 1.2.2 remains open.
-On completion, record exact commits, red/green evidence, gate logs, exercised
-bounds, and any residual limitations. Reconcile discoveries against every
-conformance source before changing this plan to COMPLETE.
+EP-M1 is implemented and locally validated; EP-M2 and the roadmap marker remain
+open, so roadmap 1.2.2 is still not claimed complete.
+
+The seam is 30 lines of production code plus a module docstring: one function
+that constructs `Parser(github(), positions=False)`, parses once, and returns
+`to_ast()` unchanged. Everything else the plateau needed was test machinery and
+the evidence that the machinery is sensitive. Seeded faults (wrong profile,
+positions enabled, copied output, translated failure, cached parser, cached
+concurrency, per-worker singleton, leaking double) each failed focused tests
+for their intended reason, and the logs are recorded under `/tmp` with an
+`ep-m1` label. On completion of EP-M2, add the installation evidence, exact
+commits, gate logs, and any residual limitations, and reconcile the discoveries
+against every conformance source before changing this plan to COMPLETE.
 
 ## Context and orientation
 
