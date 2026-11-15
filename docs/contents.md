@@ -59,5 +59,5 @@ documentation set.
   records delivery of roadmap 1.2.1, including the reviewed exact pin and its
   installation-boundary evidence.
 - [Internal Wenmode adapter seam](execplans/1-2-2-define-internal-wenmode-seam.md)
-  proposes roadmap 1.2.2 and its per-call parser isolation evidence;
-  implementation requires approval.
+  records delivery of roadmap 1.2.2, including the per-call parser ownership
+  contract and its installed-probe evidence.

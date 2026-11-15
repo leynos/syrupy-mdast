@@ -110,6 +110,18 @@ not add a dummy production caller or a blanket suppression.
       was abandoned mid-run because a candidate edit landed after dispatch; both
       are superseded by `ep-m2-attempt3`, which ran against this exact working
       tree on top of commit `053e415`.
+- [x] (2026-11-15) Rebase onto `5e6924d` to clear the conflict GitHub reported
+      against `main`. The only conflict was a modify/delete on
+      `tests/test_skylos_lint_contract.py`: `main` deleted that suite in
+      `e1aaeca`, so the deletion was accepted and the typed entry-point rule in
+      `pyproject.toml` was kept. `docs/contents.md` moved from "proposes" to
+      "records delivery".
+- [x] (2026-11-15) Rebased-candidate gates (E6, label `rebase-2`): all seven
+      targets exit 0. `make test` reports 415 passed, twelve fewer than the
+      pre-rebase 427 because `main` removed the Skylos contract suites in
+      `e1aaeca`; `make lint`'s Skylos tier reports the `df12-skylos` gate
+      passing under Skylos 4.33.2, so the typed entry-point rule still
+      discharges the finding.
 
 ## Surprises & discoveries
 
@@ -171,6 +183,16 @@ program with `runpy.run_path(..., run_name="__main__")` keeps the probe file
 unmodified and still exercises its real entrypoint, which is why no
 fault-injection interface was added to production code.
 
+`main` moved the dead-code gate while this branch was in review. Commit
+`e1aaeca` replaced the Makefile's `SKYLOS_*` plumbing with the installed
+`df12-skylos` command, deleted both Skylos contract suites, and moved the scan
+roots and exclusions into `[tool.df12_skylos]` and `[tool.skylos]`. The typed
+`[[tool.skylos.dead_code.entrypoints]]` rule remains the documented mechanism,
+so the exception survives the rebase; only the duplicate symbol pin in
+`tests/test_skylos_lint_contract.py` does not. Re-adding that pin would restore
+a layer the repository deliberately removed, so the guarantee is recorded as
+reviewed configuration instead.
+
 ## Decision log
 
 - 2026-11-03: Propose one internal function in `syrupy_mdast/_wenmode.py`,
@@ -211,23 +233,25 @@ fault-injection interface was added to production code.
   `tests/test_skylos_lint_contract.py` lists the same name so a future symbol
   cannot inherit the exception silently.
 - 2026-11-15: The completed change breaches both size tolerances: 19
-  non-ExecPlan files against a limit of 16, and 1419 net lines against a limit
-  of 900. EP-M1 alone accounted for 12 files and 1311 net lines; EP-M2 added
-  seven touched files and about 108 net lines. The composition is 52 production
-  lines in `syrupy_mdast/_wenmode.py`, roughly 1225 lines of the unit,
-  property, behavioural, concurrency, worker, and installed-evidence tests and
-  support this plan names individually, and roughly 140 lines of documentation
-  and configuration. Production code plus its design and developer
-  documentation remains about 160 net lines; the estimate under-counted the
-  verification suite and the number of files that evidence touches. The options
-  were to compress or merge the evidence suites, to raise the budgets, or to
-  accept the overage. Compressing would drop witnesses the Verification plan
-  names individually, and raising a budget after the fact would hide the
-  estimate error. The overage is recorded here and in the PR description for
-  explicit reviewer rejection; an attempt to obtain approval before EP-M1
-  finished was lost to a tool failure, and the task instruction required
-  delivery to continue rather than block. Reverting this branch's commits is
-  the recovery path if a reviewer rejects the deviation.
+  non-ExecPlan files against a limit of 16, and 1572 net lines against a limit
+  of 900 (1623 insertions and 51 deletions; the pre-rebase measurement of the
+  same candidate was 1419). EP-M1 alone accounted for 12 files and 1311 net
+  lines; EP-M2 added seven touched files and about 108 net lines. The
+  composition is 52 production lines in `syrupy_mdast/_wenmode.py`, roughly
+  1225 lines of the unit, property, behavioural, concurrency, worker, and
+  installed-evidence tests and support this plan names individually, and
+  roughly 140 lines of documentation and configuration. Production code plus
+  its design and developer documentation remains about 160 net lines; the
+  estimate under-counted the verification suite and the number of files that
+  evidence touches. The options were to compress or merge the evidence suites,
+  to raise the budgets, or to accept the overage. Compressing would drop
+  witnesses the Verification plan names individually, and raising a budget
+  after the fact would hide the estimate error. The overage is recorded here
+  and in the PR description for explicit reviewer rejection; an attempt to
+  obtain approval before EP-M1 finished was lost to a tool failure, and the
+  task instruction required delivery to continue rather than block. Reverting
+  this branch's commits is the recovery path if a reviewer rejects the
+  deviation.
 - 2026-11-15: Put the E5 sensitivity control in its own module,
   `tests/support/wenmode_seam_sensitivity.py`, and call it from
   `install_and_probe`. A separate module names one responsibility, keeps
@@ -245,6 +269,14 @@ fault-injection interface was added to production code.
 - 2026-11-15: Mark roadmap 1.2.2 done and leave 1.2.3 and later items open.
   The success criteria for 1.2.2 name parser independence only; normative AST
   decisions and canonicalization belong to 1.2.3 and later slices.
+- 2026-11-15: Accept `main`'s deletion of `tests/test_skylos_lint_contract.py`
+  during the rebase onto `5e6924d`. The deleting change moved the gate to
+  `df12-skylos` and removed the contract and whitelist-boundary suites as part
+  of that migration; the typed entry-point rule is still supported and still
+  names `syrupy_mdast._wenmode.parse_markdown` exactly, but the duplicate pin
+  goes with the suite. The alternative, a new suite that pins the symbol again,
+  would reverse a deliberate repository decision and widen this slice for a
+  guarantee the reviewed configuration already provides.
 
 ## Outcomes & retrospective
 
@@ -267,12 +299,13 @@ built and installed, in a child process with JavaScript runtimes absent and
 socket and subprocess audit events denied, exercising the seam in both wheel
 and editable modes and failing when the seam is replaced.
 
-All seven gates pass on the final candidate under label `ep-m2-attempt3`, with
-427 tests, 100% docstring coverage, both Pylint passes at 10.00/10, a silent
-strict Skylos gate, and no known audit vulnerabilities. The two earlier EP-M2
-labels are red or abandoned and are not evidence for this candidate. Hosted CI,
-the two CodeRabbit assessments, and the merge belong to the pull request and
-were not part of this local plateau.
+All seven gates pass on the candidate under label `ep-m2-attempt3` (427 tests
+on the pre-rebase base) and again under `rebase-2` (415 tests after `main`
+removed the Skylos contract suites), with 100% docstring coverage, both Pylint
+passes at 10.00/10, a passing strict Skylos gate, and no known audit
+vulnerabilities. The two earlier EP-M2 labels are red or abandoned and are not
+evidence for this candidate. Hosted CI, the two CodeRabbit assessments, and the
+merge belong to the pull request and were not part of this local plateau.
 
 Residual limitations are recorded rather than hidden. The serialized-lock
 negative control deadlocks the nested-call test until the global pytest timeout
