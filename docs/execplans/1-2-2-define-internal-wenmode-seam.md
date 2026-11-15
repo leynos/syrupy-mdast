@@ -1,7 +1,8 @@
 # Define the internal Wenmode seam (1.2.2)
 
 Status: COMPLETE — implemented and locally validated (2026-11-15). The change
-fits the size tolerances after the reviewer raised them to 24 non-ExecPlan
+fits the size tolerances (21 non-ExecPlan files and 1717 net lines at the
+public-boundary repair head) after the reviewer raised them to 24 non-ExecPlan
 files and 2400 net lines; hosted assessment and merge remain with the pull
 request.
 
@@ -52,7 +53,7 @@ ExecPlan files are excluded from both counts. The original limits were 16 files
 and 900 net lines; after the completed change measured 19 files and 1596 net
 lines at that point, the reviewer raised both limits on 2026-11-15, and the
 Decision log records the measurements, the escalation, and that decision. The
-change measures 1606 net lines at the review-reconciliation head, still within
+change measures 1717 net lines at the public-boundary repair head, still within
 both limits. A required third-party annotation workaround involving `Any`, a
 cast, or a suppression requires evidence and review before adoption. Three
 unsuccessful fixes for the same failure trigger reassessment, not a weaker
@@ -89,7 +90,8 @@ not add a dummy production caller or a blanket suppression.
 - [x] (2026-11-15) Obtain explicit approval for implementation.
 - [x] (2026-11-15) EP-M1: implement and validate the seam and isolation
       obligations. Red stage observed as `ModuleNotFoundError`; 23 unit, 1
-      property, 3 behavioural, 3 concurrency, and 4 worker results pass; every
+      property, 3 contract-scenario, 3 concurrency, and 4 worker results pass;
+      every
       seeded fault and negative control failed for its intended reason.
 - [x] (2026-11-15) EP-M1 gates (E6, label `ep-m1-attempt2`): `check-fmt`,
       `typecheck`, `lint` (including the strict Skylos gate), `test` (427
@@ -109,7 +111,7 @@ not add a dummy production caller or a blanket suppression.
       and roadmap 1.2.2 were reconciled.
 - [x] (2026-11-15) EP-M2 gates (E6, label `ep-m2-attempt3`): `check-fmt`,
       `typecheck`, `lint` (including the strict Skylos gate), `test` (427
-      passed, all four installed-dependency behavioural tests included),
+      passed, all four installed-dependency scenario tests included),
       `audit`, `markdownlint`, and `nixie` all exit 0. `ep-m2-attempt1` was
       red on `typecheck` and `lint` in the refactored probe and `ep-m2-attempt2`
       was abandoned mid-run because a candidate edit landed after dispatch; both
@@ -154,15 +156,33 @@ not add a dummy production caller or a blanket suppression.
       repairs, and R1 and R4 named ADR files that do not exist. Both are
       corrected below. Of the pre-merge items, the scenario relabelling and the
       probe-scope clarification are accepted and applied, the public-boundary
-      behavioural requirement was already satisfied by
+      requirement was reported as already satisfied by
       `tests/test_public_api_contract.py`, and removing the failure-propagation
-      double is declined with evidence in the Decision log.
+      double is declined with evidence in the Decision log. The review-queue
+      rerun on `0cf5192` rejected that third disposition and asked for a
+      behavioural test at the public boundary inside this change; it is added
+      below, and the seam suites are reclassified as contract scenarios.
 - [x] (2026-11-15) Assessment of `0e267bc` withdrew the double-removal request
       and confirmed the ADR and E6 corrections, but found two valid items: four
       references said the comparison pipeline was scheduled for 1.2.3, while
       the roadmap puts parsing at 2.1.1 and snapshot serialisation at 2.3.1;
       and the recorded size predated the review reconciliation. Both are
       corrected here, and the reconciliation head measures 1606 net lines.
+- [x] (2026-11-16) Reconcile the managed-queue review of `0cf5192`. It found no
+      inline findings, passed `Module-Level Documentation` on that candidate,
+      and failed `Testing (Unit And Behavioural)`: the seam-BDD suites were
+      still presented as behavioural evidence, and the check wants a
+      behavioural test at the public boundary inside the change rather than a
+      reference to the unchanged `tests/test_public_api_contract.py`. Added
+      `tests/features/public_extension.feature` with its binding in
+      `tests/test_public_extension_bdd.py`, which serialises a valid document
+      through the published extension and through a registered Syrupy
+      assertion and requires the roadmap 2.3.1 refusal; a temporary mutant that
+      returns text instead of raising failed both scenarios for that intended
+      reason. Reclassified the seam suites as contract scenarios in the plan,
+      the feature and binding docstrings, and the installation harness, and
+      removed the behavioural labels from the design and developers' guides.
+      The change now measures 21 non-ExecPlan files and 1717 net lines.
 
 ## Surprises & discoveries
 
@@ -290,17 +310,17 @@ reviewed configuration instead.
   EP-M1 alone accounted for 12 files and 1311 net lines; EP-M2 added seven
   touched files and about 108 net lines. The composition is 52 production lines
   in `syrupy_mdast/_wenmode.py`, roughly 1225 lines of the unit, property,
-  behavioural, concurrency, worker, and installed-evidence tests and support
-  this plan names individually, and roughly 140 lines of documentation and
-  configuration. Production code plus its design and developer documentation
-  remains about 160 net lines; the estimate under-counted the verification
-  suite and the number of files that evidence touches. The options were to
-  compress or merge the evidence suites, to raise the budgets, or to accept the
-  overage. Compressing would drop witnesses the Verification plan names
-  individually, and raising a budget after the fact would hide the estimate
-  error. The overage was escalated here and in the PR description; an attempt
-  to obtain approval before EP-M1 finished was lost to a tool failure, and the
-  task instruction required delivery to continue rather than block. On
+  contract-scenario, concurrency, worker, and installed-evidence tests and
+  support this plan names individually, and roughly 140 lines of documentation
+  and configuration. Production code plus its design and developer
+  documentation remains about 160 net lines; the estimate under-counted the
+  verification suite and the number of files that evidence touches. The options
+  were to compress or merge the evidence suites, to raise the budgets, or to
+  accept the overage. Compressing would drop witnesses the Verification plan
+  names individually, and raising a budget after the fact would hide the
+  estimate error. The overage was escalated here and in the PR description; an
+  attempt to obtain approval before EP-M1 finished was lost to a tool failure,
+  and the task instruction required delivery to continue rather than block. On
   2026-11-15 the reviewer raised the limits to 24 non-ExecPlan files and 2400
   net lines. At the review-reconciliation head `0e267bc` the same change
   measures 19 non-ExecPlan files, 1658 insertions, 52 deletions, and 1606 net
@@ -370,16 +390,18 @@ reviewed configuration instead.
   presented as contract scenarios for the internal seam rather than as
   behavioural acceptance of the public package, and the design and developers'
   guides now state that the installed probe is installation and isolation
-  evidence, not a behavioural acceptance test. The third is already discharged:
-  `tests/test_public_api_contract.py` asserts the two ratified public names,
-  `__all__` equality, and the `NotImplementedError` contract through both the
-  direct and the Syrupy-registered extension path. The fourth, removing the
-  recording double from the propagation scenario, is declined: the plan's own
-  behavioural specification requires the scenario
-  `An upstream failure does not poison the next call`, the real parser cannot
-  be made to fail deterministically on demand, and the double is already
-  documented as test machinery rather than an extension point. Removing it
-  would delete a named witness and replace it with nothing.
+  evidence, not acceptance of the public surface. The third was answered by
+  pointing at `tests/test_public_api_contract.py`, which asserts the two
+  ratified public names, `__all__` equality, and the `NotImplementedError`
+  contract through both the direct and the Syrupy-registered extension path;
+  the rerun on `0cf5192` declined that answer, because the check wants a
+  behavioural test inside the change rather than a reference to an unchanged
+  suite. The fourth, removing the recording double from the propagation
+  scenario, is declined: the plan's own contract-scenario specification
+  requires the scenario `An upstream failure does not poison the next call`,
+  the real parser cannot be made to fail deterministically on demand, and the
+  double is already documented as test machinery rather than an extension
+  point. Removing it would delete a named witness and replace it with nothing.
 - 2026-11-15: The assessment of `0e267bc` withdrew the double-removal request
   and confirmed the ADR and E6 corrections, then found two valid documentation
   items. The roadmap schedules normative AST probes at 1.2.3, parsing at 2.1.1,
@@ -390,6 +412,20 @@ reviewed configuration instead.
   predated the review reconciliation; the reconciliation head measures 19
   non-ExecPlan files, 1658 insertions, 52 deletions, and 1606 net lines, and
   1596 is retained as the earlier measurement.
+- 2026-11-16: The managed-queue review of `0cf5192` returned no inline findings
+  and passed `Module-Level Documentation`, but kept
+  `Testing (Unit And Behavioural)` failed. It rejected the earlier disposition
+  that cited `tests/test_public_api_contract.py`, because the check requires a
+  behavioural test inside the change and that suite is unchanged. The
+  requirement is accepted rather than argued again: the new scenarios in
+  `tests/features/public_extension.feature` drive the public package and a
+  registered Syrupy assertion, and never the private seam. The seam suites are
+  contract scenarios, and the plan, feature titles, binding docstrings, and
+  installation harness now say so. The mutation that returns text from
+  `serialize` instead of raising failed both new scenarios with
+  `valid Markdown must reach the planned serializer, not be accepted`, so the
+  scenarios are not vacuous. The change measures 21 non-ExecPlan files, 1772
+  insertions, 55 deletions, and 1717 net lines, still inside the revised limits.
 
 ## Outcomes & retrospective
 
@@ -602,10 +638,31 @@ identity contracts: direct assertions are clearer. If implementation adds a
 multivariant output fixture, use a narrowly scoped Syrupy snapshot alongside
 semantic assertions, excluding worker IDs, paths, timings, and object IDs.
 
-## Behavioural specification
+## Behavioural specification and contract scenarios
+
+Add `tests/features/public_extension.feature` and bind its scenarios in
+`tests/test_public_extension_bdd.py`. These are behavioural scenarios at the
+public boundary: every step drives `syrupy_mdast.MarkdownAstSnapshotExtension`
+or a Syrupy snapshot assertion configured with it, never `_wenmode`, and they
+record what a consumer observes until roadmap 2.3.1 implements serialisation.
+
+```gherkin
+Feature: Public Markdown snapshot extension defers serialisation
+  Scenario: A direct call defers serialisation to the planned serializer
+    Given the public Markdown snapshot extension
+    When a caller serialises a valid Markdown document directly
+    Then the extension refuses with the planned roadmap task
+
+  Scenario: A registered Syrupy assertion defers the same way
+    Given a Syrupy snapshot assertion using the public extension
+    When that assertion serialises a valid Markdown document
+    Then the extension refuses with the planned roadmap task
+    And the registered extension is the public type
+```
 
 Add `tests/features/wenmode_adapter.feature` and bind its scenarios in
-`tests/test_wenmode_adapter_bdd.py` using existing pytest-bdd conventions:
+`tests/test_wenmode_adapter_bdd.py` using existing pytest-bdd conventions.
+These are contract scenarios for the internal seam, written in BDD form:
 
 ```gherkin
 Feature: Contract scenarios for independent internal Wenmode adapter calls
@@ -627,11 +684,10 @@ Feature: Contract scenarios for independent internal Wenmode adapter calls
     And the second call uses a new parser and succeeds
 ```
 
-These are contract scenarios for the internal seam, written in BDD form, not
-behavioural acceptance of the public package: no public entrypoint is reachable
-for the seam until roadmap 2.1.1 implements the parsing pipeline and 2.3.1 the
-snapshot serialisation. The installed probe is installation and isolation
-evidence about the same seam and is likewise not a behavioural acceptance test.
+They are not behavioural acceptance of the public package: no public entrypoint
+is reachable for the seam until roadmap 2.1.1 implements the parsing pipeline
+and 2.3.1 the snapshot serialisation. The installed probe is installation and
+isolation evidence about the same seam, not evidence about the public surface.
 Keep real-parser scenarios and deliberate double failures clearly
 distinguished. Update the existing installation feature's parsing step to name
 the internal adapter, keeping its wheel/editable scenarios and
@@ -642,12 +698,12 @@ missing-dependency failure.
 ### EP-M1: Independent internal calls
 
 Implement R2–R4 as one coherent tested change. Add the unit, property,
-concurrency, worker, and behavioural files named above. Begin with the smallest
-unit import/contract test: record the expected missing-module failure before
-adding production code. Add the minimal function, then establish new test
-sensitivity with temporary seeded faults before restoring it. For test-first
-iterations, strict expected-failure markers may record an observed red stage,
-but remove them before committing; never commit a failing suite.
+concurrency, worker, and contract-scenario files named above. Begin with the
+smallest unit import/contract test: record the expected missing-module failure
+before adding production code. Add the minimal function, then establish new
+test sensitivity with temporary seeded faults before restoring it. For
+test-first iterations, strict expected-failure markers may record an observed
+red stage, but remove them before committing; never commit a failing suite.
 
 Run focused E1–E4 tests, then the full E6 gates. Update design section 7 with
 the concrete private path and its ownership/exception policy and update the
@@ -696,6 +752,7 @@ focused pytest commands below use its `uv` environment after `make build`.
 
 ```bash
 uv run pytest -v tests/test_wenmode_adapter.py
+uv run pytest -v tests/test_public_extension_bdd.py
 uv run pytest -v tests/test_wenmode_adapter_properties.py --hypothesis-show-statistics
 uv run pytest -v tests/test_wenmode_adapter_concurrency.py tests/test_wenmode_adapter_bdd.py
 uv run pytest -v -n 2 --dist=each tests/test_wenmode_adapter_workers.py

@@ -42,7 +42,7 @@ def parser_results(
 
 @pytest.fixture
 def scenario_state() -> dict[str, object]:
-    """Hold evidence produced by the current behavioural scenario."""
+    """Hold evidence produced by the current installation scenario."""
     return {}
 
 

@@ -166,10 +166,10 @@ shared by the packaging helpers: `run_command` fails on a non-zero exit, while
 fresh wheel and editable installations through `install_project`, while
 `tests/support/wenmode_offline_install.py` proves a missing Wenmode wheel fails
 visibly. The session `wheelhouse` fixture in `tests/conftest.py` is shared by
-the behavioural scenarios and the manifest contract, so the project wheel,
+the installation scenarios and the manifest contract, so the project wheel,
 runtime wheels, and build backend are downloaded and inspected once per test
 worker. Reuse these helpers for package boundary tests, not production parsing.
-Run the behavioural, manifest, and classifier checks with:
+Run the installation, manifest, and classifier checks with:
 
 ```bash
 uv run pytest -v tests/test_package_boundary.py \
@@ -250,15 +250,16 @@ Wenmode directly succeeds under the same replacement, as the recorded negative
 control showed, so only a failing control makes the passing run evidence about
 the seam. `install_and_probe` runs the control in both installation modes,
 which keeps the wheel and editable reports equally sensitive. The probe is
-installation and isolation evidence about the seam, not a behavioural
-acceptance test of the public package: the seam has no public entrypoint until
-roadmap 2.1.1 implements the parsing pipeline and 2.3.1 the snapshot
-serialisation, so public behaviour is covered by
-`tests/test_public_api_contract.py` instead.
+installation and isolation evidence about the seam, not evidence about the
+public surface: the seam has no public entrypoint until roadmap 2.1.1
+implements the parsing pipeline and 2.3.1 the snapshot serialisation. The
+public surface is covered by `tests/test_public_api_contract.py` and,
+behaviourally, by the scenarios in `tests/features/public_extension.feature`.
 
-Run the installed evidence directly:
+Run the public-boundary scenarios and the installed evidence directly:
 
 ```bash
+uv run pytest -v tests/test_public_extension_bdd.py
 uv run pytest -v tests/test_wenmode_dependency_bdd.py tests/test_package_boundary.py
 ```
 

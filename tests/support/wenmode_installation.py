@@ -5,8 +5,9 @@ the project into one fresh environment. ``install_and_probe`` serves a single
 installation mode: it first runs the seam-sensitivity control, which requires
 the probe to fail when the adapter is replaced, and only then the installed
 runtime probe, so a probe that bypassed the seam is rejected before its success
-is trusted. The behavioural suite calls it once per mode. Three suites consume
-the harness: ``tests/test_wenmode_dependency_bdd.py`` drives it behaviourally,
+is trusted. The installation scenarios call it once per mode. Three suites
+consume the harness: ``tests/test_wenmode_dependency_bdd.py`` drives it through
+its feature scenarios,
 ``tests/conftest.py`` exposes ``Wheelhouse`` and ``prepare_wheelhouse``, and
 ``tests/test_package_manifest_contract.py`` checks the built artefacts through
 ``Wheelhouse`` and ``install_project``.
