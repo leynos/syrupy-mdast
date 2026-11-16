@@ -2,9 +2,8 @@
 
 Status: COMPLETE — implemented and locally validated (2026-11-15). The change
 fits the size tolerances (21 non-ExecPlan files and 1755 net lines at the
-public-boundary repair head) after the reviewer raised them to 24 non-ExecPlan
-files and 2400 net lines; hosted assessment and merge remain with the pull
-request.
+review-repair head) after the reviewer raised them to 24 non-ExecPlan files and
+2400 net lines; hosted assessment and merge remain with the pull request.
 
 This execution plan is a living document. Keep Constraints, Tolerances, Risks,
 Progress, Surprises & discoveries, Decision log, Outcomes & retrospective,
@@ -53,11 +52,13 @@ ExecPlan files are excluded from both counts. The original limits were 16 files
 and 900 net lines; after the completed change measured 19 files and 1596 net
 lines at that point, the reviewer raised both limits on 2026-11-15, and the
 Decision log records the measurements, the escalation, and that decision. The
-change measures 1755 net lines at the public-boundary repair head, still within
-both limits. A required third-party annotation workaround involving `Any`, a
-cast, or a suppression requires evidence and review before adoption. Three
-unsuccessful fixes for the same failure trigger reassessment, not a weaker
-assertion. There is no elapsed-time cutoff.
+change measures 1755 net lines at the review-repair head, still within both
+limits; the earlier public-boundary repair head measured 1754, and the Decision
+log records which head each figure belongs to. A required third-party
+annotation workaround involving `Any`, a cast, or a suppression requires
+evidence and review before adoption. Three unsuccessful fixes for the same
+failure trigger reassessment, not a weaker assertion. There is no elapsed-time
+cutoff.
 
 ## Risks
 
@@ -185,7 +186,8 @@ not add a dummy production caller or a blanket suppression.
       in the plan,
       the feature and binding docstrings, and the installation harness, and
       removed the behavioural labels from the design and developers' guides.
-      The change now measures 21 non-ExecPlan files and 1755 net lines.
+      The change now measures 21 non-ExecPlan files and 1755 net lines at the
+      review-repair head.
 
 ## Surprises & discoveries
 
@@ -449,8 +451,9 @@ reviewed configuration instead.
   recorded diff to name the unsupported `matcher` control; that is the
   consumer-visible path, because Syrupy always supplies the matcher hook before
   serialisation. The direct scenario keeps the `NotImplementedError` naming
-  2.3.1. The change measures 21 non-ExecPlan files and 1755 net lines, inside
-  the revised limits, and the full gate sequence is rerun on the resulting tree.
+  2.3.1. The change measures 21 non-ExecPlan files and 1754 net lines at that
+  head, inside the revised limits, and the full gate sequence is rerun on the
+  resulting tree.
 - 2026-11-16: CodeRabbit's assessment of `2c59f41` withdrew the earlier request
   for a `NotImplementedError` through a registered assertion, confirming from
   the tagged Syrupy 5.0.0 and 6.0.0 sources that both supply a matcher callable
@@ -460,7 +463,8 @@ reviewed configuration instead.
   `serialize` call with no property controls. The paragraph now says so, which
   matches the paragraph above it and the two public-boundary scenarios. The
   change then measures 21 non-ExecPlan files, 1813 insertions, 58 deletions,
-  and 1755 net lines, and the E6 sequence is rerun on the resulting tree.
+  and 1755 net lines. The status line and Tolerances cite that later
+  measurement, and the E6 sequence is rerun on the resulting tree.
 
 ## Outcomes & retrospective
 
