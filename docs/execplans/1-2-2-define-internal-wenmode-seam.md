@@ -1,7 +1,7 @@
 # Define the internal Wenmode seam (1.2.2)
 
 Status: COMPLETE — implemented and locally validated (2026-11-15). The change
-fits the size tolerances (21 non-ExecPlan files and 1754 net lines at the
+fits the size tolerances (21 non-ExecPlan files and 1755 net lines at the
 public-boundary repair head) after the reviewer raised them to 24 non-ExecPlan
 files and 2400 net lines; hosted assessment and merge remain with the pull
 request.
@@ -53,7 +53,7 @@ ExecPlan files are excluded from both counts. The original limits were 16 files
 and 900 net lines; after the completed change measured 19 files and 1596 net
 lines at that point, the reviewer raised both limits on 2026-11-15, and the
 Decision log records the measurements, the escalation, and that decision. The
-change measures 1754 net lines at the public-boundary repair head, still within
+change measures 1755 net lines at the public-boundary repair head, still within
 both limits. A required third-party annotation workaround involving `Any`, a
 cast, or a suppression requires evidence and review before adoption. Three
 unsuccessful fixes for the same failure trigger reassessment, not a weaker
@@ -185,7 +185,7 @@ not add a dummy production caller or a blanket suppression.
       in the plan,
       the feature and binding docstrings, and the installation harness, and
       removed the behavioural labels from the design and developers' guides.
-      The change now measures 21 non-ExecPlan files and 1754 net lines.
+      The change now measures 21 non-ExecPlan files and 1755 net lines.
 
 ## Surprises & discoveries
 
@@ -438,8 +438,9 @@ reviewed configuration instead.
   installation harness now say so. The mutation that returns text from
   `serialize` instead of raising failed both new scenarios with
   `valid Markdown must reach the planned serializer, not be accepted`, so the
-  scenarios are not vacuous. The change measures 21 non-ExecPlan files, 1811
-  insertions, 57 deletions, and 1754 net lines, still inside the revised limits.
+  scenarios are not vacuous. The change measured 21 non-ExecPlan files, 1811
+  insertions, 57 deletions, and 1754 net lines at `2c59f41`, still inside the
+  revised limits.
 - 2026-11-16: CodeRabbit's assessment of `fb2aee9` found that the registered
   scenario stored only `assertion.extension` and then called `serialize`
   directly, so it did not serialise through the assertion the scenario names.
@@ -448,7 +449,7 @@ reviewed configuration instead.
   recorded diff to name the unsupported `matcher` control; that is the
   consumer-visible path, because Syrupy always supplies the matcher hook before
   serialisation. The direct scenario keeps the `NotImplementedError` naming
-  2.3.1. The change measures 21 non-ExecPlan files and 1754 net lines, inside
+  2.3.1. The change measures 21 non-ExecPlan files and 1755 net lines, inside
   the revised limits, and the full gate sequence is rerun on the resulting tree.
 - 2026-11-16: CodeRabbit's assessment of `2c59f41` withdrew the earlier request
   for a `NotImplementedError` through a registered assertion, confirming from
@@ -457,8 +458,9 @@ reviewed configuration instead.
   under R5: the users' guide's corpus paragraph still said valid `str` input
   raises `NotImplementedError` without noting that this describes a direct
   `serialize` call with no property controls. The paragraph now says so, which
-  matches the paragraph above it and the two public-boundary scenarios. The E6
-  sequence is rerun on the resulting tree.
+  matches the paragraph above it and the two public-boundary scenarios. The
+  change then measures 21 non-ExecPlan files, 1813 insertions, 58 deletions,
+  and 1755 net lines, and the E6 sequence is rerun on the resulting tree.
 
 ## Outcomes & retrospective
 
