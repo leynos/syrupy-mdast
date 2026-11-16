@@ -988,11 +988,12 @@ then the four gates. Recovery: revert.
 Assigned: D11 evidence, documentation obligations, and roadmap closure.
 
 1. Upgrade drill (manual evidence; not CI, because it needs the network and
-   several Wenmode versions). In a scratch environment outside the worktree,
-   run:
+   several Wenmode versions). Build the scratch environment under the
+   git-ignored `.cache/` directory, which CodeGraph also excludes, never under
+   `/tmp`, which is reserved for logs. Delete it afterwards. Run:
 
    ```bash
-   drill=/tmp/wenmode-drill-1-2-3; rm -rf "$drill"; mkdir -p "$drill"
+   drill=.cache/wenmode-drill/1.0.0rc1; rm -rf "$drill"; mkdir -p "$drill"
    uv export --frozen --only-group dev --no-hashes --no-emit-project --no-header \
      -o "$drill/dev.txt"
    echo 'wenmode==1.0.0rc1' > "$drill/override.txt"
@@ -1072,8 +1073,9 @@ Acceptance summary:
 ## Idempotence and recovery
 
 All steps are re-runnable. Tests write only to pytest's `tmp_path`. The drill
-uses a scratch directory under `/tmp` that is deleted and recreated, and never
-modifies `uv.lock`; confirm with `git status --short uv.lock` (no output). Each
+uses a git-ignored scratch directory under `.cache/wenmode-drill/` that is
+deleted and recreated, and is removed after the drill. It never modifies
+`uv.lock`; confirm with `git status --short uv.lock` (no output). Each
 milestone is one or more commits that can be reverted independently in reverse
 order. EP-M1 must precede fixture commits. If a gate fails, read the cited
 `/tmp` log rather than re-running it. Re-run only after a fix.
