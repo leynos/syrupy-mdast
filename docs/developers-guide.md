@@ -166,10 +166,10 @@ shared by the packaging helpers: `run_command` fails on a non-zero exit, while
 fresh wheel and editable installations through `install_project`, while
 `tests/support/wenmode_offline_install.py` proves a missing Wenmode wheel fails
 visibly. The session `wheelhouse` fixture in `tests/conftest.py` is shared by
-the behavioural scenarios and the manifest contract, so the project wheel,
+the installation scenarios and the manifest contract, so the project wheel,
 runtime wheels, and build backend are downloaded and inspected once per test
 worker. Reuse these helpers for package boundary tests, not production parsing.
-Run the behavioural, manifest, and classifier checks with:
+Run the installation, manifest, and classifier checks with:
 
 ```bash
 uv run pytest -v tests/test_package_boundary.py \
@@ -196,6 +196,72 @@ hooks are test instrumentation, not a security sandbox.
 2. Run CommonMark and GitHub Flavoured Markdown (GFM) assertions.
 3. Inspect the wheel and reject JavaScript source, JavaScript manifests,
    JavaScript lockfiles, and installed JavaScript package directories.
+
+### Verify the internal Wenmode seam
+
+`syrupy_mdast/_wenmode.py` owns the only call into Wenmode. Every call builds a
+fresh GitHub-profile parser with positions disabled, parses once, and returns
+`to_ast()` unchanged; the module caches nothing and stays out of
+`syrupy_mdast.__all__`. Its contract and isolation evidence live in
+`tests/test_wenmode_adapter.py`, `tests/test_wenmode_adapter_properties.py`,
+`tests/test_wenmode_adapter_concurrency.py`, and
+`tests/test_wenmode_adapter_workers.py`, with shared doubles and documents in
+`tests/support/wenmode_adapter.py`. The doubles patch the module's own `Parser`
+and `github` names, and `parse_directly` supplies an expectation that does not
+come from the code under test.
+
+Wenmode resets its reference and footnote tables when a parser is reused, so a
+correct tree proves nothing about parser ownership. Assert construction counts
+and retained instances instead of comparing sequential output alone; that is
+what rejects a cached parser. The concurrency tests coordinate through a
+two-party barrier and per-source events rather than sleeps, and every wait,
+join, and future result carries a five-second bound. A global lock around
+`parse` is a known limitation of the negative control: it deadlocks the nested
+call until the global pytest timeout instead of failing a bounded assertion.
+
+Run the focused suites sequentially:
+
+```bash
+uv run pytest -v tests/test_wenmode_adapter.py \
+  tests/test_wenmode_adapter_bdd.py
+uv run pytest -v tests/test_wenmode_adapter_properties.py \
+  --hypothesis-show-statistics
+uv run pytest -v tests/test_wenmode_adapter_concurrency.py
+uv run pytest -v -n 2 --dist=each tests/test_wenmode_adapter_workers.py
+```
+
+`--dist=each` is required for worker evidence: it runs the worker test once per
+xdist worker, so the report must name both `gw0` and `gw1`. The Hypothesis
+statistics report a few "invalid" cases (about 5% of examples); those are
+entropy overruns, not rejected inputs, and the classification events must still
+show definition, redefinition, and definition-free sequences.
+
+Installed evidence covers the same seam from outside the checkout.
+`tests/support/wenmode_runtime_probe.py` runs in a fresh wheel installation and
+a fresh editable installation with JavaScript runtimes absent and socket and
+subprocess audit events denied, then parses five documents through
+`syrupy_mdast._wenmode.parse_markdown`. The fifth document repeats the labels
+of the fourth without defining them, so its literal text proves the two calls
+kept separate reference and footnote state.
+`tests/support/wenmode_seam_sensitivity.py` reruns that probe with the seam
+replaced by a callable that raises `SeamBypassError` and requires the probe to
+fail with that name. The control is not ceremonial: a probe that imported
+Wenmode directly succeeds under the same replacement, as the recorded negative
+control showed, so only a failing control makes the passing run evidence about
+the seam. `install_and_probe` runs the control in both installation modes,
+which keeps the wheel and editable reports equally sensitive. The probe is
+installation and isolation evidence about the seam, not evidence about the
+public surface: the seam has no public entrypoint until roadmap 2.1.1
+implements the parsing pipeline and 2.3.1 the snapshot serialisation. The
+public surface is covered by `tests/test_public_api_contract.py` and,
+behaviourally, by the scenarios in `tests/features/public_extension.feature`.
+
+Run the public-boundary scenarios and the installed evidence directly:
+
+```bash
+uv run pytest -v tests/test_public_extension_bdd.py
+uv run pytest -v tests/test_wenmode_dependency_bdd.py tests/test_package_boundary.py
+```
 
 ### Run the verification layers
 

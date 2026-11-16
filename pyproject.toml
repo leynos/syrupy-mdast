@@ -433,6 +433,16 @@ exclude = ["tests"]
 # Fail the lint gate on any unreviewed production dead-code finding.
 strict = true
 
+[[tool.skylos.dead_code.entrypoints]]
+# The internal Wenmode seam has no caller inside `syrupy_mdast` yet, so the
+# scanner sees it as unused. Its runtime callers are the installed probe in
+# `tests/support/wenmode_runtime_probe.py`, which runs in a child process the
+# scan cannot follow, and the comparison pipeline scheduled for roadmap 2.1.1.
+# Record that boundary instead of adding a dummy production caller.
+type = "function"
+full_name = ["syrupy_mdast._wenmode.parse_markdown"]
+reason = """Installed probe and the later pipeline call this private seam."""
+
 [tool.skylos.whitelist.documented]
 file_extension = "Syrupy reads this required subclass attribute at runtime."
 _write_mode = "Syrupy reads this required subclass attribute at runtime."

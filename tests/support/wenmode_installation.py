@@ -1,4 +1,17 @@
-"""Build and exercise isolated Wenmode installations for package contracts."""
+"""Build and exercise isolated Wenmode installations for package contracts.
+
+``prepare_wheelhouse`` builds one wheelhouse and ``install_project`` installs
+the project into one fresh environment. ``install_and_probe`` serves a single
+installation mode: it first runs the seam-sensitivity control, which requires
+the probe to fail when the adapter is replaced, and only then the installed
+runtime probe, so a probe that bypassed the seam is rejected before its success
+is trusted. The installation scenarios call it once per mode. Three suites
+consume the harness: ``tests/test_wenmode_dependency_bdd.py`` drives it through
+its feature scenarios,
+``tests/conftest.py`` exposes ``Wheelhouse`` and ``prepare_wheelhouse``, and
+``tests/test_package_manifest_contract.py`` checks the built artefacts through
+``Wheelhouse`` and ``install_project``.
+"""
 
 from __future__ import annotations
 
@@ -16,6 +29,7 @@ from tests.support.local_commands import (
     run_command,
 )
 from tests.support.package_boundary import find_javascript_assets
+from tests.support.wenmode_seam_sensitivity import assert_replaced_seam_fails_probe
 
 _EXPECTED_WENMODE_SHA256 = (
     "a1be9a2d91ef7f5020148daf615edca0c9a4a6d54d074a808e6d5e9de95726f6"
@@ -244,6 +258,9 @@ def install_and_probe(
         "HOME": str(environment_path),
     }
     probe_path = Path(__file__).with_name("wenmode_runtime_probe.py").resolve()
+    assert_replaced_seam_fails_probe(
+        python, probe_path, cwd=environment_path.parent, env=probe_env
+    )
     probe = run_command(
         [python, "-I", "-W", "error", probe_path],
         cwd=environment_path.parent,

@@ -1,4 +1,16 @@
-"""Exercise the installed Wenmode dependency with process and network denial."""
+"""Exercise the installed adapter seam with process and network denial.
+
+``install_and_probe`` in ``tests/support/wenmode_installation.py`` runs this
+module as a standalone script in a child process, once for a wheel installation
+and once for an editable one. Before trusting a result it asserts that socket
+and child-process audit events are denied and that no JavaScript runtime is
+reachable, that Wenmode 0.15.2 and both package modules import from the expected
+installation, and that five smoke documents parse with the expected semantics,
+including one that keeps labels unresolved because an earlier document defined
+them. ``tests/support/wenmode_seam_sensitivity.py`` reruns this script with
+``parse_markdown`` replaced by a raising callable, so whether this probe
+succeeds is what shows it exercises the seam rather than Wenmode directly.
+"""
 
 from __future__ import annotations
 
@@ -8,11 +20,23 @@ import shutil
 import socket
 import subprocess  # ruff: ignore[suspicious-subprocess-import] -- negative-control probe.
 import sys
+import typing as typ
 from importlib import metadata
 from pathlib import Path
 
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
+
 _JAVASCRIPT_RUNTIMES = ("bun", "node", "nodejs")
 _CONTAINER_NETWORK_WITNESS = ("192.0.2.1", 443)
+_DEFINITION_DOCUMENT = (
+    "See [key] and a footnote[^note].\n"
+    "\n"
+    "[key]: https://example.com/first\n"
+    "[^note]: First footnote text.\n"
+)
+_UNRESOLVED_DOCUMENT = "See [key] and a footnote[^note].\n"
+_UNRESOLVED_TEXT = "See [key] and a footnote[^note]."
 
 
 class IsolationDeniedError(RuntimeError):
@@ -84,58 +108,166 @@ def _assert_process_denied() -> None:
     raise AssertionError(message)
 
 
-def main() -> None:
-    """Check isolated import origins and the reviewed parser smoke documents."""
+def _children(node: dict[str, object]) -> list[dict[str, object]]:
+    """Return a container node's child mappings, rejecting a malformed tree.
+
+    The adapter returns ``dict[str, object]``, so nested values need narrowing
+    before they can be indexed. Wenmode omits ``children`` on leaf nodes, which
+    is why this helper is only used on nodes known to be containers.
+
+    Parameters
+    ----------
+    node
+        Container node whose children are required.
+
+    Returns
+    -------
+    list[dict[str, object]]
+        Mapping children in document order.
+    """
+    children = node.get("children")
+    assert isinstance(children, list), "Expected a list-valued children field"
+    return [child for child in children if isinstance(child, dict)]
+
+
+def _node_types(node: dict[str, object]) -> cabc.Iterator[str]:
+    """Yield every node type in a Wenmode tree in document order.
+
+    Unlike `_children`, this walks leaves too, so a missing ``children`` field
+    ends that branch instead of failing.
+
+    Parameters
+    ----------
+    node
+        Mapping node to start from, normally the document root.
+
+    Yields
+    ------
+    str
+        The ``type`` of each node, including nested children.
+    """
+    yield str(node["type"])
+    nested = node.get("children")
+    if isinstance(nested, list):
+        for child in nested:
+            if isinstance(child, dict):
+                yield from _node_types(child)
+
+
+def _installation_mode() -> str:
+    """Return the validated installation mode requested by the harness."""
     mode = os.environ["WENMODE_INSTALL_MODE"]
     assert mode in {"wheel", "editable"}, 'Expected mode in {"wheel", "editable"}'
-    verify_isolation()
+    return mode
 
+
+def _assert_installed_identity(
+    mode: str, package_file: str | None, adapter_file: str | None
+) -> None:
+    """Require Wenmode, the package, and the adapter to come from this install."""
     import wenmode
-    from wenmode import Parser
-    from wenmode.presets import github
-
-    import syrupy_mdast
 
     prefix = Path(sys.prefix).resolve()
-    assert metadata.version("wenmode") == "0.15.2", (
-        'Expected metadata.version("wenmode") == "0.15.2"'
-    )
-    assert Path(wenmode.__file__).resolve().is_relative_to(prefix), (
-        "Expected Path(wenmode.__file__).resolve().is_relative_to(prefix)"
-    )
-    project_path = Path(syrupy_mdast.__file__).resolve()
     expected_root = (
         prefix
         if mode == "wheel"
         else Path(os.environ["WENMODE_CHECKOUT_PATH"]).resolve()
     )
-    assert project_path.is_relative_to(expected_root), (
-        "Expected project_path.is_relative_to(expected_root)"
+    assert metadata.version("wenmode") == "0.15.2", (
+        'Expected metadata.version("wenmode") == "0.15.2"'
     )
-    parser = Parser(github(), positions=False)
-    empty, heading, tasks = [
-        parser.parse(text).to_ast()
-        for text in ("", "# Hello\n", "- [x] done\n- [ ] todo\n")
+    assert wenmode.__file__ is not None, "Expected Wenmode to record its module file"
+    assert package_file is not None, "Expected the package to record its module file"
+    assert adapter_file is not None, "Expected the adapter to record its module file"
+    assert Path(wenmode.__file__).resolve().is_relative_to(prefix), (
+        "Expected Wenmode to be imported from the installed environment"
+    )
+    assert Path(package_file).resolve().is_relative_to(expected_root), (
+        "Expected the package to be imported from the installed project"
+    )
+    assert Path(adapter_file).resolve().is_relative_to(expected_root), (
+        "Expected the adapter to come from the same installed project"
+    )
+
+
+def _parse_smoke_documents(
+    parse_markdown: cabc.Callable[[str], dict[str, object]],
+) -> list[dict[str, object]]:
+    """Parse the smoke documents, defining labels only after using them.
+
+    Parameters
+    ----------
+    parse_markdown
+        The installed adapter callable under test.
+
+    Returns
+    -------
+    list[dict[str, object]]
+        One root tree per smoke document, in the order parsed.
+    """
+    return [
+        parse_markdown(""),
+        parse_markdown("# Hello\n"),
+        parse_markdown("- [x] done\n- [ ] todo\n"),
+        parse_markdown(_DEFINITION_DOCUMENT),
+        parse_markdown(_UNRESOLVED_DOCUMENT),
     ]
+
+
+def _assert_smoke_semantics(trees: list[dict[str, object]]) -> None:
+    """Require each smoke document's expected structure and label scope."""
+    empty, heading, tasks, defined, unresolved = trees
     assert empty == {"type": "root", "children": []}, (
         'Expected empty == {"type": "root", "children": []}'
     )
     assert heading["type"] == "root", 'Expected heading["type"] == "root"'
-    assert heading["children"][0]["depth"] == 1, (
-        'Expected heading["children"][0]["depth"] == 1'
+    assert _children(heading)[0]["depth"] == 1, (
+        "Expected the heading document to produce a depth-one heading"
     )
-    assert heading["children"][0]["children"][0]["value"] == "Hello", (
-        'Expected heading["children"][0]["children"][0]["value"] == "Hello"'
+    assert _children(_children(heading)[0])[0]["value"] == "Hello", (
+        "Expected the heading document to carry its text"
     )
-    items = tasks["children"][0]["children"]
-    assert [item["checked"] for item in items] == [True, False], (
-        'Expected [item["checked"] for item in items] == [True, False]'
+    checked = [item["checked"] for item in _children(_children(tasks)[0])]
+    assert checked == [True, False], (
+        "Expected the task list to preserve both checked states"
     )
-    assert "position" not in repr((empty, heading, tasks)), (
-        'Expected "position" not in repr((empty, heading, tasks))'
+    assert "position" not in repr(trees), (
+        "Expected no position data in any tree the adapter returns"
     )
-    print(json.dumps([empty, heading, tasks], sort_keys=True, separators=(",", ":")))
+    defined_types = set(_node_types(defined))
+    unresolved_types = set(_node_types(unresolved))
+    assert {"link", "footnoteDefinition"} <= defined_types, (
+        "Expected the adapter to resolve its own reference and footnote"
+    )
+    assert "link" not in unresolved_types, (
+        "Expected an undefined reference to stay unresolved"
+    )
+    assert "footnoteDefinition" not in unresolved_types, (
+        "Expected an undefined footnote to stay unresolved"
+    )
+    assert _children(_children(unresolved)[0]) == [
+        {"type": "text", "value": _UNRESOLVED_TEXT}
+    ], "Expected the later document to remain literal text"
+
+
+def _report(mode: str, trees: list[dict[str, object]]) -> None:
+    """Print the parsed trees and one machine-readable success line."""
+    print(json.dumps(trees, sort_keys=True, separators=(",", ":")))
     print(f"wenmode=0.15.2 mode={mode} isolation=passed")
+
+
+def main() -> None:
+    """Check isolated import origins and the installed adapter smoke documents."""
+    mode = _installation_mode()
+    verify_isolation()
+
+    import syrupy_mdast
+    import syrupy_mdast._wenmode as wenmode_adapter
+
+    _assert_installed_identity(mode, syrupy_mdast.__file__, wenmode_adapter.__file__)
+    trees = _parse_smoke_documents(wenmode_adapter.parse_markdown)
+    _assert_smoke_semantics(trees)
+    _report(mode, trees)
 
 
 if __name__ == "__main__":

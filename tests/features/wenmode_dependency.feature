@@ -2,7 +2,7 @@ Feature: Python-only Wenmode dependency
   Scenario Outline: The reviewed parser works in isolation
     Given a fresh <mode> installation from the prepared local wheelhouse
     And JavaScript execution and network access are denied
-    When the reviewed GitHub parser parses the smoke documents
+    When the installed internal Wenmode adapter parses the smoke documents
     Then Wenmode version 0.15.2 is imported from that environment
     And the expected root and child semantics are returned
 

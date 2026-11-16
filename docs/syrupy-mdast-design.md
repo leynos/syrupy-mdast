@@ -215,7 +215,10 @@ Syrupy passes `exclude`, `include`, and `matcher` to serializers. Those options
 describe traversal of Python object properties and have no defined meaning for
 a Markdown source string. The extension rejects any non-`None` value with
 `ValueError`; silently ignoring them would make tests appear more selective
-than they are.
+than they are. Syrupy supplies a `matcher` callable even when no matcher is
+configured, so a registered assertion currently stops at that rejection rather
+than at the serialization refusal; the serialization milestone must decide how
+the matcher hook is satisfied.
 
 `MarkdownAstError` is defined in the dependency-free domain core and covers
 parser, canonicalization, and serialization failures after application-level
@@ -226,30 +229,55 @@ or protocol errors because v1 has no external runtime or child process.
 
 ## 7. Parser profile and dependency policy
 
-The v1 parser profile is constructed exactly as follows:
+The v1 parser profile is constructed exactly as follows, in the private module
+`syrupy_mdast/_wenmode.py`:
 
 ```python
-from typing import Any
+from __future__ import annotations
 
 from wenmode import Parser
 from wenmode.presets import github
 
 
-def parse_markdown(source: str) -> dict[str, Any]:
-    """Parse Markdown into Wenmode's mdast-compatible AST.
-
-    Example
-    -------
-    ``parse_markdown("# Title")`` returns a root containing a depth-one
-    heading.
-    """
+def parse_markdown(source: str) -> dict[str, object]:
+    """Parse Markdown into Wenmode's mdast-compatible AST."""
     return Parser(github(), positions=False).parse(source).to_ast()
 ```
 
-This function is the Wenmode adapter seam. The production implementation may
-narrow its return type after inspecting Wenmode's published annotations. It
-must not wrap the parser behind a generic backend abstraction until a second
-supported backend creates a real reuse case.
+This function is the Wenmode adapter seam. Wenmode 0.15.2 annotates `to_ast()`
+as returning `dict[str, Any]`; the seam states `dict[str, object]` so the
+boundary exposes no unvalidated recursive model and needs no cast. Narrowing it
+further belongs to canonicalization in a later slice. The seam must not wrap
+the parser behind a generic backend abstraction until a second supported
+backend creates a real reuse case.
+
+Ownership and lifecycle are deliberately minimal. Every call constructs its own
+profile and parser, parses once, and returns the document's `to_ast()` object
+unchanged; nothing is cached, shared, or reused, and there is no pool,
+thread-local storage, or injection parameter. This keeps a comparison result
+independent of which document was parsed first, of overlapping calls in other
+threads, and of the pytest-xdist worker that runs it. Tests may patch the
+module's own `Parser` and `github` names to observe that boundary; those
+doubles are test machinery, not a production extension point.
+
+Wenmode failures pass through unchanged. Constructing the parser, parsing the
+source, or converting the document may raise, and this seam neither wraps,
+translates, nor swallows those exceptions; categorizing them as
+`MarkdownAstError` belongs to the application pipeline that can describe the
+failing operation. The module name is underscore-prefixed and excluded from
+`syrupy_mdast.__all__`, so the seam is internal to the package and the tests
+that exercise it, and is not a consumer entrypoint.
+
+Installed evidence exercises the same seam. The probe in
+`tests/support/wenmode_runtime_probe.py` parses five documents through it in a
+fresh wheel and a fresh editable installation, and a sensitivity control reruns
+that probe with the seam replaced by a raising callable and requires the probe
+to fail. The control matters because a probe that imported Wenmode directly
+still succeeds under that replacement, so only a failing control makes the
+passing run evidence about the seam rather than about the dependency alone. It
+is installation and isolation evidence about the seam, not evidence about the
+public surface; `tests/features/public_extension.feature` covers the public
+surface through the registered extension.
 
 The GitHub profile extends the CommonMark preset and enables tables,
 strikethrough, task lists, extended autolinks, and footnotes.[^2] It also

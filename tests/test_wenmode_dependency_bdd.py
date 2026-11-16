@@ -10,6 +10,12 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.support.package_boundary import find_javascript_assets
+from tests.support.wenmode_adapter import (
+    UNRESOLVED_DOCUMENT,
+    footnote_texts,
+    plain_text_root,
+    reference_urls,
+)
 from tests.support.wenmode_installation import Wheelhouse, install_and_probe
 from tests.support.wenmode_offline_install import install_without_wenmode
 
@@ -36,7 +42,7 @@ def parser_results(
 
 @pytest.fixture
 def scenario_state() -> dict[str, object]:
-    """Hold evidence produced by the current behavioural scenario."""
+    """Hold evidence produced by the current installation scenario."""
     return {}
 
 
@@ -57,13 +63,13 @@ def isolation_contract_is_checked() -> None:
     """Rely on the child probe audit-hook controls before parsing."""
 
 
-@when("the reviewed GitHub parser parses the smoke documents")
+@when("the installed internal Wenmode adapter parses the smoke documents")
 def parse_smoke_documents(
     installation_mode: str,
     parser_results: dict[str, tuple[str, list[object]]],
     scenario_state: dict[str, object],
 ) -> None:
-    """Run the real parser in a fresh offline environment and external cwd."""
+    """Run the installed adapter in a fresh offline environment and external cwd."""
     output, _ast = parser_results[installation_mode]
     scenario_state.update(mode=installation_mode, output=output)
 
@@ -80,7 +86,7 @@ def wenmode_version_and_origin(
 
 @then("the expected root and child semantics are returned")
 def parsed_ast_semantics(scenario_state: dict[str, object]) -> None:
-    """Require empty, heading, and task-list parser results to pass assertions."""
+    """Require the adapter's five smoke documents to keep their own semantics."""
     output = str(scenario_state["output"])
     assert "isolation=passed" in output, "the isolated parser probe must pass"
     assert str(scenario_state["mode"]) in output, (
@@ -98,6 +104,16 @@ def parsed_ast_semantics(scenario_state: dict[str, object]) -> None:
     task_items = ast_results[2]["children"][0]["children"]
     assert [item["checked"] for item in task_items] == [True, False], (
         "the task-list smoke document must preserve checked states"
+    )
+    defined_document, unresolved_document = ast_results[3], ast_results[4]
+    assert reference_urls(defined_document) == ["https://example.com/first"], (
+        "the installed adapter must resolve a reference the same document defines"
+    )
+    assert footnote_texts(defined_document) == ["First footnote text."], (
+        "the installed adapter must resolve a footnote the same document defines"
+    )
+    assert unresolved_document == plain_text_root(UNRESOLVED_DOCUMENT), (
+        "a later document must not inherit labels defined by an earlier call"
     )
 
 

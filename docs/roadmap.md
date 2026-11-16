@@ -68,7 +68,7 @@ boundary before parsing logic depends on it.
     lockfile, or installed JavaScript package assets.
   - Success: an isolated Python installation imports the selected Wenmode
     release without a JavaScript runtime or network access at parse time.
-- [ ] 1.2.2. Define the narrow internal Wenmode adapter seam.
+- [x] 1.2.2. Define the narrow internal Wenmode adapter seam.
   - Requires 1.2.1.
   - Construct a fresh `Parser(github(), positions=False)` for every adapter
     call.
