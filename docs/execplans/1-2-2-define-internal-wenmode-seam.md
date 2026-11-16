@@ -450,6 +450,15 @@ reviewed configuration instead.
   serialisation. The direct scenario keeps the `NotImplementedError` naming
   2.3.1. The change measures 21 non-ExecPlan files and 1754 net lines, inside
   the revised limits, and the full gate sequence is rerun on the resulting tree.
+- 2026-11-16: CodeRabbit's assessment of `2c59f41` withdrew the earlier request
+  for a `NotImplementedError` through a registered assertion, confirming from
+  the tagged Syrupy 5.0.0 and 6.0.0 sources that both supply a matcher callable
+  and record serialization failures. It kept one documentation inconsistency
+  under R5: the users' guide's corpus paragraph still said valid `str` input
+  raises `NotImplementedError` without noting that this describes a direct
+  `serialize` call with no property controls. The paragraph now says so, which
+  matches the paragraph above it and the two public-boundary scenarios. The E6
+  sequence is rerun on the resulting tree.
 
 ## Outcomes & retrospective
 

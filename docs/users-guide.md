@@ -34,7 +34,8 @@ The
 [canonical Markdown contract corpus](../tests/fixtures/markdown_contract/README.md)
 records normative comparison examples and hand-authored expected results for
 future parser and canonicalization work. It does not make serialization
-available today; valid `str` input continues to raise `NotImplementedError`.
+available today; a direct `serialize` call on valid `str`, with no property
+controls set, continues to raise `NotImplementedError`.
 
 ## Handling MarkdownAstError
 
