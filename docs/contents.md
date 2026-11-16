@@ -61,3 +61,6 @@ documentation set.
 - [Internal Wenmode adapter seam](execplans/1-2-2-define-internal-wenmode-seam.md)
   records delivery of roadmap 1.2.2, including the per-call parser ownership
   contract and its installed-probe evidence.
+- [Wenmode normative AST decisions](execplans/1-2-3-prove-wenmodes-normative-ast-decisions.md)
+  plans roadmap 1.2.3, which pins the ratified reference, footnote,
+  nullable-member, and raw HTML decisions with parser-backed probes.
