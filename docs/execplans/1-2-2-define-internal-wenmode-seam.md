@@ -1,7 +1,7 @@
 # Define the internal Wenmode seam (1.2.2)
 
 Status: COMPLETE — implemented and locally validated (2026-11-15). The change
-fits the size tolerances (21 non-ExecPlan files and 1717 net lines at the
+fits the size tolerances (21 non-ExecPlan files and 1754 net lines at the
 public-boundary repair head) after the reviewer raised them to 24 non-ExecPlan
 files and 2400 net lines; hosted assessment and merge remain with the pull
 request.
@@ -53,7 +53,7 @@ ExecPlan files are excluded from both counts. The original limits were 16 files
 and 900 net lines; after the completed change measured 19 files and 1596 net
 lines at that point, the reviewer raised both limits on 2026-11-15, and the
 Decision log records the measurements, the escalation, and that decision. The
-change measures 1717 net lines at the public-boundary repair head, still within
+change measures 1754 net lines at the public-boundary repair head, still within
 both limits. A required third-party annotation workaround involving `Any`, a
 cast, or a suppression requires evidence and review before adoption. Three
 unsuccessful fixes for the same failure trigger reassessment, not a weaker
@@ -175,14 +175,17 @@ not add a dummy production caller or a blanket suppression.
       behavioural test at the public boundary inside the change rather than a
       reference to the unchanged `tests/test_public_api_contract.py`. Added
       `tests/features/public_extension.feature` with its binding in
-      `tests/test_public_extension_bdd.py`, which serialises a valid document
-      through the published extension and through a registered Syrupy
-      assertion and requires the roadmap 2.3.1 refusal; a temporary mutant that
-      returns text instead of raising failed both scenarios for that intended
-      reason. Reclassified the seam suites as contract scenarios in the plan,
+      `tests/test_public_extension_bdd.py`. The direct scenario requires the
+      roadmap 2.3.1 `NotImplementedError`; the registered scenario compares
+      through the assertion and requires the rejected `matcher` control, which
+      is where a consumer's path stops today. A temporary mutant that returns
+      text instead of raising failed the direct scenario, and later comparison
+      through the assertion showed the registered path never reaches
+      serialisation at all. Reclassified the seam suites as contract scenarios
+      in the plan,
       the feature and binding docstrings, and the installation harness, and
       removed the behavioural labels from the design and developers' guides.
-      The change now measures 21 non-ExecPlan files and 1717 net lines.
+      The change now measures 21 non-ExecPlan files and 1754 net lines.
 
 ## Surprises & discoveries
 
@@ -263,6 +266,17 @@ so the exception survives the rebase; only the duplicate symbol pin in
 `tests/test_skylos_lint_contract.py` does not. Re-adding that pin would restore
 a layer the repository deliberately removed, so the guarantee is recorded as
 reviewed configuration instead.
+
+- 2026-11-16: Comparing through a registered Syrupy assertion exposed a
+  behaviour the direct-call checks could not see. Syrupy 6.0.0 always passes a
+  `matcher` callable to `serialize`, even when no matcher is configured, so a
+  registered assertion stops at the extension's unsupported-control
+  `ValueError` before serialisation; `NotImplementedError` is reachable only
+  through a direct `serialize` call. The users' guide and design section 6 now
+  say so, and the serialization milestone owns deciding how the matcher hook is
+  satisfied. The new scenario records Syrupy's diff, which is how the failure
+  reaches a consumer, and pytest-syrupy also prints `1 snapshot failed` for the
+  deliberate comparison while the test itself passes.
 
 ## Decision log
 
@@ -424,8 +438,18 @@ reviewed configuration instead.
   installation harness now say so. The mutation that returns text from
   `serialize` instead of raising failed both new scenarios with
   `valid Markdown must reach the planned serializer, not be accepted`, so the
-  scenarios are not vacuous. The change measures 21 non-ExecPlan files, 1772
-  insertions, 55 deletions, and 1717 net lines, still inside the revised limits.
+  scenarios are not vacuous. The change measures 21 non-ExecPlan files, 1811
+  insertions, 57 deletions, and 1754 net lines, still inside the revised limits.
+- 2026-11-16: CodeRabbit's assessment of `fb2aee9` found that the registered
+  scenario stored only `assertion.extension` and then called `serialize`
+  directly, so it did not serialise through the assertion the scenario names.
+  The finding is valid. The scenario now keeps the assertion, compares a valid
+  document through it, and requires the comparison to fail and Syrupy's
+  recorded diff to name the unsupported `matcher` control; that is the
+  consumer-visible path, because Syrupy always supplies the matcher hook before
+  serialisation. The direct scenario keeps the `NotImplementedError` naming
+  2.3.1. The change measures 21 non-ExecPlan files and 1754 net lines, inside
+  the revised limits, and the full gate sequence is rerun on the resulting tree.
 
 ## Outcomes & retrospective
 
@@ -653,12 +677,24 @@ Feature: Public Markdown snapshot extension defers serialisation
     When a caller serialises a valid Markdown document directly
     Then the extension refuses with the planned roadmap task
 
-  Scenario: A registered Syrupy assertion defers the same way
+  Scenario: A registered Syrupy assertion is refused before serialisation
     Given a Syrupy snapshot assertion using the public extension
-    When that assertion serialises a valid Markdown document
-    Then the extension refuses with the planned roadmap task
+    When that assertion compares a valid Markdown document
+    Then the comparison does not match
+    And Syrupy reports the rejected property control
     And the registered extension is the public type
 ```
+
+The registered scenario compares through the assertion itself, which is the
+path a consumer's `assert data == snapshot` takes, and reads Syrupy's recorded
+diff. It cannot require the roadmap refusal there: Syrupy 6.0.0 supplies a
+`matcher` callable to every serializer, so the extension's control guard fires
+before serialisation. The recorded diff therefore names the `matcher`
+rejection, and satisfying that hook belongs to roadmap 2.3.1. The direct
+scenario carries the `NotImplementedError` naming 2.3.1. The comparison also
+records one failed snapshot in Syrupy's session report; pytest still passes,
+because the scenarios assert on the recorded evidence rather than on an
+assertion statement.
 
 Add `tests/features/wenmode_adapter.feature` and bind its scenarios in
 `tests/test_wenmode_adapter_bdd.py` using existing pytest-bdd conventions.

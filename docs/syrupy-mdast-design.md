@@ -215,7 +215,10 @@ Syrupy passes `exclude`, `include`, and `matcher` to serializers. Those options
 describe traversal of Python object properties and have no defined meaning for
 a Markdown source string. The extension rejects any non-`None` value with
 `ValueError`; silently ignoring them would make tests appear more selective
-than they are.
+than they are. Syrupy supplies a `matcher` callable even when no matcher is
+configured, so a registered assertion currently stops at that rejection rather
+than at the serialization refusal; the serialization milestone must decide how
+the matcher hook is satisfied.
 
 `MarkdownAstError` is defined in the dependency-free domain core and covers
 parser, canonicalization, and serialization failures after application-level
