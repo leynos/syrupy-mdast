@@ -100,7 +100,7 @@ An exact requirement can conflict with another dependency that requires a
 different Wenmode release. A security fix that requires a new version must be
 reviewed and released promptly under ADR-003's upgrade process. The recorded
 wheel digest identifies the reviewed archive; implementation tests must still
-verify the acquired artifact and its installed licence metadata.
+verify the acquired artefact and its installed licence metadata.
 
 ## Architectural rationale
 

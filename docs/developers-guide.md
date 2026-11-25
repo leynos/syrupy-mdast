@@ -98,6 +98,17 @@ Run `make audit` as the dependency vulnerability gate. It runs `pip-audit` for
 Python dependencies, and Rust-enabled projects also run `cargo audit` from the
 `rust_extension` crate directory.
 
+Run `make spelling` to enforce en-GB-oxendict spelling in tracked Markdown. The
+shared `typos-config-builder` gate (v0.1.4, run under Python 3.14) regenerates
+`typos.toml` from the live shared dictionary and the `typos.local.toml` overlay
+on every run, so a word added to the shared dictionary needs no change here and
+`typos.toml` must never be drift checked in continuous integration. It is a
+generated artefact that is committed whenever the gate changes it; the local
+cache that keeps the gate usable when the authority is temporarily unreachable
+is ignored by Git. Add only narrow project-specific terms and exclusions to
+`typos.local.toml`, whose inline-code exemption applies to Markdown only; never
+edit generated `typos.toml` by hand. `make all` runs the gate.
+
 ## Maintain syrupy-mdast
 
 Treat the [technical design](syrupy-mdast-design.md) as the normative v1
@@ -252,7 +263,7 @@ the seam. `install_and_probe` runs the control in both installation modes,
 which keeps the wheel and editable reports equally sensitive. The probe is
 installation and isolation evidence about the seam, not evidence about the
 public surface: the seam has no public entrypoint until roadmap 2.1.1
-implements the parsing pipeline and 2.3.1 the snapshot serialisation. The
+implements the parsing pipeline and 2.3.1 the snapshot serialization. The
 public surface is covered by `tests/test_public_api_contract.py` and,
 behaviourally, by the scenarios in `tests/features/public_extension.feature`.
 
@@ -322,15 +333,15 @@ under `.github/`.
   coverage path.
 - `.github/workflows/release.yml` publishes wheels when a `v*.*.*` tag is
   pushed. It builds a pure Python wheel, creates a GitHub release with
-  generated release notes, downloads wheel artifacts, and uploads them to the
+  generated release notes, downloads wheel artefacts, and uploads them to the
   tag release.
 - `.github/workflows/build-wheels.yml` is a reusable workflow for extension
   builds. It accepts a Python version and builds wheels across Linux, Windows,
   and macOS architectures via `.github/actions/build-wheels`.
 - `.github/actions/build-wheels` wraps `cibuildwheel` with `uvx` and uploads
-  architecture-specific wheel artifacts.
+  architecture-specific wheel artefacts.
 - `.github/actions/pure-python-wheel` builds a pure Python wheel with
-  `uv build --wheel` and uploads the resulting artifact.
+  `uv build --wheel` and uploads the resulting artefact.
 - `.github/dependabot.yml` enables dependency update pull requests for GitHub
   Actions and Python packages. Rust-enabled projects also receive Cargo updates.
 

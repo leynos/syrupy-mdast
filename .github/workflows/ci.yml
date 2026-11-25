@@ -94,6 +94,9 @@ jobs:
         with:
           globs: '**/*.md'
 
+      - name: Spelling
+        run: make spelling
+
       - name: Run lint gates
         run: make lint
 

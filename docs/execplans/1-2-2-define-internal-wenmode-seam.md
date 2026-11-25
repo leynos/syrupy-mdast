@@ -141,7 +141,7 @@ not add a dummy production caller or a blanket suppression.
       defect and withdrew the E3 request, leaving three asks: a fresh mutant
       log, the current-head size measurement, and the Module-Level pre-merge
       re-run after readiness. The serialized-lock mutant now fails both overlap
-      parametrisations by bounded assertion in 10.22 s, the dedicated
+      parametrizations by bounded assertion in 10.22 s, the dedicated
       `-n 2 --dist=each` run passes both tests on `gw0` and `gw1`, and the
       recorded measurement is 1596 net lines at `ec3f7c9`.
 - [x] (2026-11-15) The reviewer raised the size limits to 24 non-ExecPlan
@@ -166,7 +166,7 @@ not add a dummy production caller or a blanket suppression.
 - [x] (2026-11-15) Assessment of `0e267bc` withdrew the double-removal request
       and confirmed the ADR and E6 corrections, but found two valid items: four
       references said the comparison pipeline was scheduled for 1.2.3, while
-      the roadmap puts parsing at 2.1.1 and snapshot serialisation at 2.3.1;
+      the roadmap puts parsing at 2.1.1 and snapshot serialization at 2.3.1;
       and the recorded size predated the review reconciliation. Both are
       corrected here, and the reconciliation head measures 1606 net lines.
 - [x] (2026-11-16) Reconcile the managed-queue review of `0cf5192`. It found no
@@ -182,7 +182,7 @@ not add a dummy production caller or a blanket suppression.
       is where a consumer's path stops today. A temporary mutant that returns
       text instead of raising failed the direct scenario, and later comparison
       through the assertion showed the registered path never reaches
-      serialisation at all. Reclassified the seam suites as contract scenarios
+      serialization at all. Reclassified the seam suites as contract scenarios
       in the plan,
       the feature and binding docstrings, and the installation harness, and
       removed the behavioural labels from the design and developers' guides.
@@ -273,7 +273,7 @@ reviewed configuration instead.
   behaviour the direct-call checks could not see. Syrupy 6.0.0 always passes a
   `matcher` callable to `serialize`, even when no matcher is configured, so a
   registered assertion stops at the extension's unsupported-control
-  `ValueError` before serialisation; `NotImplementedError` is reachable only
+  `ValueError` before serialization; `NotImplementedError` is reachable only
   through a direct `serialize` call. The users' guide and design section 6 now
   say so, and the serialization milestone owns deciding how the matcher hook is
   satisfied. The new scenario records Syrupy's diff, which is how the failure
@@ -385,7 +385,7 @@ reviewed configuration instead.
 - 2026-11-15: The follow-up assessment of `ec3f7c9` found no production defect
   and withdrew the E3 request, but asked for the mutation log rather than the
   report. Rerunning the serialized-lock mutant against the overlap tests alone
-  fails both parametrisations with
+  fails both parametrizations with
   `AssertionError: both calls must be inside parse before either proceeds` once
   the five-second bound expires, with no pytest timeout, and the mutant is
   restored before the gates. The same assessment measured 1596 net lines at
@@ -421,7 +421,7 @@ reviewed configuration instead.
 - 2026-11-15: The assessment of `0e267bc` withdrew the double-removal request
   and confirmed the ADR and E6 corrections, then found two valid documentation
   items. The roadmap schedules normative AST probes at 1.2.3, parsing at 2.1.1,
-  and snapshot serialisation at 2.3.1, so the four places that treated the
+  and snapshot serialization at 2.3.1, so the four places that treated the
   comparison pipeline as a 1.2.3 deliverable now name 2.1.1, and 2.3.1 where
   the public entrypoint is meant: this plan's two statements, the developers'
   guide, and the Skylos rationale in `pyproject.toml`. The size record also
@@ -445,12 +445,12 @@ reviewed configuration instead.
   revised limits.
 - 2026-11-16: CodeRabbit's assessment of `fb2aee9` found that the registered
   scenario stored only `assertion.extension` and then called `serialize`
-  directly, so it did not serialise through the assertion the scenario names.
+  directly, so it did not serialize through the assertion the scenario names.
   The finding is valid. The scenario now keeps the assertion, compares a valid
   document through it, and requires the comparison to fail and Syrupy's
   recorded diff to name the unsupported `matcher` control; that is the
   consumer-visible path, because Syrupy always supplies the matcher hook before
-  serialisation. The direct scenario keeps the `NotImplementedError` naming
+  serialization. The direct scenario keeps the `NotImplementedError` naming
   2.3.1. The change measures 21 non-ExecPlan files and 1754 net lines at that
   head, inside the revised limits, and the full gate sequence is rerun on the
   resulting tree.
@@ -471,7 +471,7 @@ reviewed configuration instead.
 Both milestones are implemented and locally validated, and roadmap 1.2.2 is
 claimed done; roadmap 1.2.3 and later work, including the deferred corpus, the
 canonicalizer, and the public pipeline (2.1.1 parsing, 2.3.1 snapshot
-serialisation), remain open.
+serialization), remain open.
 
 The seam is one production function that constructs
 `Parser(github(), positions=False)`, parses once, and returns `to_ast()`
@@ -683,16 +683,16 @@ Add `tests/features/public_extension.feature` and bind its scenarios in
 `tests/test_public_extension_bdd.py`. These are behavioural scenarios at the
 public boundary: every step drives `syrupy_mdast.MarkdownAstSnapshotExtension`
 or a Syrupy snapshot assertion configured with it, never `_wenmode`, and they
-record what a consumer observes until roadmap 2.3.1 implements serialisation.
+record what a consumer observes until roadmap 2.3.1 implements serialization.
 
 ```gherkin
-Feature: Public Markdown snapshot extension defers serialisation
-  Scenario: A direct call defers serialisation to the planned serializer
+Feature: Public Markdown snapshot extension defers serialization
+  Scenario: A direct call defers serialization to the planned serializer
     Given the public Markdown snapshot extension
     When a caller serialises a valid Markdown document directly
     Then the extension refuses with the planned roadmap task
 
-  Scenario: A registered Syrupy assertion is refused before serialisation
+  Scenario: A registered Syrupy assertion is refused before serialization
     Given a Syrupy snapshot assertion using the public extension
     When that assertion compares a valid Markdown document
     Then the comparison does not match
@@ -704,7 +704,7 @@ The registered scenario compares through the assertion itself, which is the
 path a consumer's `assert data == snapshot` takes, and reads Syrupy's recorded
 diff. It cannot require the roadmap refusal there: Syrupy 6.0.0 supplies a
 `matcher` callable to every serializer, so the extension's control guard fires
-before serialisation. The recorded diff therefore names the `matcher`
+before serialization. The recorded diff therefore names the `matcher`
 rejection, and satisfying that hook belongs to roadmap 2.3.1. The direct
 scenario carries the `NotImplementedError` naming 2.3.1. The comparison also
 records one failed snapshot in Syrupy's session report; pytest still passes,
@@ -737,7 +737,7 @@ Feature: Contract scenarios for independent internal Wenmode adapter calls
 
 They are not behavioural acceptance of the public package: no public entrypoint
 is reachable for the seam until roadmap 2.1.1 implements the parsing pipeline
-and 2.3.1 the snapshot serialisation. The installed probe is installation and
+and 2.3.1 the snapshot serialization. The installed probe is installation and
 isolation evidence about the same seam, not evidence about the public surface.
 Keep real-parser scenarios and deliberate double failures clearly
 distinguished. Update the existing installation feature's parsing step to name
