@@ -39,6 +39,10 @@ RUFF = $(UV_ENV) $(UV) tool run --from ruff==$(RUFF_VERSION) ruff
 # .github/workflows/ci.yml, and fix new diagnostics in the same commit.
 TY_VERSION ?= 0.0.74
 TY = $(UV_ENV) $(UV) tool run --from ty==$(TY_VERSION) ty
+TYPOS_CONFIG_BUILDER_VERSION ?= v0.1.4
+TYPOS_CONFIG_BUILDER = $(UV_ENV) $(UV) tool run --python 3.14 --from \
+	"git+https://github.com/leynos/typos-config-builder.git@$(TYPOS_CONFIG_BUILDER_VERSION)" \
+	typos-config-builder
 WITH_ACT ?= 0
 ACT_TEST_ENV = $(if $(filter 1 true yes on,$(WITH_ACT)),RUN_ACT_VALIDATION=1,)
 PYTEST_XDIST_WORKERS ?= auto
@@ -77,7 +81,7 @@ SKYLOS = $(UV_ENV) $(UV) tool run --python 3.14 --from \
 
 
 .PHONY: help all audit clean build build-release lint lint-python fmt check-fmt \
-        makeutil markdownlint nixie skylos skylos-allow test typecheck \
+        makeutil markdownlint nixie skylos skylos-allow spelling test typecheck \
         $(TOOLS) $(VENV_TOOLS) test-workflow-contracts
 
 .DEFAULT_GOAL := all
@@ -85,7 +89,7 @@ SKYLOS = $(UV_ENV) $(UV) tool run --python 3.14 --from \
 test-workflow-contracts: ## Check the CV-005 CodeScene workflow contracts
 	$(CV005_CONTRACTS) check --repository .
 
-all: build check-fmt lint typecheck test test-workflow-contracts
+all: build check-fmt lint typecheck spelling test test-workflow-contracts
 
 define ensure_uv
 	@command -v $(UV) >/dev/null 2>&1 || { \
@@ -183,6 +187,9 @@ audit: build ## Audit dependencies for known vulnerabilities
 
 markdownlint: $(MDLINT) ## Lint Markdown files
 	env -u NO_COLOR $(MDLINT) '**/*.md'
+
+spelling: ## Enforce en-GB-oxendict spelling
+	$(TYPOS_CONFIG_BUILDER) gate --repository .
 
 nixie: ## Validate Mermaid diagrams
 	$(call ensure_tool,$(NIXIE))

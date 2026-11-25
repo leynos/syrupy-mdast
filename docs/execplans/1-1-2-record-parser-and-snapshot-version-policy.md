@@ -732,7 +732,7 @@ outside its examples.
   versioning policy and reciprocal links to the current normalization record.
   Extend DEC-3's 1.1.2 roadmap reconciliation to name both records. Preserve
   runtime/dependency/fixture exclusions and the approved Wenmode range. No
-  production behavior or byte contract changes. Date/Author: 2026-10-11,
+  production behaviour or byte contract changes. Date/Author: 2026-10-11,
   maintainer instruction in this conversation.
 
 - DEC-25. Decision: record the maintainer's explicit acceptance of both
@@ -1084,8 +1084,8 @@ settings, equals its own text (a fixed point); every mapping in it follows
 `test_design_json_examples_are_writer_fixed_points`. Rationale: the design's
 examples are the first thing an implementer copies; this is the only place in
 this task where the contract can be executed. Non-vacuity: assert at least one
-`json` block is found in design §8. Negative control: UNIT-3 feeds a
-mis-ordered and a mis-indented example to the same checker.
+`json` block is found in design §8. Negative control: UNIT-3 feeds a misordered
+and a misindented example to the same checker.
 
 **DOC-7: accepted policy and reciprocal record links.** Statement: the current
 normalization record's `### Versioning policy` links an existing Accepted
@@ -1099,7 +1099,7 @@ records' option acceptance notes retain the A/G labels and 2026-10-11 source;
 those notes do not substitute for complete-record status.
 
 **UNIT-1 to UNIT-3: helper happy and unhappy paths.** In
-`tests/test_snapshot_contract_adr.py`, named examples against hand-written
+`tests/test_snapshot_contract_adr.py`, named examples against handwritten
 Markdown strings:
 
 1. UNIT-1: `adr_status` returns `Accepted`, `Proposed`, and
@@ -1111,7 +1111,7 @@ Markdown strings:
 3. UNIT-3: `key_order_problems` reports a duplicate, `position`, a wrong first
    or last key, and `data` after `children`; `rule_order_problems` reports
    `merge-plain-text` after `normalize-line-endings`; `writer_problems` reports
-   a mis-ordered mapping and a mis-indented document.
+   a misordered mapping and a misindented document.
 
 Rationale: parameterized named examples cover the finite input shapes
 exhaustively. Evidence: red first, because the helpers are written as stubs

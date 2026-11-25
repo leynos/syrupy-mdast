@@ -209,3 +209,7 @@ target/
 .pyproject.toml.df12.lock
 
 .wenmode-acceptance.*
+
+# Untracked cache of the estate-wide en-GB-oxendict dictionary.
+.typos-oxendict-base.json
+.typos-oxendict-base.toml
