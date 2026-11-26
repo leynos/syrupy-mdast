@@ -57,7 +57,7 @@ jobs:
       - name: Install makeutil
         id: makeutil
         # A digest-verified prebuilt release rather than a from-source build.
-        uses: leynos/shared-actions/.github/actions/install-makeutil@ebe2f3105334283441f4c915eb979a0f4b9f2c04
+        uses: leynos/shared-actions/.github/actions/install-makeutil@ab6505246c6b043b742a225e428e00448c0a37af
 
       - name: Verify makeutil
         # Prove the installed binary runs, matches the release the action
@@ -77,7 +77,7 @@ jobs:
       - name: Install mdtablefix
         # `make check-fmt` runs `mdtablefix --check --git`; 0.6.0 is the
         # first release with `--check` and `--git`.
-        uses: leynos/shared-actions/.github/actions/install-mdtablefix@c5a54701c8603a0fa756a6b34c49bc2af75a6c11
+        uses: leynos/shared-actions/.github/actions/install-mdtablefix@ab6505246c6b043b742a225e428e00448c0a37af
         with:
           version: "0.6.1"
 
@@ -101,7 +101,7 @@ jobs:
         run: make lint
 
       - name: Dead-code gate
-        uses: leynos/shared-actions/.github/actions/df12-skylos@a0519a1476ab769ca7b8badfa794f3751213f1ea
+        uses: leynos/shared-actions/.github/actions/df12-skylos@ab6505246c6b043b742a225e428e00448c0a37af
 
       - name: Run typechecker
         run: make typecheck
@@ -126,7 +126,7 @@ jobs:
         # differently. Both lanes pin one interpreter; the contract holds it.
         env:
           UV_PYTHON: '3.13'
-        uses: leynos/shared-actions/.github/actions/generate-coverage@dbe2e22ceaf498d85512679ccded38be9dbe7777
+        uses: leynos/shared-actions/.github/actions/generate-coverage@ab6505246c6b043b742a225e428e00448c0a37af
         with:
           python-source: ./syrupy_mdast
           output-path: coverage.xml
