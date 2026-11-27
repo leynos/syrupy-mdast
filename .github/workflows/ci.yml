@@ -29,7 +29,7 @@ jobs:
       # bump them together.
       RUFF_VERSION: 0.16.4
       TY_VERSION: 0.0.74
-      
+
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
@@ -97,6 +97,8 @@ jobs:
       - name: Spelling
         run: make spelling
 
+      - name: Install the YAML lint tools
+        uses: leynos/shared-actions/.github/actions/install-yaml-lint@a108423efa7fb83565089449f2647d34286a48a4
       - name: Run lint gates
         run: make lint
 
