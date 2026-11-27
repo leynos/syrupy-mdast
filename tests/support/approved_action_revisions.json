@@ -44,6 +44,11 @@
           "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9": "v6.1.0, the estate's cache pin"
         }
       }
+    },
+    "leynos/shared-actions/.github/actions/install-yaml-lint": {
+      "a108423efa7fb83565089449f2647d34286a48a4": {
+        "nested_uses": {}
+      }
     }
   }
 }
