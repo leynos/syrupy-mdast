@@ -154,7 +154,7 @@ check-fmt: build ## Verify formatting
 
 	$(MDTABLEFIX) --check $(MDTABLEFIX_SELECT) $(MDTABLEFIX_RULES)
 
-lint: lint-python ## Run linters
+lint: lint-python yamllint actionlint ## Run linters
 
 lint-python: build ## Run Python linters
 	$(RUFF) check $(PYTHON_TARGETS)
@@ -202,3 +202,18 @@ test: build $(VENV_TOOLS) makeutil ## Run tests
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | \
 	awk 'BEGIN {FS=":.*##"; printf "Available targets:\n"} {gsub(/^[[:space:]]+/, "", $$2); printf "  %-20s %s\n", $$1, $$2}'
+
+YAMLLINT ?= yamllint
+ACTIONLINT ?= actionlint
+
+.PHONY: yamllint actionlint
+
+# yamllint reads `.yamllint.yml`, which extends `.yamllint-estate.yml`, and
+# resolves that path against the current directory, so run it from the root.
+yamllint: SHELL := bash
+yamllint: .SHELLFLAGS := -eo pipefail -c
+yamllint: ## Lint every tracked YAML file strictly
+	git ls-files -z '*.yml' '*.yaml' | xargs -0 -r $(YAMLLINT) --strict --
+
+actionlint: ## Lint the GitHub Actions workflows (and their shell scripts when ShellCheck is on PATH)
+	$(ACTIONLINT)

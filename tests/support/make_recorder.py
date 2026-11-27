@@ -113,6 +113,13 @@ def run_make(
         make_executable(),
         "-f",
         str(REPO_ROOT / "Makefile"),
+        # `lint` also depends on the YAML lint targets, which need a Git work
+        # tree and the estate tools and are not under test here: `-o` tells
+        # Make to treat both as up to date.
+        "-o",
+        "yamllint",
+        "-o",
+        "actionlint",
         target,
         f"UV={recorder}",
     )
